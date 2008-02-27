@@ -3,6 +3,7 @@
 class DomainMap {
 	private $con;
 	private $map = array();
+	private $cache = array();
 
 	function __construct (PDO $pdo) {
 		$pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
@@ -32,18 +33,40 @@ class DomainMap {
 	}
 
 	function get ( $clazz, $pk ) {
-
+		$obj = new $clazz;
+		foreach ($this->map[$clazz] as $m) {
+			
+		}
 	}
 
-	function select ( DomainQuery $q ) {
-		$res = $this->con->query( $q->toSQL() );
-
-		$clazz = $q->getFrom();
+	function select ( $clazz, $where_clause ) {
+		$d = $this->map[$clazz];
+		$table = $d['table'];
+		
+		// select clause
+		$q = "SELECT ";
+		foreach ($d['mappings'] as $key=>$value) {
+			$cols[] = $table.'.'.$value;
+		}
+		$q .= implode(', ', $cols) . ' ';
+		
+		// from clause
+		$q .= "FROM " . $d['table'] . " ";
+		
+		// where clause
+		$q .= "WHERE ";
+		foreach ($d['mappings'] as $key=>$value) {
+			$where_clause = str_replace($clazz.'.'.$key, $table.'.'.$value, $where_clause);
+		}
+		$q .= $where_clause;
+		
+		echo $q;
+		
 		$coll = array();
-		foreach ($res as $row) {
+		foreach ($this->con->query($q, PDO::FETCH_ASSOC) as $row) {
 			$obj = new $clazz;
-			foreach ($this->map[$clazz]['mappings'] as $key=>$mapping) {
-				$obj->$key = $row[$mapping['column']];
+			foreach ($d['mappings'] as $key=>$value) {
+				$obj->$key = $row[$value];
 			}
 			$coll[] = $obj;
 		}
@@ -76,4 +99,25 @@ class DomainMap {
 	}
 }
 
+class DomainMapConfiguration {
+	
+}
 
+$conf = array(
+	'classes' => array(
+		'User' => array(
+			'table' => 'users',
+			'fields' => array(
+				'UserId' => array(
+					'user_id', 
+					'int', 
+					array('pk'=>true, 'autoIncrement'=>true)
+				),
+				'FirstName' => array(
+					'first_name',
+					'varchar'
+				)
+			)
+		)
+	)
+);
