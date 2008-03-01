@@ -1,6 +1,6 @@
 <?php
 
-class DomainMapper {
+class Outlet {
 	static $instance;
 
 	private $conf;
@@ -44,7 +44,7 @@ class DomainMapper {
 
 		$q = "SELECT * FROM $table " . $query;
 
-		$proxyclass = "{$clazz}_DomainMapperProxy";
+		$proxyclass = "{$clazz}_OutletProxy";
 		$collection = array();
 		foreach ($this->con->query($q, PDO::FETCH_ASSOC) as $row) {
 			$obj = new $proxyclass();
@@ -58,7 +58,7 @@ class DomainMapper {
 	public function createProxies () {
 		foreach ($this->conf['classes'] as $clazz => $settings) {
 			$c = "";
-			$c .= "class {$clazz}_DomainMapperProxy extends $clazz { \n";
+			$c .= "class {$clazz}_OutletProxy extends $clazz { \n";
 			if (isset($settings['associations'])) {
 				foreach ($settings['associations'] as $assoc) {
 					$type 	= $assoc[0];
@@ -71,7 +71,7 @@ class DomainMapper {
 						case 'many-to-one': 
 							$c .= "  function get$prop() { \n";
 							$c .= "    if (is_null(\$this->$prop)) { \n";
-							$c .= "      \$this->$prop = DomainMapper::getInstance()->load('$entity', \$this->$fk_local); \n";
+							$c .= "      \$this->$prop = Outlet::getInstance()->load('$entity', \$this->$fk_local); \n";
 							$c .= "    } \n";
 							$c .= "    return parent::get$prop(); \n";
 							$c .= "  } \n";
@@ -86,10 +86,10 @@ class DomainMapper {
 							$c .= "      } else { \n";
 							$c .= "        \$q = 'where $entity.$fk_foreign = '.\$this->$fk_local. ' ' . \$q; \n";
 							$c .= "      }\n";
-							$c .= "      \$this->$prop = DomainMapper::getInstance()->select('$entity', \$q); \n";
+							$c .= "      \$this->$prop = Outlet::getInstance()->select('$entity', \$q); \n";
 							$c .= "    } \n";
 							$c .= "    if (!count(parent::get$prop())) { \n";
-							$c .= "      \$this->$prop = DomainMapper::getInstance()->select('$entity', 'where $entity.$fk_foreign = '.\$this->$fk_local); \n";
+							$c .= "      \$this->$prop = Outlet::getInstance()->select('$entity', 'where $entity.$fk_foreign = '.\$this->$fk_local); \n";
 							$c .= "    } \n";
 							$c .= "    return parent::get{$assoc['1']}(); \n";
 							$c .= "  } \n";
@@ -106,7 +106,7 @@ class DomainMapper {
 	}
 
 	public function load ($clazz, $pk) {
-		$proxyclass = "{$clazz}_DomainMapperProxy";
+		$proxyclass = "{$clazz}_OutletProxy";
 		$obj = new $proxyclass();
 	
 		$table = $this->getTable($clazz);	
