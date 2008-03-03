@@ -1,34 +1,49 @@
 <?php
+require 'OutletPDO.php';
+require 'OutletMapper.php';
 
 class Outlet {
 	static $instance;
-
+	
 	private $conf;
 	private $con;
 	private $identity_map = array();
 	
 	static function init ( array $conf ) {
+		// instantiate
 		self::$instance = new self( $conf );
 	}
 
 	static function getInstance () {
+		if (!self::$instance) throw new Exception('You must first initialize Outlet by calling Outlet::init( $conf )');
 		return self::$instance;
 	}
 
 	private function __construct (array $conf) {
-		$this->conf = $conf;
-		$c = $conf['connection'];
-		
-		$this->con = new PDO('mysql:host='.$c['host'].';dbname='.$c['database'], $c['username'], $c['password']);
+		$this->con = new OutletPDO($conf['connection']['dsn'], @$con['connection']['username'], @$con['connection']['password']);	
 		$this->con->setAttribute( PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION );
+
+		$this->conf = $conf;
+
+		// setup the identity map
+		foreach ($conf['classes'] as $key=>$val) {
+			$this->identity_map[$key] = array();			
+		}
+	}
+
+	function set ($clazz, $pk, array $data) {
+		$this->identity_map[$clazz][$pk] = $data;
+	}
+
+	function get ($clazz, $pk) {
+		return @$this->identity_map[$clazz][$pk];
 	}
 	
-	public function save (&$obj) {		
-		if ($this->isNew($obj)) {
-			return $this->insert($obj);
-		} else {
-			return $this->update($obj);
-		}
+	public function save (&$obj) {	
+		$clazz = str_replace('_OutletProxy', '', get_class($obj));
+
+		$mapper = new OutletMapper($obj, $this->conf['classes'][$clazz]);
+		return $mapper->save();
 	}
 
 	public function select ( $clazz, $query ) {
@@ -99,7 +114,7 @@ class Outlet {
 			}
 			$c .= "} \n";
 
-			echo $c;
+			//echo $c;
 
 			eval($c);
 		}
@@ -147,31 +162,39 @@ class Outlet {
 	
 		return $obj;	
 	}
-	
-	public function insert ($obj) {
-		$table = $this->getTable($obj);	
-		$fields = $this->getFields($obj);
-		
-		$props = array_keys($fields);
-		$dbfields = array();
-		foreach ($fields as $f) {
-			$dbfields[] = $f[0];
-		}
-		
-		$q = "INSERT INTO $table ";
-		$q .= "(" . implode(', ', $dbfields) . ")";
-		$q .= " VALUES ";
-		$q .= "(" . implode(', ', str_split(str_repeat('?', count($dbfields)))) . ")";
-		
-		$stmt = $this->con->prepare($q);
-	
-		// get the values
-		$values = array();
-		foreach ($props as $p) {
-			$values[] = $obj->$p;
-		}
 
-		$stmt->execute($values);
+	function getConnection () {
+		return $this->con;
+	}
+	
+
+	public function update(&$obj) {
+		$clazz = str_replace('_OutletProxy', '', get_class($obj));
+		$table = $this->conf['classes'][$clazz]['table'];
+
+		$q = "UPDATE $table \n";
+		$q .= "SET \n";
+
+		$ups = array();
+		foreach ($this->conf['classes'][$clazz]['fields'] as $key=>$f) {
+			// skip primary key 
+			if (@$f[2]['pk']) continue;
+
+			$value = $this->con->quote( $obj->$key );
+			$ups[] = "  $f[0] = $value";
+		}
+		$q .= implode(", \n", $ups);
+
+		$q .= "\nWHERE ";
+
+		$clause = array();
+		foreach ($this->getPkFields($clazz) as $key=>$pk) {
+			$value = $this->con->quote( $obj->$key );
+			$clause[] = "$pk[0] = {$obj->$key}";
+		}
+		$q .= implode(' AND ', $clause);
+
+		$this->con->exec($q);
 	}
 
 	private function populateObject($clazz, $obj, array $values) {
@@ -186,20 +209,9 @@ class Outlet {
 	private function getTable($clazz) {
 		return $this->conf['classes'][$clazz]['table'];
 	}
-	
-	private function isNew($obj) {
-		$pks = $this->getPkFields( $obj );
 		
-		if (!count($pks)) throw new Exception('You must configure at least one primary key');
-		
-		foreach ($pks as $key => $field) {
-			if (!$obj->$key) return true;
-		}
-		return false;
-	}
-	
-	private function getFields ($obj) {
-		return $this->conf['classes'][$obj]['fields'];
+	private function getFields ($clazz) {
+		return $this->conf['classes'][$clazz]['fields'];
 	}
 	
 	private function getPkFields( $clazz ) {
