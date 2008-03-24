@@ -7,11 +7,20 @@ class OutletMapper {
 	private $clazz;
 	private $con;
 
-	function __construct (&$obj, &$conf) {
+	function __construct (&$obj) {
+		if (!is_object($obj)) throw new Exception('You must pass and object');
+		if ($obj instanceof OutletMapper) throw new Exception('You passed and OutletMapper object');
+
 		$this->obj = &$obj;
 		$this->clazz = str_replace('_OutletProxy', '', get_class($obj));
-		$this->conf = &$conf;
-		$this->con = Outlet::getInstance()->getConnection();
+
+		$outlet = Outlet::getInstance();
+
+		$this->con = $outlet->getConnection();
+
+		$conf = $outlet->getConfiguration();
+
+		$this->conf = &$conf['classes'][$this->clazz];
 	}
 
 	function save () {
@@ -26,16 +35,24 @@ class OutletMapper {
 		// if it's not in the identity map, it's new
 		$outlet = Outlet::getInstance();
 
-		if ( $outlet->get($this->clazz, $this->getPK()) ) return false;
+		if ( $this->getPK() || $outlet->get($this->clazz, $this->getPK()) ) return false;
 
 		return true;
 	}
 
-	private function getPK() {
+	public function getPK() {
 		$pks = array();
-		foreach ($this->conf['fields'] as $key=>$f) {
+
+		$pk_prop = self::getPkProp($this->clazz);
+
+		return $this->obj->$pk_prop;
+	}
+
+	static function getPkProp ( $clazz ) {
+		$conf = Outlet::getInstance()->getConfiguration();
+		foreach ($conf['classes'][$clazz]['props'] as $key=>$f) {
 			if (@$f[2]['pk'] == true) {
-				$pks[] = $this->obj->$key;
+				$pks[] = $key;
 			}
 
 			if (!count($pks)) throw new Exception('You must specified at least one primary key');
@@ -46,16 +63,71 @@ class OutletMapper {
 				return $pks;
 			}
 		}
+
 	}
 
-	private function insert () {	
-		$props = array_keys($this->conf['fields']);
+
+	private function saveOneToMany () {
+		foreach ($this->conf['associations'] as $assoc) {
+			$type = $assoc[0];
+			$entity = $assoc[1];
+
+			if ($type != 'one-to-many') continue;
+
+			$foreign_fk = $assoc[2]['foreign_key'];
+
+			$getter = "get{$entity}s";
+
+			$children = $this->obj->$getter(null);
+			foreach ($children as &$child) {
+				$child->$foreign_fk = $this->getPK();
+
+				$mapped = new self($child);
+				if ($mapped->isNew()) {
+					$mapped->save();
+				}
+			}
+
+			$setter = "set{$entity}s";
+			$this->obj->$setter( $children );
+		}
+	}
+
+	private function saveManyToOne () {
+		foreach ($this->conf['associations'] as $assoc) {
+			$type = $assoc[0];
+			$entity = $assoc[1];
+
+			if ($type != 'many-to-one') continue;
+
+			$local_fk = $assoc[2]['local_key'];
+
+			$method = "get$entity";
+			$ent = $this->obj->$method();
+
+			if ($ent) {
+				// wrap with a mapper
+				$mapped = new self($ent);
+
+				if ($mapped->isNew()) {
+					$mapped->save();
+					$this->obj->$local_fk = $mapped->getPK();
+				}
+			}
+		}
+
+	}
+
+	private function insert () {
+		$this->saveManyToOne();
+
+		$props = array_keys($this->conf['props']);
 		$table = $this->conf['table'];
 
 		// grab insert fields
 		$insert_fields = array();
 		$insert_props = array();
-		foreach ($this->conf['fields'] as $prop=>$f) {
+		foreach ($this->conf['props'] as $prop=>$f) {
 			// skip autoIncrement fields
 			if (@$f[2]['autoIncrement']) continue;
 
@@ -67,7 +139,7 @@ class OutletMapper {
 		$q .= "(" . implode(', ', $insert_fields) . ")";
 		$q .= " VALUES ";
 		$q .= "(" . implode(', ', str_split(str_repeat('?', count($insert_fields)))) . ")";
-		
+	
 		$stmt = $this->con->prepare($q);
 	
 		// get the values
@@ -75,12 +147,12 @@ class OutletMapper {
 		foreach ($insert_props as $p) {
 			$values[] = $this->obj->$p;
 		}
-
+	
 		$stmt->execute($values);
 
 		$proxy_class = "{$this->clazz}_OutletProxy";
 		$proxy = new $proxy_class;
-		foreach ($this->conf['fields'] as $key=>$f) {
+		foreach ($this->conf['props'] as $key=>$f) {
 			$field = $key;
 			if (@$f[2]['autoIncrement']) {
 				$id = $this->con->lastInsertId();
@@ -90,6 +162,48 @@ class OutletMapper {
 			}
 		}
 		$this->obj = $proxy;
+
+		$this->saveOneToMany();
 	}
+
+	public function update() {
+		$this->saveManyToOne();
+
+		$table = $this->conf['table'];
+
+		$q = "UPDATE $table \n";
+		$q .= "SET \n";
+
+		$ups = array();
+		foreach ($this->conf['props'] as $key=>$f) {
+			// skip primary key 
+			if (@$f[2]['pk']) continue;
+
+			$value = $this->con->quote( $this->obj->$key );
+			$ups[] = "  $f[0] = $value";
+		}
+		$q .= implode(", \n", $ups);
+
+		$q .= "\nWHERE ";
+
+		$clause = array();
+		foreach ($this->conf['props'] as $key=>$pk) {
+			// if it's not a primary key, skip it
+			if (!@$pk[2]['pk']) continue;
+
+			$value = $this->con->quote( $this->obj->$key );
+			$clause[] = "$pk[0] = {$this->obj->$key}";
+		}
+		$q .= implode(' AND ', $clause);
+
+		$this->con->exec($q);
+
+		$this->saveOneToMany();
+	}
+
+	function toArray () {
+		return (array) $this->obj;
+	}
+	
 }
 
