@@ -154,7 +154,7 @@ class Outlet {
 
 			$s .= $c;
 		}
-		file_put_contents(APPROOT.'/docroot/outlet-proxies.php', $s);
+		//file_put_contents(APPROOT.'/docroot/outlet-proxies.php', $s);
 	}
 
 	public function wrap ($obj) {
