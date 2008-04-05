@@ -60,7 +60,17 @@ class Outlet {
 		return $mapper->save();
 	}
 
-	public function select ( $clazz, $query='') {
+	public function delete ($clazz, $id) {
+		$table = $this->conf['classes'][$clazz]['table'];
+		$pks = $this->getPkFields($clazz);
+		$pk = array_shift($pks);
+
+		$q = "DELETE FROM $table WHERE ".$pk[0]." = '" . $id . "'";
+
+		return $this->con->exec($q);
+	}
+
+	public function select ( $clazz, $query='', $params=array()) {
 		$table = $this->conf['classes'][$clazz]['table'];
 
 		foreach ($this->conf['classes'] as $cls=>$settings) {
@@ -75,7 +85,11 @@ class Outlet {
 
 		$proxyclass = "{$clazz}_OutletProxy";
 		$collection = array();
-		foreach ($this->con->query($q, PDO::FETCH_ASSOC) as $row) {
+
+		$stmt = $this->con->prepare($q);
+		$stmt->execute($params);
+
+		while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
 			$obj = new $proxyclass();
 			$this->populateObject($clazz, $obj, $row);
 			$collection[] = $obj;
@@ -100,17 +114,28 @@ class Outlet {
 						case 'many-to-one': 
 							//$foreign_pk = $this->conf['classes'][$entity]['pk'];
 							$local_key = $assoc[2]['local_key'];
+							$name = (@$assoc[2]['name'] ? $assoc[2]['name'] : $entity);
+							$optional = (@$assoc[2]['optional'] ? $assoc[2]['optional'] : false);
 
-							$c .= "  function get$entity() { \n";
-							$c .= "    if (is_null(parent::get$entity())) { \n";
-							$c .= "      parent::set$entity( Outlet::getInstance()->load('$entity', \$this->$local_key) ); \n";
+							$c .= "  function get$name() { \n";
+							$c .= "    if (is_null(\$this->$local_key)) return parent::get$name(); \n";
+							$c .= "    if (is_null(parent::get$name())) { \n";
+							$c .= "      parent::set$name( Outlet::getInstance()->load('$entity', \$this->$local_key) ); \n";
 							$c .= "    } \n";
-							$c .= "    return parent::get$entity(); \n";
+							$c .= "    return parent::get$name(); \n";
 							$c .= "  } \n";
-							$c .= "  function set$entity($entity \$ref) { \n";
+							if ($optional) {
+								$c .= "  function set$name($entity \$ref=null) { \n";
+								$c .= "    if (is_null(\$ref)) { \n";
+								$c .= "      \$this->$local_key = null; \n";
+								$c .= "      return parent::set$name(null); \n";
+								$c .= "    } \n";
+							} else {
+								$c .= "  function set$name($entity \$ref) { \n";
+							}
 							$c .= "    \$mapped = new OutletMapper(\$ref); \n";
 							$c .= "    \$this->$local_key = \$mapped->getPK(); \n";
-							$c .= "    return parent::set$entity(\$ref); \n";
+							$c .= "    return parent::set$name(\$ref); \n";
 							$c .= "  } \n";
 							break;
 						case 'one-to-many':
@@ -197,6 +222,10 @@ class Outlet {
 		$res = $this->con->query($q);
 
 		$row = $res->fetch(PDO::FETCH_ASSOC);
+
+		// if there's matching row, 
+		// return null
+		if (!$row) return null;
 
 		$obj = $this->populateObject($clazz, $obj, $row);
 

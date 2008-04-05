@@ -101,8 +101,9 @@ class OutletMapper {
 			if ($type != 'many-to-one') continue;
 
 			$local_fk = $assoc[2]['local_key'];
+			$name = (@$assoc[2]['name'] ? $assoc[2]['name'] : $entity);
 
-			$method = "get$entity";
+			$method = "get$name";
 			$ent = $this->obj->$method();
 
 			if ($ent) {
@@ -127,24 +128,37 @@ class OutletMapper {
 		// grab insert fields
 		$insert_fields = array();
 		$insert_props = array();
+		$insert_defaults = array();
 		foreach ($this->conf['props'] as $prop=>$f) {
 			// skip autoIncrement fields
 			if (@$f[2]['autoIncrement']) continue;
 
 			$insert_props[] = $prop;
 			$insert_fields[] = $f[0];
+			$insert_defaults[] = @$f[2]['defaultExpr'];
 		}
 		
 		$q = "INSERT INTO $table ";
 		$q .= "(" . implode(', ', $insert_fields) . ")";
 		$q .= " VALUES ";
-		$q .= "(" . implode(', ', str_split(str_repeat('?', count($insert_fields)))) . ")";
+
+		// question marks for each value
+		// except for defaults
+		$values = array();
+		foreach ($insert_fields as $key=>$f) {
+			if ($insert_defaults[$key]) $values[] = $insert_defaults[$key];
+			else $values[] = '?';
+		}	
+		$q .="(" . implode(', ', $values) . ")";
 	
 		$stmt = $this->con->prepare($q);
 	
 		// get the values
 		$values = array();
-		foreach ($insert_props as $p) {
+		foreach ($insert_props as $key=>$p) {
+			// skip the defaults
+			if ($insert_defaults[$key]) continue;
+
 			$values[] = $this->obj->$p;
 		}
 	
