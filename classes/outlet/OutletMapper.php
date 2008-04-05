@@ -68,7 +68,7 @@ class OutletMapper {
 
 
 	private function saveOneToMany () {
-		foreach ($this->conf['associations'] as $assoc) {
+		foreach ((array) @$this->conf['associations'] as $assoc) {
 			$type = $assoc[0];
 			$entity = $assoc[1];
 
@@ -94,7 +94,7 @@ class OutletMapper {
 	}
 
 	private function saveManyToOne () {
-		foreach ($this->conf['associations'] as $assoc) {
+		foreach ((array) @$this->conf['associations'] as $assoc) {
 			$type = $assoc[0];
 			$entity = $assoc[1];
 
