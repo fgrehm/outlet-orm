@@ -113,33 +113,33 @@ class Outlet {
 					switch ($type) {
 						case 'many-to-one': 
 							//$foreign_pk = $this->conf['classes'][$entity]['pk'];
-							$local_key = $assoc[2]['local_key'];
+							$key = $assoc[2]['key'];
 							$name = (@$assoc[2]['name'] ? $assoc[2]['name'] : $entity);
 							$optional = (@$assoc[2]['optional'] ? $assoc[2]['optional'] : false);
 
 							$c .= "  function get$name() { \n";
-							$c .= "    if (is_null(\$this->$local_key)) return parent::get$name(); \n";
+							$c .= "    if (is_null(\$this->$key)) return parent::get$name(); \n";
 							$c .= "    if (is_null(parent::get$name())) { \n";
-							$c .= "      parent::set$name( Outlet::getInstance()->load('$entity', \$this->$local_key) ); \n";
+							$c .= "      parent::set$name( Outlet::getInstance()->load('$entity', \$this->$key) ); \n";
 							$c .= "    } \n";
 							$c .= "    return parent::get$name(); \n";
 							$c .= "  } \n";
 							if ($optional) {
 								$c .= "  function set$name($entity \$ref=null) { \n";
 								$c .= "    if (is_null(\$ref)) { \n";
-								$c .= "      \$this->$local_key = null; \n";
+								$c .= "      \$this->$key = null; \n";
 								$c .= "      return parent::set$name(null); \n";
 								$c .= "    } \n";
 							} else {
 								$c .= "  function set$name($entity \$ref) { \n";
 							}
 							$c .= "    \$mapped = new OutletMapper(\$ref); \n";
-							$c .= "    \$this->$local_key = \$mapped->getPK(); \n";
+							$c .= "    \$this->$key = \$mapped->getPK(); \n";
 							$c .= "    return parent::set$name(\$ref); \n";
 							$c .= "  } \n";
 							break;
 						case 'one-to-many':
-							$fk_foreign = $assoc[2]['foreign_key'];
+							$key = $assoc[2]['key'];
 							$pk_prop = OutletMapper::getPkProp($clazz);
 
 							$c .= "  function get{$entity}s() { \n";
@@ -155,9 +155,9 @@ class Outlet {
 							
 							// if there's a where clause
 							$c .= "    if (stripos(\$q, 'where') !== false) { \n";
-							$c .= "      \$q = 'where $entity.$fk_foreign = '.\$this->$pk_prop.' and ' . substr(\$q, 5); \n";
+							$c .= "      \$q = 'where $entity.$key = '.\$this->$pk_prop.' and ' . substr(\$q, 5); \n";
 							$c .= "    } else { \n";
-							$c .= "      \$q = 'where $entity.$fk_foreign = '.\$this->$pk_prop. ' ' . \$q; \n";
+							$c .= "      \$q = 'where $entity.$key = '.\$this->$pk_prop. ' ' . \$q; \n";
 							$c .= "    }\n";
 							$c .= "    parent::set{$entity}s( Outlet::getInstance()->select('$entity', \$q) ); \n";
 							/** not sure if i need this
