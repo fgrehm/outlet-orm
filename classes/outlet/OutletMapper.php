@@ -93,6 +93,33 @@ class OutletMapper {
 		}
 	}
 
+
+	private function saveManyToMany () {
+		throw new Exception('not implemented yet');
+		foreach ((array) @$this->conf['associations'] as $assoc) {
+			$type = $assoc[0];
+			$entity = $assoc[1];
+
+			if ($type != 'many-to-many') continue;
+
+			$key_column = $assoc[2]['key'];
+			$name = $assoc[2]['name'];
+
+			$getter = "get{$name}s";
+
+			$children = $this->obj->$getter(null);
+			foreach ($children as &$child) {
+				$mapped = new self($child);
+				if ($mapped->isNew()) {
+					$mapped->save();
+				}
+			}
+
+			$setter = "set{$entity}s";
+			$this->obj->$setter( $children );
+		}
+	}
+
 	private function saveManyToOne () {
 		foreach ((array) @$this->conf['associations'] as $assoc) {
 			$type = $assoc[0];
@@ -181,6 +208,7 @@ class OutletMapper {
 	}
 
 	public function update() {
+		// this first since this references the key
 		$this->saveManyToOne();
 
 		$table = $this->conf['table'];
@@ -212,7 +240,9 @@ class OutletMapper {
 
 		$this->con->exec($q);
 
+		// these last since they reference the key
 		$this->saveOneToMany();
+		$this->saveManyToMany();
 	}
 
 	function toArray () {

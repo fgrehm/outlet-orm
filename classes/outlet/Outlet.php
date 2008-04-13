@@ -71,17 +71,11 @@ class Outlet {
 	}
 
 	public function select ( $clazz, $query='', $params=array()) {
-		$table = $this->conf['classes'][$clazz]['table'];
+		// select plus criteria
+		$q = "SELECT {"."$clazz}.* FROM {".$clazz."} " . $query;
 
-		foreach ($this->conf['classes'] as $cls=>$settings) {
-			//$query = str_replace($cls, $settings['table'], $query);
-			foreach ($settings['props'] as $field=>$s) {
-				$query = str_replace("$cls.$field", "$table.$s[0]", $query);
-			}
-		}
-
-
-		$q = "SELECT * FROM $table " . $query;
+		// process the query
+		$q = $this->processQuery($q);
 
 		$proxyclass = "{$clazz}_OutletProxy";
 		$collection = array();
@@ -96,6 +90,52 @@ class Outlet {
 		}
 
 		return $collection;
+	}
+
+	private function processQuery ( $q ) {
+		preg_match_all('/\{[a-zA-Z0-9]+(( |\.)[a-zA-Z0-9]+)*\}/', $q, $matches, PREG_SET_ORDER);
+
+		// get the aliased classes
+		$aliased = array();
+		foreach ($matches as $key=>$m) {
+			// clear braces
+			$str = substr($m[0], 1, -1);
+
+			// if it's an aliased class
+			if (strpos($str, ' ')!==false) {
+				$tmp = explode(' ', $str);
+				$aliased[$tmp[1]] = $tmp[0];
+
+				$q = str_replace($m[0], $this->conf['classes'][$tmp[0]]['table'].' '.$tmp[1], $q);
+
+			// if it's a property
+			} elseif (strpos($str, '.')!==false) {
+				$tmp = explode('.', $str);
+
+				// if it's an alias
+				if (isset($aliased[$tmp[0]])) {
+					$col = $tmp[0].'.'.$this->conf['classes'][$aliased[$tmp[0]]]['props'][$tmp[1]][0];
+				} else {
+					$table = $this->conf['classes'][$tmp[0]]['table'];
+					$col = $table.'.'.$this->conf['classes'][$tmp[0]]['props'][$tmp[1]][0];
+				}
+
+				$q = str_replace(
+					$m[0], 
+					$col,
+					$q
+				);
+
+			// if it's a non-aliased class
+			} else {
+				$table = $this->conf['classes'][$str]['table'];
+				$aliased[$table] = $str;
+				$q = str_replace($m[0], $table, $q);
+			}
+
+		}
+
+		return $q;
 	}
 
 	public function createProxies () {
@@ -168,6 +208,18 @@ class Outlet {
 							$c .= "    return parent::get{$entity}s(); \n";
 							$c .= "  } \n";
 							break;
+						case 'many-to-many':
+							$key_column = $assoc[2]['key_column'];
+							$ref_column = $assoc[2]['ref_column'];
+							$table = $assoc[2]['table'];
+
+							$c .= "  function get{$entity}s() { \n";
+							$c .= "    \$q = 'INNER JOIN $table ON '; \n";
+
+							$c .= "    echo \$q; \n";
+							$c .= "    return parent::get{$entity}s(); \n";
+							$c .= "  } \n";	
+							break;	
 					}
 				}
 			}
