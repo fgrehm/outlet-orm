@@ -9,30 +9,7 @@ require_once 'entities.php';
 require_once 'OutletTestCase.php';
 
 // basic setup
-Outlet::init(
-	array(
-		'connection' => array(
-			'dsn' => 'sqlite:test.sq3'	
-		),
-		'classes' => array(
-			'Bug' => array(
-				'table' => 'bugs',
-				'fields' => array(
-					'ID' 		=> array('id', 'int', array('pk'=>true, 'autoIncrement'=>true)),
-					'Title'		=> array('title', 'varchar'),
-					'ProjectID' => array('project_id', 'int')
-				)
-			),
-			'Project' => array(
-				'table' => 'projects',
-				'fields' => array(
-					'ID' 	=> array('id', 'int', array('pk'=>true, 'autoIncrement'=>true)),
-					'Name'	=> array('name', 'varchar')
-				)
-			)
-		)
-	)
-);
+Outlet::init('outlet-config.php');
 Outlet::getInstance()->createProxies();
 
 $test = new GroupTest('All Tests');
