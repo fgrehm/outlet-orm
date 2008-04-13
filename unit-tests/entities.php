@@ -4,24 +4,30 @@ class Bug {
 	public $ID;
 	public $Title;
 	public $ProjectID;
-	protected $Project;
+
+	private $project;
 
 	function getProject () {
-		return $this->Project;
+		return $this->project;
+	}
+	function setProject (Project $p) {
+		$this->project = $p;	
 	}
 }
 
 class Project {
 	public $ID;
 
-	protected $Bugs = array();
+	private $bugs = array();
 
 	function getBugs () {
-		return $this->Bugs;
+		return $this->bugs;
 	}
-
+	function setBugs (array $bugs) {
+		$this->bugs = $bugs;
+	}
 	function addBug (Bug $bug) {
-		$this->Bugs[] = $bug;
+		$this->bugs[] = $bug;
 	}
 }
 

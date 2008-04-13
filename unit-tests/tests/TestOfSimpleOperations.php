@@ -14,7 +14,7 @@ class TestOfSimpleOperations extends OutletTestCase {
 
 		$this->assertEqual( $bug->ID, 1 , 'Row inserted' );
 
-		// test retrie
+		// test retrieve
 		$bug = $outlet->load('Bug', 1);
 
 		$this->assertEqual( $bug->Title, 'Test bug', 'Row retrieved' );

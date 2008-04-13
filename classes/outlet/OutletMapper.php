@@ -35,7 +35,7 @@ class OutletMapper {
 		// if it's not in the identity map, it's new
 		$outlet = Outlet::getInstance();
 
-		if ( $this->getPK() || $outlet->get($this->clazz, $this->getPK()) ) return false;
+		if ( $this->getPK() && $outlet->get($this->clazz, $this->getPK()) ) return false;
 
 		return true;
 	}
@@ -74,13 +74,13 @@ class OutletMapper {
 
 			if ($type != 'one-to-many') continue;
 
-			$foreign_fk = $assoc[2]['foreign_key'];
+			$key = $assoc[2]['key'];
 
 			$getter = "get{$entity}s";
 
 			$children = $this->obj->$getter(null);
 			foreach ($children as &$child) {
-				$child->$foreign_fk = $this->getPK();
+				$child->$key = $this->getPK();
 
 				$mapped = new self($child);
 				if ($mapped->isNew()) {
@@ -95,12 +95,12 @@ class OutletMapper {
 
 
 	private function saveManyToMany () {
-		throw new Exception('not implemented yet');
 		foreach ((array) @$this->conf['associations'] as $assoc) {
 			$type = $assoc[0];
 			$entity = $assoc[1];
 
 			if ($type != 'many-to-many') continue;
+			throw new Exception('not implemented yet');
 
 			$key_column = $assoc[2]['key'];
 			$name = $assoc[2]['name'];
@@ -191,8 +191,11 @@ class OutletMapper {
 	
 		$stmt->execute($values);
 
+		// create a proxy
 		$proxy_class = "{$this->clazz}_OutletProxy";
 		$proxy = new $proxy_class;
+		
+		// copy the properties to the proxy
 		foreach ($this->conf['props'] as $key=>$f) {
 			$field = $key;
 			if (@$f[2]['autoIncrement']) {
@@ -200,6 +203,16 @@ class OutletMapper {
 				$proxy->$field = $id;
 			} else {
 				$proxy->$field = $this->obj->$field;
+			}
+		}
+	
+		// copy the associated objects to the proxy
+		foreach ((array) @$this->conf['associations'] as $a) {
+			if ($a[0] == 'one-to-many' || $a[0] == 'many-to-many') {
+				$name = (@$a[2]['name'] ? $a[2]['name'] : $a[1]);
+				$setter = "set{$name}s";
+				$getter = "get{$name}s";
+				$proxy->$setter( $this->obj->$getter() );
 			}
 		}
 		$this->obj = $proxy;

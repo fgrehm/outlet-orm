@@ -23,7 +23,7 @@ class OutletTestCase extends UnitTestCase {
 			)
 		");
 
-
+		Outlet::init('outlet-config.php');
 	}
 
 	function tearDown () {
