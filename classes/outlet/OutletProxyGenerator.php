@@ -33,28 +33,28 @@ class OutletProxyGenerator {
 					switch ($type) {
 						case 'many-to-one': 
 							//$foreign_pk = $this->conf['classes'][$entity]['pk'];
-							$local_key = $assoc[2]['local_key'];
+							$key = $assoc[2]['key'];
 							$name = (@$assoc[2]['name'] ? $assoc[2]['name'] : $entity);
 							$optional = (@$assoc[2]['optional'] ? $assoc[2]['optional'] : false);
 
 							$c .= "  function get$name() { \n";
-							$c .= "    if (is_null(\$this->$local_key)) return parent::get$name(); \n";
-							$c .= "    if (is_null(parent::get$name())) { \n";
-							$c .= "      parent::set$name( Outlet::getInstance()->load('$entity', \$this->$local_key) ); \n";
+							$c .= "    if (is_null(\$this->$key)) return parent::get$name(); \n";
+							$c .= "    if (is_null(parent::get$name()) && \$this->$key) { \n";
+							$c .= "      parent::set$name( Outlet::getInstance()->load('$entity', \$this->$key) ); \n";
 							$c .= "    } \n";
 							$c .= "    return parent::get$name(); \n";
 							$c .= "  } \n";
 							if ($optional) {
 								$c .= "  function set$name($entity \$ref=null) { \n";
 								$c .= "    if (is_null(\$ref)) { \n";
-								$c .= "      \$this->$local_key = null; \n";
+								$c .= "      \$this->$key = null; \n";
 								$c .= "      return parent::set$name(null); \n";
 								$c .= "    } \n";
 							} else {
 								$c .= "  function set$name($entity \$ref) { \n";
 							}
 							$c .= "    \$mapped = new OutletMapper(\$ref); \n";
-							$c .= "    \$this->$local_key = \$mapped->getPK(); \n";
+							$c .= "    \$this->$key = \$mapped->getPK(); \n";
 							$c .= "    return parent::set$name(\$ref); \n";
 							$c .= "  } \n";
 							break;
@@ -93,8 +93,8 @@ class OutletProxyGenerator {
 							$ref_column = $assoc[2]['ref_column'];
 							$table = $assoc[2]['table'];
 							$name = (@$assoc[2]['name'] ? $assoc[2]['name'] : $entity);
-							$pkprop = getPkProp($conf, $clazz);
-							$refpkprop = getPkProp($conf, $entity);
+							$pkprop = OutletMapper::getPkProp($clazz);
+							$refpkprop = OutletMapper::getPkProp($entity);
 
 							$c .= "  function get{$name}s() { \n";
 							$c .= "    \$q = \" \n";

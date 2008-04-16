@@ -9,7 +9,11 @@ return array(
 			'props' => array(
 				'ID' 		=> array('id', 'int', array('pk'=>true, 'autoIncrement'=>true)),
 				'Title'		=> array('title', 'varchar'),
-				'ProjectID' => array('project_id', 'int')
+				'ProjectID' => array('project_id', 'int'),
+			),
+			'associations' => array(
+				array('many-to-one', 'Project', array('key'=>'ProjectID')),
+				array('many-to-many', 'User', array('name'=>'Watcher', 'table'=>'watchers', 'key_column'=>'bug_id', 'ref_column'=>'user_id'))
 			)
 		),
 		'Project' => array(
@@ -20,6 +24,14 @@ return array(
 			),
 			'associations' => array(
 				array('one-to-many', 'Bug', array('key'=>'ProjectID'))
+			)
+		),
+		'User' => array(
+			'table' => 'users',
+			'props' => array(
+				'ID' 		=> array('id', 'int', array('pk'=>true, 'autoIncrement'=>true)),
+				'FirstName' => array('first_name', 'varchar'),
+				'LastName'	=> array('last_name', 'varchar')
 			)
 		)
 	)

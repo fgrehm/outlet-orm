@@ -100,9 +100,10 @@ class OutletMapper {
 			$entity = $assoc[1];
 
 			if ($type != 'many-to-many') continue;
-			throw new Exception('not implemented yet');
 
-			$key_column = $assoc[2]['key'];
+			$key_column = $assoc[2]['key_column'];
+			$ref_column = $assoc[2]['ref_column'];
+			$table = $assoc[2]['table'];
 			$name = $assoc[2]['name'];
 
 			$getter = "get{$name}s";
@@ -113,41 +114,44 @@ class OutletMapper {
 				if ($mapped->isNew()) {
 					$mapped->save();
 				}
+
+				$q = "
+					INSERT INTO $table ($key_column, $ref_column) 
+					VALUES (?, ?)
+				";	
+
+				$stmt = $this->con->prepare($q);
+				
+				$stmt->executeUpdate(array($this->getPK(), $mapped->getPK()));	
 			}
 
-			$setter = "set{$entity}s";
+			$setter = "set{$name}s";
 			$this->obj->$setter( $children );
 		}
 	}
 
-	private function saveManyToOne () {
-		foreach ((array) @$this->conf['associations'] as $assoc) {
-			$type = $assoc[0];
-			$entity = $assoc[1];
+	private function saveManyToOne ($entity, array $settings) {
+		$key = $settings['key'];
+		$name = (@$settings['name'] ? $settings['name'] : $entity);
 
-			if ($type != 'many-to-one') continue;
+		$method = "get$name";
+		$ent = $this->obj->$method();
 
-			$local_fk = $assoc[2]['local_key'];
-			$name = (@$assoc[2]['name'] ? $assoc[2]['name'] : $entity);
+		if ($ent) {
+			// wrap with a mapper
+			$mapped = new self($ent);
 
-			$method = "get$name";
-			$ent = $this->obj->$method();
-
-			if ($ent) {
-				// wrap with a mapper
-				$mapped = new self($ent);
-
-				if ($mapped->isNew()) {
-					$mapped->save();
-					$this->obj->$local_fk = $mapped->getPK();
-				}
+			if ($mapped->isNew()) {
+				$mapped->save();
+				$this->obj->$key = $mapped->getPK();
 			}
 		}
-
 	}
 
 	private function insert () {
-		$this->saveManyToOne();
+		foreach (@$this->conf['associations'] as $assoc) {
+			if ($assoc[0] == 'many-to-one') $this->saveManyToOne($assoc[1], $assoc[2]);
+		}
 
 		$props = array_keys($this->conf['props']);
 		$table = $this->conf['table'];
@@ -212,7 +216,9 @@ class OutletMapper {
 				$name = (@$a[2]['name'] ? $a[2]['name'] : $a[1]);
 				$setter = "set{$name}s";
 				$getter = "get{$name}s";
-				$proxy->$setter( $this->obj->$getter() );
+
+				$ref = $this->obj->$getter();
+				if ($ref) $proxy->$setter( $this->obj->$getter() );
 			}
 		}
 		$this->obj = $proxy;
@@ -222,7 +228,9 @@ class OutletMapper {
 
 	public function update() {
 		// this first since this references the key
-		$this->saveManyToOne();
+		foreach (@$this->conf['associations'] as $assoc) {
+			if ($assoc[0] == 'many-to-one') $this->saveManyToOne($assoc[1], $assoc[2]);
+		}
 
 		$table = $this->conf['table'];
 

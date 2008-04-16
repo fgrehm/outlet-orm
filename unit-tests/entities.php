@@ -6,12 +6,23 @@ class Bug {
 	public $ProjectID;
 
 	private $project;
+	private $watchers = array();
 
 	function getProject () {
 		return $this->project;
 	}
 	function setProject (Project $p) {
 		$this->project = $p;	
+	}
+
+	function getWatchers () {
+		return $this->watchers;	
+	}
+	function setWatchers (array $watchers) {
+		$this->watchers = $watchers;
+	}
+	function addWatcher(User $watcher) {
+		$this->watcher[] = $watcher;
 	}
 }
 
@@ -31,3 +42,8 @@ class Project {
 	}
 }
 
+class User {
+	public $ID;
+	public $FirstName;
+	public $LastName;
+}
