@@ -2,9 +2,7 @@
 
 class TestOfRelationships extends OutletTestCase {
 
-	function setUp () {
-		parent::setUp();
-
+	function testOneToMany () {
 		// insert a project and some bugs
 		$project = new Project;
 		$project->Name = 'Cool Project';
@@ -27,7 +25,19 @@ class TestOfRelationships extends OutletTestCase {
 	}
 
 	function testManyToOne () {
-		
+		$bug = new Bug;
+		$bug->Title = 'Test Bug';
+
+		$project = new Project;
+		$project->Name = 'Test Project';
+
+		$bug->setProject( $project );
+
+		$outlet = Outlet::getInstance();
+	
+		$outlet->save( $bug );
+
+		print_r($bug);
 	}
 
 }
