@@ -22,7 +22,7 @@ class OutletProxyGenerator {
 		$s = '';
 		foreach ($conf['classes'] as $clazz => $settings) {
 			$c = "";
-			$c .= "class {$clazz}_OutletProxy extends $clazz { \n";
+			$c .= "class {$clazz}_OutletProxy extends $clazz implements OutletProxy { \n";
 			if (isset($settings['associations'])) {
 				foreach ($settings['associations'] as $assoc) {	
 					$type 	= $assoc[0];

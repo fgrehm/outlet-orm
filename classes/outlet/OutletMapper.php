@@ -1,30 +1,45 @@
 <?php
 
 class OutletMapper {
+	private $cls;
+	private $original;
 	private $obj;
-	private $conf;
-	private $outlet;
-	private $clazz;
-	private $con;
+	
+	static $conf;
+	static $map = array();
+	
+	/**
+	 * @var bool
+	 */
+	private $new = true;
 
 	function __construct (&$obj) {
 		if (!is_object($obj)) throw new Exception('You must pass and object');
 		if ($obj instanceof OutletMapper) throw new Exception('You passed and OutletMapper object');
+		
+		if ($obj instanceof OutletProxy) $this->new = false;
+		
+		$this->cls = self::getEntityClass($obj);
 
 		$this->obj = &$obj;
-		$this->clazz = str_replace('_OutletProxy', '', get_class($obj));
-
-		$outlet = Outlet::getInstance();
-
-		$this->con = $outlet->getConnection();
-
-		$conf = $outlet->getConfiguration();
-
-		$this->conf = &$conf['classes'][$this->clazz];
+		
+		$this->original = $this->toArray();
+	}
+	
+	static function getEntityClass ($obj) {
+		if ($obj instanceof OutletProxy) {
+			return substr(get_class($obj), 0, -(strlen('_OutletProxy')));
+		} else {
+			return get_class($obj);
+		}
+	}
+	
+	function getClass () {
+		return $this->cls;
 	}
 
 	function save () {
-		if ($this->isNew()) {
+		if ($this->new) {
 			return $this->insert();
 		} else {
 			return $this->update();
@@ -32,19 +47,59 @@ class OutletMapper {
 	}
 
 	private function isNew() {
-		// if it's not in the identity map, it's new
-		$outlet = Outlet::getInstance();
+		return $this->new;
+	}
+	
+	public function load () {
+		// try to retrieve it from the cache first
+		$data = self::get($this->cls, $this->getPk());
 
-		if ( $this->getPK() && $outlet->get($this->clazz, $this->getPK()) ) return false;
-
-		return true;
+		// if it's there
+		if ($data) {
+			$this->obj = &$data['obj'];
+			
+		// else, populate it from the database
+		} else {
+			$props_conf = self::getFields($this->cls);
+			$props = array_keys($props_conf);
+			$pk_prop = self::getPkProp($this->cls);
+	
+			// craft select
+			$q = "SELECT {".$this->cls.'.';
+			$q .= implode('}, {'.$this->cls.'.', $props) . "}\n";
+			$q .= "FROM {".$this->cls."} \n";
+			$q .= "WHERE {".$this->cls.'.'.$pk_prop."} = ?";
+			
+			$q = self::processQuery($q);
+	
+			$stmt = Outlet::getInstance()->getConnection()->prepare($q);
+			$stmt->execute(array($this->obj->$pk_prop));
+	
+			$row = $stmt->fetch(PDO::FETCH_ASSOC);
+			
+			// if there's matching row, 
+			// return null
+			if (!$row) throw new Exception("No matching row found for {$this->cls} with primary key of $pk");
+	
+			foreach ($props_conf as $key=>$f) {
+				$this->obj->$key = $row[$f[0]];
+			}
+			
+			// add it to the cache
+			self::set($this->cls, $this->getPk(), array(
+				'obj' => $this->obj,
+				'original' => $this->toArray()
+			));	
+		} 
+	}
+	
+	public function setPk ($pk) {
+		$pk_prop = self::getPkProp($this->cls);
+		$this->obj->$pk_prop = $pk;
 	}
 
 	public function getPK() {
-		$pks = array();
-
-		$pk_prop = self::getPkProp($this->clazz);
-
+		$pk_prop = self::getPkProp($this->cls);
 		return $this->obj->$pk_prop;
 	}
 
@@ -66,6 +121,13 @@ class OutletMapper {
 
 	}
 
+	static function getTable ($clazz) {
+		return self::$conf[$clazz]['table'];
+	}
+	
+	static function getFields ($clazz) {
+		return self::$conf[$clazz]['props'];
+	}
 
 	private function saveOneToMany () {
 		foreach ((array) @$this->conf['associations'] as $assoc) {
@@ -121,8 +183,8 @@ class OutletMapper {
 				";	
 
 				$stmt = $this->con->prepare($q);
-				
-				$stmt->executeUpdate(array($this->getPK(), $mapped->getPK()));	
+
+				$stmt->execute(array($this->getPK(), $mapped->getPK()));	
 			}
 
 			$setter = "set{$name}s";
@@ -149,18 +211,24 @@ class OutletMapper {
 	}
 
 	private function insert () {
-		foreach (@$this->conf['associations'] as $assoc) {
+		$outlet = Outlet::getInstance();
+		
+		$con = $outlet->getConnection();
+		$outlet_conf = $outlet->getConfiguration();
+		$conf = $outlet_conf['classes'][$this->cls];
+		
+		foreach ((array) @$conf['associations'] as $assoc) {
 			if ($assoc[0] == 'many-to-one') $this->saveManyToOne($assoc[1], $assoc[2]);
 		}
 
-		$props = array_keys($this->conf['props']);
-		$table = $this->conf['table'];
+		$props = array_keys($conf['props']);
+		$table = $conf['table'];
 
 		// grab insert fields
 		$insert_fields = array();
 		$insert_props = array();
 		$insert_defaults = array();
-		foreach ($this->conf['props'] as $prop=>$f) {
+		foreach ($conf['props'] as $prop=>$f) {
 			// skip autoIncrement fields
 			if (@$f[2]['autoIncrement']) continue;
 
@@ -182,7 +250,7 @@ class OutletMapper {
 		}	
 		$q .="(" . implode(', ', $values) . ")";
 	
-		$stmt = $this->con->prepare($q);
+		$stmt = $con->prepare($q);
 	
 		// get the values
 		$values = array();
@@ -196,14 +264,14 @@ class OutletMapper {
 		$stmt->execute($values);
 
 		// create a proxy
-		$proxy_class = "{$this->clazz}_OutletProxy";
+		$proxy_class = "{$this->cls}_OutletProxy";
 		$proxy = new $proxy_class;
 		
 		// copy the properties to the proxy
-		foreach ($this->conf['props'] as $key=>$f) {
+		foreach ($conf['props'] as $key=>$f) {
 			$field = $key;
 			if (@$f[2]['autoIncrement']) {
-				$id = $this->con->lastInsertId();
+				$id = $con->lastInsertId();
 				$proxy->$field = $id;
 			} else {
 				$proxy->$field = $this->obj->$field;
@@ -211,7 +279,7 @@ class OutletMapper {
 		}
 	
 		// copy the associated objects to the proxy
-		foreach ((array) @$this->conf['associations'] as $a) {
+		foreach ((array) @$conf['associations'] as $a) {
 			if ($a[0] == 'one-to-many' || $a[0] == 'many-to-many') {
 				$name = (@$a[2]['name'] ? $a[2]['name'] : $a[1]);
 				$setter = "set{$name}s";
@@ -228,38 +296,40 @@ class OutletMapper {
 
 	public function update() {
 		// this first since this references the key
-		foreach (@$this->conf['associations'] as $assoc) {
+		foreach ((array) @self::$conf[$this->cls]['associations'] as $assoc) {
 			if ($assoc[0] == 'many-to-one') $this->saveManyToOne($assoc[1], $assoc[2]);
 		}
+		
+		$con = Outlet::getInstance()->getConnection();
 
-		$table = $this->conf['table'];
-
-		$q = "UPDATE $table \n";
+		$q = "UPDATE {".$this->cls."} \n";
 		$q .= "SET \n";
 
 		$ups = array();
-		foreach ($this->conf['props'] as $key=>$f) {
+		foreach (self::$conf[$this->cls]['props'] as $key=>$f) {
 			// skip primary key 
 			if (@$f[2]['pk']) continue;
 
-			$value = $this->con->quote( $this->obj->$key );
-			$ups[] = "  $f[0] = $value";
+			$value = $con->quote( $this->obj->$key );
+			$ups[] = "  {".$this->cls.'.'.$key."} = $value";
 		}
 		$q .= implode(", \n", $ups);
 
 		$q .= "\nWHERE ";
 
 		$clause = array();
-		foreach ($this->conf['props'] as $key=>$pk) {
+		foreach (self::$conf[$this->cls]['props'] as $key=>$pk) {
 			// if it's not a primary key, skip it
 			if (!@$pk[2]['pk']) continue;
 
-			$value = $this->con->quote( $this->obj->$key );
+			$value = $con->quote( $this->obj->$key );
 			$clause[] = "$pk[0] = {$this->obj->$key}";
 		}
 		$q .= implode(' AND ', $clause);
+		
+		$q = self::processQuery($q);
 
-		$this->con->exec($q);
+		$con->exec($q);
 
 		// these last since they reference the key
 		$this->saveOneToMany();
@@ -267,7 +337,77 @@ class OutletMapper {
 	}
 
 	function toArray () {
-		return (array) $this->obj;
+		$arr = array();
+		foreach (self::$conf[$this->cls]['props'] as $prop=>$settings) {
+			$arr[$prop] = $this->obj->$prop;
+		}
+		return $arr;
+	}
+	
+	static function processQuery ( $q ) {
+		preg_match_all('/\{[a-zA-Z0-9]+(( |\.)[a-zA-Z0-9]+)*\}/', $q, $matches, PREG_SET_ORDER);
+
+		// get the aliased classes
+		$aliased = array();
+		foreach ($matches as $key=>$m) {
+			// clear braces
+			$str = substr($m[0], 1, -1);
+
+			// if it's an aliased class
+			if (strpos($str, ' ')!==false) {
+				$tmp = explode(' ', $str);
+				$aliased[$tmp[1]] = $tmp[0];
+
+				$q = str_replace($m[0], self::$conf[$tmp[0]]['table'].' '.$tmp[1], $q);
+
+			// if it's a property
+			} elseif (strpos($str, '.')!==false) {
+				$tmp = explode('.', $str);
+
+				// if it's an alias
+				if (isset($aliased[$tmp[0]])) {
+					$col = $tmp[0].'.'.self::$conf[$aliased[$tmp[0]]]['props'][$tmp[1]][0];
+				} else {
+					$table = self::$conf[$tmp[0]]['table'];
+					$col = $table.'.'.self::$conf[$tmp[0]]['props'][$tmp[1]][0];
+				}
+
+				$q = str_replace(
+					$m[0], 
+					$col,
+					$q
+				);
+
+			// if it's a non-aliased class
+			} else {
+				$table = self::$conf[$str]['table'];
+				$aliased[$table] = $str;
+				$q = str_replace($m[0], $table, $q);
+			}
+
+		}
+
+		return $q;
+	}
+	
+	function &getObj () {
+		return $this->obj;
+	}
+
+	static function set ( $clazz, $pk, array $data ) {
+		// initialize map for this class
+		if (!isset(self::$map[$clazz])) self::$map[$clazz] = array();
+		
+		self::$map[$clazz][$pk] = $data;
+	}
+	
+	/**
+	 * @param string $clazz
+	 * @param mixed $pk Primary key
+	 * @return OutletMapper
+	 */
+	function get ( $clazz, $pk ) {
+		return @self::$map[$clazz][$pk];
 	}
 	
 }
