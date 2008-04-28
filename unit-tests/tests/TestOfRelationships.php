@@ -19,7 +19,7 @@ class TestOfRelationships extends OutletTestCase {
 
 		$outlet->save($project);
 
-		$project = $outlet->load('Project', 1);
+		$project = $outlet->load('Project', $project->ID);
 
 		$this->assertEqual( count($project->getBugs()), 2 );
 	}

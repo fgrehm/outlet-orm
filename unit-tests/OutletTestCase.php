@@ -6,10 +6,11 @@ class OutletTestCase extends UnitTestCase {
 		// create database
 		$pdo = new PDO('sqlite:test.sq3');
 		$pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+
 	
 		// create projects table
 		$pdo->exec("
-			CREATE TABLE projects (
+			CREATE TABLE IF NOT EXISTS projects (
 				id INTEGER PRIMARY KEY AUTOINCREMENT,
 				name TEXT
 			)
@@ -17,7 +18,7 @@ class OutletTestCase extends UnitTestCase {
 
 		// create bugs table
 		$pdo->exec("
-			CREATE TABLE bugs (
+			CREATE TABLE IF NOT EXISTS bugs (
 				id INTEGER PRIMARY KEY AUTOINCREMENT,
 				project_id INTEGER NOT NULL,
 				user_id INTEGER,
@@ -27,7 +28,7 @@ class OutletTestCase extends UnitTestCase {
 
 		// create users table
 		$pdo->exec("
-			CREATE TABLE users (
+			CREATE TABLE IF NOT EXISTS users (
 				id INTEGER PRIMARY KEY AUTOINCREMENT,
 				first_name TEXT,
 				last_name TEXT
@@ -36,19 +37,21 @@ class OutletTestCase extends UnitTestCase {
 
 		// create watchers table
 		$pdo->exec("
-			CREATE TABLE watchers (
+			CREATE TABLE IF NOT EXISTS watchers (
 				user_id INTEGER,
 				bug_id INTEGER,
 				PRIMARY KEY (user_id, bug_id)
 			)	
 		");
-
-		Outlet::init('outlet-config.php');
+		
+		$pdo->exec('DELETE FROM projects');
+		$pdo->exec('DELETE FROM bugs');
+		$pdo->exec('DELETE FROM users');
+		$pdo->exec('DELETE FROM watchers');
 	}
 
 	function tearDown () {
-		// remove database
-		@unlink('test.sq3');
+
 	}
 
 }
