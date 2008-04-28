@@ -333,8 +333,6 @@ class OutletMapper {
 		$q .= implode(' AND ', $clause);
 		
 		$q = self::processQuery($q);
-		
-		echo $q;
 
 		$con->exec($q);
 
