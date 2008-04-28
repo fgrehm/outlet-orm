@@ -28,6 +28,7 @@ class Bug {
 
 class Project {
 	public $ID;
+	public $Name;
 
 	private $bugs = array();
 

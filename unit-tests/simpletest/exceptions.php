@@ -38,8 +38,9 @@ class SimpleExceptionTrappingInvoker extends SimpleInvokerDecorator {
 	function invoke($method) {
 		$trap = SimpleTest::getContext()->get('SimpleExceptionTrap');
 		$trap->clear();
-		try {
+		//try {
 			parent::invoke($method);
+		/*
 		} catch (Exception $exception) {
 			if (! $trap->isExpected($this->getTestCase(), $exception)) {
 				$this->getTestCase()->exception($exception);
@@ -47,6 +48,7 @@ class SimpleExceptionTrappingInvoker extends SimpleInvokerDecorator {
 			$trap->clear();
 			$this->_invoker->getTestCase()->tearDown();
 		}
+		*/
 		if ($message = $trap->getOutstanding()) {
 			$this->getTestCase()->fail($message);
 		}

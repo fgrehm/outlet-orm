@@ -4,19 +4,26 @@ class TestOfSimpleOperations extends OutletTestCase {
 
 	function testCrudOperations() {
 		$outlet = Outlet::getInstance();
+		$project = new Project;
+		$project->Name = 'Project 1';
+		
+		Outlet::getInstance()->save($project);
 
 		// test insert
 		$bug = new Bug;
 		$bug->Title = 'Test bug';
-		$bug->ProjectID = 1;
+		$bug->ProjectID = $project->ID;
 
 		$outlet->save($bug);
+		
+		$id = $bug->ID;
 
-		$this->assertEqual( $bug->ID, 1 , 'Row inserted' );
+		$this->assertNotNull( $id, 'Row inserted' );
 
 		// test retrieve
-		$bug = $outlet->load('Bug', 1);
-
+		$bug = $outlet->load('Bug', $id);
+		
+		$this->assertIsA($bug, 'Bug', 'Object is a Bug');
 		$this->assertEqual( $bug->Title, 'Test bug', 'Row retrieved' );
 
 		// test update
@@ -24,7 +31,7 @@ class TestOfSimpleOperations extends OutletTestCase {
 
 		$outlet->save($bug);
 
-		$bug = $outlet->load('Bug', 1);
+		$bug = $outlet->load('Bug', $bug->ID);
 
 		$this->assertEqual( $bug->Title, 'New Test Bug', 'Row updated' );
 	}
