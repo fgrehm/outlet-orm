@@ -74,7 +74,7 @@ class Outlet {
 		$q = "SELECT {"."$clazz}.* FROM {".$clazz."} " . $query;
 
 		// process the query
-		$q = $this->processQuery($q);
+		$q = OutletMapper::processQuery($q);
 
 		$proxyclass = "{$clazz}_OutletProxy";
 		$collection = array();
@@ -96,7 +96,6 @@ class Outlet {
 
 		return $collection;
 	}
-
 
 	public function createProxies () {
 		require_once 'OutletProxyGenerator.php';

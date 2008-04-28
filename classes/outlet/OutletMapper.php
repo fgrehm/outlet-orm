@@ -79,7 +79,7 @@ class OutletMapper {
 			
 			// if there's matching row, 
 			// return null
-			if (!$row) throw new Exception("No matching row found for {$this->cls} with primary key of $pk");
+			if (!$row) throw new Exception("No matching row found for {$this->cls} with primary key of {$this->obj->$pk_prop}");
 	
 			foreach ($props_conf as $key=>$f) {
 				$this->obj->$key = $row[$f[0]];
@@ -130,28 +130,33 @@ class OutletMapper {
 	}
 
 	private function saveOneToMany () {
-		foreach ((array) @$this->conf['associations'] as $assoc) {
-			$type = $assoc[0];
-			$entity = $assoc[1];
-
-			if ($type != 'one-to-many') continue;
-
-			$key = $assoc[2]['key'];
-
-			$getter = "get{$entity}s";
-
-			$children = $this->obj->$getter(null);
-			foreach ($children as &$child) {
-				$child->$key = $this->getPK();
-
-				$mapped = new self($child);
-				if ($mapped->isNew()) {
-					$mapped->save();
+		$main_conf = Outlet::getInstance()->getConfiguration();
+		$conf = $main_conf['classes'][$this->cls];
+		
+		if (isset($conf['associations'])) {
+			foreach ($conf['associations'] as $assoc) {
+				$type = $assoc[0];
+				$entity = $assoc[1];
+	
+				if ($type != 'one-to-many') continue;
+	
+				$key = $assoc[2]['key'];
+	
+				$getter = "get{$entity}s";
+	
+				$children = $this->obj->$getter(null);
+				foreach ($children as &$child) {
+					$child->$key = $this->getPK();
+	
+					$mapped = new self($child);
+					if ($mapped->isNew()) {
+						$mapped->save();
+					}
 				}
+	
+				$setter = "set{$entity}s";
+				$this->obj->$setter( $children );
 			}
-
-			$setter = "set{$entity}s";
-			$this->obj->$setter( $children );
 		}
 	}
 
@@ -194,7 +199,7 @@ class OutletMapper {
 
 	private function saveManyToOne ($entity, array $settings) {
 		$key = $settings['key'];
-		$name = (@$settings['name'] ? $settings['name'] : $entity);
+		$name = (isset($settings['name']) ? $settings['name'] : $entity);
 
 		$method = "get$name";
 		$ent = $this->obj->$method();
@@ -328,6 +333,8 @@ class OutletMapper {
 		$q .= implode(' AND ', $clause);
 		
 		$q = self::processQuery($q);
+		
+		echo $q;
 
 		$con->exec($q);
 
@@ -346,6 +353,9 @@ class OutletMapper {
 	
 	static function processQuery ( $q ) {
 		preg_match_all('/\{[a-zA-Z0-9]+(( |\.)[a-zA-Z0-9]+)*\}/', $q, $matches, PREG_SET_ORDER);
+		
+		// check if it's an update statement
+		$update = (stripos(trim($q), 'UPDATE')===0);
 
 		// get the aliased classes
 		$aliased = array();
@@ -368,8 +378,14 @@ class OutletMapper {
 				if (isset($aliased[$tmp[0]])) {
 					$col = $tmp[0].'.'.self::$conf[$aliased[$tmp[0]]]['props'][$tmp[1]][0];
 				} else {
-					$table = self::$conf[$tmp[0]]['table'];
-					$col = $table.'.'.self::$conf[$tmp[0]]['props'][$tmp[1]][0];
+					// if it's an update statement,
+					// we must not include the table
+					if ($update) {
+						$col = self::$conf[$tmp[0]]['props'][$tmp[1]][0];
+					} else {
+						$table = self::$conf[$tmp[0]]['table'];
+						$col = $table.'.'.self::$conf[$tmp[0]]['props'][$tmp[1]][0];
+					}
 				}
 
 				$q = str_replace(
@@ -407,7 +423,10 @@ class OutletMapper {
 	 * @return OutletMapper
 	 */
 	function get ( $clazz, $pk ) {
-		return @self::$map[$clazz][$pk];
+		if (isset(self::$map[$clazz]) && isset(self::$map[$clazz][$pk])) {
+			return self::$map[$clazz][$pk];
+		}
+		return null;
 	}
 	
 }
