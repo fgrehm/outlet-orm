@@ -36,8 +36,6 @@ class TestOfRelationships extends OutletTestCase {
 		$outlet = Outlet::getInstance();
 	
 		$outlet->save( $bug );
-
-		print_r($bug);
 	}
 
 }
