@@ -50,7 +50,7 @@ class Outlet {
 			$this->conf['classes'][$key]['pk'] = $pk;
 		}
 		
-		OutletMapper::$conf = $conf['classes'];
+		OutletMapper::$conf = &$conf['classes'];
 	}
 
 	

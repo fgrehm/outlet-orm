@@ -19,6 +19,8 @@ class OutletProxyGenerator {
 	}
 
 	function generate ($conf) {
+		self::validate($conf);
+		
 		$s = '';
 		foreach ($conf['classes'] as $clazz => $settings) {
 			$c = "";
@@ -32,7 +34,6 @@ class OutletProxyGenerator {
 
 					switch ($type) {
 						case 'many-to-one': 
-							//$foreign_pk = $this->conf['classes'][$entity]['pk'];
 							$key = $assoc[2]['key'];
 							$name = (@$assoc[2]['name'] ? $assoc[2]['name'] : $entity);
 							$optional = (@$assoc[2]['optional'] ? $assoc[2]['optional'] : false);
@@ -115,6 +116,18 @@ class OutletProxyGenerator {
 			$s .= $c;
 		}
 		return $s;
+	}
+	
+	static function validate (array $conf) {
+		foreach ($conf['classes'] as $cls=>$cls_conf) {
+			if (isset($cls_conf['associations'])) {
+				foreach ($cls_conf['associations'] as $assoc) {
+					if (!isset($assoc[2]['key'])) {
+						throw new Exception("Class $cls, association with $assoc[1]: You must specify a key when defining a $assoc[0] relationship");
+					}
+				}
+			}
+		}
 	}
 }
 
