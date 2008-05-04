@@ -103,11 +103,6 @@ class Outlet {
 		eval($c);
 	}
 
-	public function wrap ($obj) {
-		$clazz = get_class($obj);
-
-		// check to see if
-	}
 
 	public function load ($clazz, $pk) {
 		// create a proxy
@@ -171,12 +166,4 @@ class Outlet {
 		return $newArr;
 	}
 	
-	private function getPK ($clazz, $obj) {
-		$fields = $this->getPkFields($clazz);
-
-	}	
-
-	function getIdentityMap () {
-		return $this->identity_map;
-	}
 }
