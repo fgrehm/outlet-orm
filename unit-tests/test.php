@@ -5,7 +5,7 @@ if (isset($_SERVER['argv'][1])) {
 	define('DATABASE_DRIVER', 'sqlite');
 }
 
-set_include_path('../classes:'.get_include_path());
+set_include_path('../classes'.PATH_SEPARATOR.get_include_path());
 
 chdir(dirname(__FILE__));
 
