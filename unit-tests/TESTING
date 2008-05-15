@@ -1,0 +1,4 @@
+
+To test, run the test.php script by executing the following:
+
+php PATH/TO/OUTLET/unit-tests/test.php

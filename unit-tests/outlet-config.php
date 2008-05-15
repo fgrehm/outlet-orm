@@ -12,8 +12,7 @@ return array(
 				'ProjectID' => array('project_id', 'int'),
 			),
 			'associations' => array(
-				array('many-to-one', 'Project', array('key'=>'ProjectID')),
-				array('many-to-many', 'User', array('name'=>'Watcher', 'table'=>'watchers', 'key_column'=>'bug_id', 'ref_column'=>'user_id'))
+				array('many-to-one', 'Project', array('key'=>'ProjectID'))
 			)
 		),
 		'Project' => array(
