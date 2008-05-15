@@ -1,4 +1,10 @@
 <?php
+if (isset($_SERVER['argv'][1])) {
+	define('DATABASE_DRIVER', $_SERVER['argv'][1]);
+} else {
+	define('DATABASE_DRIVER', 'sqlite');
+}
+
 set_include_path('../classes:'.get_include_path());
 
 chdir(dirname(__FILE__));
@@ -13,7 +19,14 @@ require_once 'entities.php';
 require_once 'OutletTestCase.php';
 
 // basic setup
-Outlet::init('outlet-config.php');
+$conf = include('outlet-config.php');
+
+switch (DATABASE_DRIVER) {
+	case 'sqlite':	break; //default
+	case 'mysql': 	$conf['connection'] = array('dsn'=>'mysql:host=knowledgehead.com;dbname=test', 'username'=>'alvaro', 'password'=>'chileno');
+	default: throw new Exception('Unsupported database driver: '.DATABASE_DRIVER);
+}
+Outlet::init($conf);
 Outlet::getInstance()->createProxies();
 //require 'outlet-proxies.php';
 

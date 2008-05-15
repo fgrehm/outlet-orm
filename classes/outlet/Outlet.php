@@ -18,9 +18,9 @@ class Outlet {
 	 */
 	private $identity_map;
 	
-	static function init ( $conf ) {
+	static function init ( array $conf ) {
 		// instantiate
-		self::$instance = new self( include($conf) );
+		self::$instance = new self( $conf );
 	}
 
 	/**
