@@ -23,7 +23,7 @@ $conf = include('outlet-config.php');
 
 switch (DATABASE_DRIVER) {
 	case 'sqlite':	break; //default
-	case 'mysql': 	$conf['connection'] = array('dsn'=>'mysql:host=knowledgehead.com;dbname=test', 'username'=>'alvaro', 'password'=>'chileno');
+	case 'mysql': 	$conf['connection'] = array('dsn'=>'mysql:host=knowledgehead.com;dbname=test', 'username'=>'alvaro', 'password'=>'chileno'); break;
 	default: throw new Exception('Unsupported database driver: '.DATABASE_DRIVER);
 }
 Outlet::init($conf);
