@@ -1,0 +1,7 @@
+
+==== Release 0.1 ====
+- Support for SQLite and MySQL
+- One-to-many and Many-to-one relationships
+- Single-field primary keys
+
+Enjoy!
