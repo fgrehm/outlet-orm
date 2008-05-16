@@ -127,6 +127,14 @@ class Outlet {
 		return $this->conf;
 	}
 	
+	
+	function getLastInsertId () {
+		if ($this->conf['connection']['dialect'] == 'mssql') {
+			return $this->con->query('SELECT SCOPE_IDENTITY() as id')->fetchColumn('id');
+		} else {
+			return $this->con->lastInsertId();
+		}
+	}
 
 
 	private function populateObject($clazz, $obj, array $values) {

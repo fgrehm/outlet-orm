@@ -276,7 +276,7 @@ class OutletMapper {
 		foreach ($conf['props'] as $key=>$f) {
 			$field = $key;
 			if (@$f[2]['autoIncrement']) {
-				$id = $con->lastInsertId();
+				$id = $outlet->getLastInsertId();
 				$proxy->$field = $id;
 			} else {
 				$proxy->$field = $this->obj->$field;
