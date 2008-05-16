@@ -130,7 +130,7 @@ class Outlet {
 	
 	function getLastInsertId () {
 		if ($this->conf['connection']['dialect'] == 'mssql') {
-			return $this->con->query('SELECT SCOPE_IDENTITY() as id')->fetchColumn('id');
+			return $this->con->query('SELECT SCOPE_IDENTITY()')->fetchColumn(0);
 		} else {
 			return $this->con->lastInsertId();
 		}
