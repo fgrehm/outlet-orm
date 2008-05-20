@@ -1,0 +1,193 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE book PUBLIC "-//OASIS//DTD DocBook XML V4.4//EN"
+  "/usr/share/sgml/docbook/xml-dtd-4.4-1.0-30.1/docbookx.dtd">
+ 
+<book>
+ 
+<bookinfo>
+	<title>Outlet Manual</title>
+</bookinfo>
+ 
+<chapter>
+	<title>Introduction to Outlet</title>
+	 
+	<para>
+		Outlet is an open source object-to-relational mapping tool for PHP.
+	</para>
+
+	<para>
+		It differs from other orm solutions for php in that it attempts to provide transparent, unobtrusive persistence. It does not require your entity objects to implement any interfaces or extend some sort of base class. It is also very lightweight, only a handful of classes and tools.
+	</para>
+
+	<para>
+		It uses an approach similar to hibernate in java, using proxy objects that save the data behind the scenes. 
+	</para> 
+</chapter>
+
+<chapter>
+	<title>Getting Started</title>
+	<para>
+
+	</para>
+
+	<section>
+		<title>Requirements</title>
+			<itemizedlist>
+				<listitem>
+					<para>PHP 5.2 or higher.</para>
+				</listitem>
+				<listitem>
+					<para>PDO extension with a suitable driver (only tested with MySQL ans SQLite).</para>
+				</listitem>
+			</itemizedlist>	
+	</section>
+
+	<section>
+		<title>Installation</title>
+		<section>
+			<title>From Package</title>
+			<orderedlist>
+				<listitem>
+					<para>Download a package from <ulink url="http://outlet.knowledgehead.com/wiki/index.php/Main_Page#Downloads">here</ulink>.</para>
+				</listitem>
+				<listitem>
+					<para>Unzip the package.</para>
+				</listitem>
+				<listitem>
+					<para>Place the OUTLET/classes/outlet folder somewhere in the include_path of your script.</para>
+				</listitem>
+			</orderedlist>
+		</section>
+
+		<section>
+			<title>From Subversion Repo</title>
+			<orderedlist>
+				<listitem>
+					<para>Checkout a copy from svn://knowledgehead.com/outlet/trunk</para>
+				</listitem>
+				<listitem>
+					<para>Place the OUTLET/classes/outlet folder somewhere in the include_path of your script.</para>
+				</listitem>
+			</orderedlist>
+		</section>
+	</section>
+</chapter>
+
+<chapter>
+	<title>Overview</title>
+	<para>
+Outlet provides database persistence for PHP objects in a transparent, unobtrusive way. It let's you define and instantiate entity classes that are completely independent of the code that saves them to the database. The data is persisted through the use of proxies. Whenever you 'save' an object, Outlet decorates the object with a sub-class that performs the database operations behind the scenes.
+	</para>
+
+	<para>
+Let's say we start out with an entity object such as:
+	</para>
+
+	<informalexample>
+		<programlisting language="php">
+class Bug {
+    public $Title;
+    public $ProjectID;
+ 
+    private $project;
+
+    function getProject () {
+        return $this->project;
+    }
+
+    function setProject (Project $p) {
+        echo "TEST";
+        blah('testing');
+        $this->project = $p;
+    }
+}</programlisting>
+	</informalexample>
+
+
+	<para>Whenever you instantiate, populate, and save it to the database with code like: </para>
+
+	<informalexample>
+		<programlisting language="php">
+$con = Outlet::getInstance();
+ 
+$bug = new Bug;
+$bug->Title = "error on page";
+$bug->ProjectID = 1;
+ 
+$con->save( $bug ); //performs an insert</programlisting>
+	</informalexample>
+
+	<para>Outlet is replacing your $bug variable of type Bug with a proxy called Bug_OutletProxy:</para>
+
+	<informalexample>
+		<programlisting language="php">
+print_r($bug); // after it's been saved</programlisting>
+	</informalexample>
+
+	<para>outputs:</para>
+
+	<informalexample>
+		<programlisting><![CDATA[
+Bug_OutletProxy Object
+(
+    [Title] => error on page
+    [ProjectID] => 1
+    [project:private] =>
+)]]></programlisting>
+	</informalexample>
+
+	<para>
+		Since the proxy is a subclass of the entity (Bug_OutletProxy extends Bug), you can use the proxy wherever you would have used the original entity. Even the following code evaluates to true:
+	</para>
+
+	<informalexample>
+		<programlisting language="php">
+// since the bug has been saved it is now an instance of Bug_OutletProxy
+if ($bug instanceof Bug) echo "It seems to be a Bug too";</programlisting>
+	</informalexample>
+
+	<para>Now here's where the magic happens, when you call a method such a $bug->getProject(), the proxy automatically populates the $project property with data from the database behind the scenes: </para>
+
+	<informalexample>
+		<programlisting language="php">
+// the proxy makes a SELECT query to retrieve the project from the database
+$project = $bug->getProject();
+ 
+print_r($bug);
+		</programlisting>
+	</informalexample>
+
+	<para>You can see that the $bug->project property now contains an instance of Project: </para>
+
+	<informalexample>
+		<programlisting>
+Bug_OutletProxy Object
+(
+    [Title] => error on page
+    [ProjectID] => 1
+    [project:private] => Project_OutletProxy Object
+        (
+            [ID] => 1
+            [Name] => My Project
+        )
+
+)</programlisting>
+	</informalexample>
+
+</chapter>
+
+<chapter>
+	<title>Architecture</title>
+	<para>
+	
+	</para>
+</chapter>
+
+<chapter>
+	<title>Configuration</title>
+	<para>
+
+	</para>
+</chapter>
+
+</book>
