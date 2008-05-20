@@ -37,7 +37,7 @@
 
 		<div id='site'>
 			<div id='site-header'>
-				<img src='/outlet2.gif' />
+				<a href='/'><img src='/outlet2.gif' border='0' /></a>
 			</div>
 			<div id='manual'>
 			<xsl:call-template name="user.header.navigation"/>
