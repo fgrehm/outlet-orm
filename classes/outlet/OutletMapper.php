@@ -21,6 +21,9 @@ class OutletMapper {
 		
 		$this->cls = self::getEntityClass($obj);
 
+		// validate that mapping for this object exists
+		if (!isset(self::$conf[$this->cls])) throw new OutletException('No mapping exists for entity ['.$this->cls.'] in configuration');
+
 		$this->obj = &$obj;
 		
 		$this->original = $this->toArray();

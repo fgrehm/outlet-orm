@@ -27,11 +27,17 @@ class Outlet {
 	 * @return Outlet instance
 	 */
 	static function getInstance () {
-		if (!self::$instance) throw new Exception('You must first initialize Outlet by calling Outlet::init( $conf )');
+		if (!self::$instance) throw new OutletException('You must first initialize Outlet by calling Outlet::init( $conf )');
 		return self::$instance;
 	}
 
 	private function __construct (array $conf) {
+		// validate config
+		if (!isset($conf['connection'])) throw new OutletConfigException('Element [connection] not found in configuration');
+		if (!isset($conf['connection']['dsn'])) throw new OutletConfigException('Element [connection][dsn] not found in configuration');
+		if (!isset($conf['connection']['dialect'])) throw new OutletConfigException('Element [connection][dialect] not found in configuration');
+		if (!isset($conf['classes'])) throw new OutletConfigException('Element [classes] missing in configuration');
+
 		$this->con = new OutletPDO($conf['connection']['dsn'], @$conf['connection']['username'], @$conf['connection']['password']);	
 		$this->con->setAttribute( PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION );
 
@@ -39,14 +45,16 @@ class Outlet {
 		$this->conf = $conf;
 
 		foreach ($this->conf['classes'] as $key=>$cls) {
-			$pk;
+			if (!isset($cls['table'])) throw new OutletConfigException('Mapping mapping for entity ['.$key.'] is missing element [table]');
+			if (!isset($cls['props'])) throw new OutletConfigException('Mapping mapping for entity ['.$key.'] is missing element [props]');
+
 			foreach ($cls['props'] as $p=>$f) {
 				if (@$f[2]['pk']) {
 					$pk = $p;
 					break;
 				}
 			}
-			if (!$pk) throw new Exception("Class $key must have a primary key defined in the configuration");
+			if (!isset($pk)) throw new OutletConfigException("Entity [$key] must have at least one column defined as a primary key in the configuration");
 			$this->conf['classes'][$key]['pk'] = $pk;
 		}
 		
@@ -175,3 +183,7 @@ class Outlet {
 	}
 	
 }
+
+class OutletException extends Exception {}
+class OutletConfigException extends OutletException {}
+
