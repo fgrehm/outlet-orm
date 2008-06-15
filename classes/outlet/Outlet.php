@@ -148,10 +148,21 @@ class Outlet {
 	private function populateObject($clazz, $obj, array $values) {
 		$fields = $this->conf['classes'][$clazz]['props'];
 		foreach ($fields as $key=>$f) {
+			if (!array_key_exists($f[0], $values)) throw new OutletException("Field [$f[0]] defined in the config is not defined in table [".$this->conf['classes'][$clazz]['table']."]");
+
 			$obj->$key = $values[$f[0]];
 		}
 
 		return $obj;
+	}
+
+	public selectOne ($clazz, $query='', $params=array()) {
+		$res = $this->select($clazz, $query, $params);
+		if (count($res)) {
+			return $res[0];
+		} else {
+			return null;
+		}
 	}
 	
 	private function getTable($clazz) {
