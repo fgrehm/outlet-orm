@@ -156,7 +156,7 @@ class Outlet {
 		return $obj;
 	}
 
-	public selectOne ($clazz, $query='', $params=array()) {
+	public function selectOne ($clazz, $query='', $params=array()) {
 		$res = $this->select($clazz, $query, $params);
 		if (count($res)) {
 			return $res[0];
