@@ -27,7 +27,7 @@ class Outlet {
 	 * @return Outlet instance
 	 */
 	static function getInstance () {
-		if (!self::$instance) throw new OutletException('You must first initialize Outlet by calling Outlet::init( $conf )');
+		if (!self::$instance) throw new OutletException('You must first initialize Outlet by calling Outlet::nit( $conf )');
 		return self::$instance;
 	}
 
@@ -45,8 +45,9 @@ class Outlet {
 		$this->conf = $conf;
 
 		foreach ($this->conf['classes'] as $key=>$cls) {
-			if (!isset($cls['table'])) throw new OutletConfigException('Mapping mapping for entity ['.$key.'] is missing element [table]');
-			if (!isset($cls['props'])) throw new OutletConfigException('Mapping mapping for entity ['.$key.'] is missing element [props]');
+			if (!isset($cls['table'])) throw new OutletConfigException('Mapping for entity ['.$key.'] is missing element [table]');
+			if (!isset($cls['props'])) throw new OutletConfigException('Mapping for entity ['.$key.'] is missing element [props]');
+			if (!class_exists($key)) throw new OutletConfigException('Class does not exist for mapped entity ['.$key.']');
 
 			foreach ($cls['props'] as $p=>$f) {
 				if (@$f[2]['pk']) {
