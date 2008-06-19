@@ -43,7 +43,7 @@ class TestOfRelationships extends OutletTestCase {
 		$addr->Street = 'Test Street';
 
 		$user = new User;
-		$user->addAddress( $addr );
+		$user->addWorkAddress( $addr );
 
 		$outlet = Outlet::getInstance();
 
