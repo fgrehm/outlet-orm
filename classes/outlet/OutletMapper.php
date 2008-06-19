@@ -107,7 +107,8 @@ class OutletMapper {
 	}
 
 	static function getPkProp ( $clazz ) {
-		$conf = Outlet::getInstance()->getConfiguration();
+		return Outlet::getInstance()->getConfig()->getEntity($clazz)->getPkField();
+		/*
 		foreach ($conf['classes'][$clazz]['props'] as $key=>$f) {
 			if (@$f[2]['pk'] == true) {
 				$pks[] = $key;
@@ -121,7 +122,7 @@ class OutletMapper {
 				return $pks;
 			}
 		}
-
+		*/
 	}
 
 	static function getTable ($clazz) {
@@ -133,33 +134,26 @@ class OutletMapper {
 	}
 
 	private function saveOneToMany () {
-		$main_conf = Outlet::getInstance()->getConfiguration();
-		$conf = $main_conf['classes'][$this->cls];
+		$conf = Outlet::getInstance()->getConfig()->getEntity($this->cls);
 		
-		if (isset($conf['associations'])) {
-			foreach ($conf['associations'] as $assoc) {
-				$type = $assoc[0];
-				$entity = $assoc[1];
-	
-				if ($type != 'one-to-many') continue;
-	
-				$key = $assoc[2]['key'];
-	
-				$getter = "get{$entity}s";
-	
-				$children = $this->obj->$getter(null);
-				foreach ($children as &$child) {
-					$child->$key = $this->getPK();
-	
-					$mapped = new self($child);
-					if ($mapped->isNew()) {
-						$mapped->save();
-					}
+		foreach ($conf->getAssociations() as $assoc) {
+			if ($assoc->getType() != 'one-to-many') continue;
+
+			$key 		= $assoc->getKey();
+			$getter 	= $assoc->getGetter();
+			$setter		= $assoc->getSetter();
+
+			$children = $this->obj->$getter(null);
+			foreach ($children as &$child) {
+				$child->$key = $this->getPK();
+
+				$mapped = new self($child);
+				if ($mapped->isNew()) {
+					$mapped->save();
 				}
-	
-				$setter = "set{$entity}s";
-				$this->obj->$setter( $children );
 			}
+
+			$this->obj->$setter( $children );
 		}
 	}
 
@@ -200,20 +194,26 @@ class OutletMapper {
 		}
 	}
 
-	private function saveManyToOne ($entity, array $settings) {
-		$key = $settings['key'];
-		$name = (isset($settings['name']) ? $settings['name'] : $entity);
+	private function saveManyToOne () {
+		$conf = Outlet::getInstance()->getConfig()->getEntity($this->cls);
 
-		$method = "get$name";
-		$ent = $this->obj->$method();
+		foreach ($conf->getAssociations() as $assoc) {
+			if ($assoc->getType() != 'many-to-one') continue;
 
-		if ($ent) {
-			// wrap with a mapper
-			$mapped = new self($ent);
+			$key 	= $assoc->getKey();
+			$refKey	= $assoc->getRefKey();
+			$getter = $assoc->getGetter();
 
-			if ($mapped->isNew()) {
-				$mapped->save();
-				$this->obj->$key = $mapped->getPK();
+			$ent = $this->obj->$getter();
+
+			if ($ent) {
+				// wrap with a mapper
+				$mapped = new self($ent);
+
+				if ($mapped->isNew()) {
+					$mapped->save();
+					$this->obj->$key = $ent->$refKey;
+				}
 			}
 		}
 	}
@@ -222,21 +222,27 @@ class OutletMapper {
 		$outlet = Outlet::getInstance();
 		
 		$con = $outlet->getConnection();
-		$outlet_conf = $outlet->getConfiguration();
-		$conf = $outlet_conf['classes'][$this->cls];
-		
-		foreach ((array) @$conf['associations'] as $assoc) {
-			if ($assoc[0] == 'many-to-one') $this->saveManyToOne($assoc[1], $assoc[2]);
+		$config = $outlet->getConfig();
+
+		$entity = $config->getEntity($this->cls);
+
+		foreach ($entity->getAssociations() as $assoc) {
+			if ($assoc->getType() == 'many-to-one') $this->saveManyToOne( $assoc );
 		}
 
-		$props = array_keys($conf['props']);
-		$table = $conf['table'];
+		$properties = $entity->getProperties();
+
+		$props = array_keys($properties);
+		$table = $entity->getTable();
 
 		// grab insert fields
 		$insert_fields = array();
 		$insert_props = array();
 		$insert_defaults = array();
-		foreach ($conf['props'] as $prop=>$f) {
+
+		$config = Outlet::getInstance()->getConfig();
+
+		foreach ($entity->getProperties() as $prop=>$f) {
 			// skip autoIncrement fields
 			if (@$f[2]['autoIncrement']) continue;
 
@@ -276,7 +282,7 @@ class OutletMapper {
 		$proxy = new $proxy_class;
 		
 		// copy the properties to the proxy
-		foreach ($conf['props'] as $key=>$f) {
+		foreach ($entity->getProperties() as $key=>$f) {
 			$field = $key;
 			if (@$f[2]['autoIncrement']) {
 				$id = $outlet->getLastInsertId();
@@ -287,11 +293,11 @@ class OutletMapper {
 		}
 	
 		// copy the associated objects to the proxy
-		foreach ((array) @$conf['associations'] as $a) {
-			if ($a[0] == 'one-to-many' || $a[0] == 'many-to-many') {
-				$name = (@$a[2]['name'] ? $a[2]['name'] : $a[1]);
-				$setter = "set{$name}s";
-				$getter = "get{$name}s";
+		foreach ($entity->getAssociations() as $a) {
+			$type = $a->getType();
+			if ($type == 'one-to-many' || $type == 'many-to-many') {
+				$getter = $a->getGetter();
+				$setter	= $a->getSetter();
 
 				$ref = $this->obj->$getter();
 				if ($ref) $proxy->$setter( $this->obj->$getter() );

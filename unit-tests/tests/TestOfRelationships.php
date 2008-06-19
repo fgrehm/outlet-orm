@@ -38,5 +38,18 @@ class TestOfRelationships extends OutletTestCase {
 		$outlet->save( $bug );
 	}
 
+	function testPlural () {
+		$addr = new Address;
+		$addr->Street = 'Test Street';
+
+		$user = new User;
+		$user->addAddress( $addr );
+
+		$outlet = Outlet::getInstance();
+
+		$outlet->save( $user );
+
+	}
+
 }
 

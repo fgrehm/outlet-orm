@@ -1,9 +1,19 @@
 <?php
 return array(
 	'connection' => array(
-		'dsn' => 'sqlite:test.sq3'	
+		'dsn' => 'sqlite:test.sq3',
+		'dialect' => 'sqlite'
 	),
 	'classes' => array(
+		'Address' => array(
+			'table' => 'addresses',
+			'plural' => 'Addresses',
+			'props' => array(
+				'ID'		=> array('id', 'int', array('pk'=>true, 'autoIncrement'=>true)),
+				'UserID'	=> array('user_id', 'int'),
+				'Street'	=> array('street', 'varchar')
+			)
+		),
 		'Bug' => array(
 			'table' => 'bugs',
 			'props' => array(
@@ -31,6 +41,9 @@ return array(
 				'ID' 		=> array('id', 'int', array('pk'=>true, 'autoIncrement'=>true)),
 				'FirstName' => array('first_name', 'varchar'),
 				'LastName'	=> array('last_name', 'varchar')
+			),
+			'associations' => array(
+				array('one-to-many', 'Address', array('key'=>'UserID'))
 			)
 		)
 	)

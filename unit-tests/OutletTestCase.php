@@ -33,6 +33,15 @@ class OutletTestSetup {
 			)
 		");
 
+		// create addresses table
+		$pdo->exec("
+			CREATE TABLE IF NOT EXISTS addresses (
+				id INTEGER PRIMARY KEY AUTOINCREMENT,
+				user_id INTEGER NOT NULL,
+				street TEXT
+			)
+		");
+
 		// create bugs table
 		$pdo->exec("
 			CREATE TABLE IF NOT EXISTS bugs (
