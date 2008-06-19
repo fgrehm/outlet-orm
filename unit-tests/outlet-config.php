@@ -43,7 +43,7 @@ return array(
 				'LastName'	=> array('last_name', 'varchar')
 			),
 			'associations' => array(
-				array('one-to-many', 'Address', array('key'=>'UserID'))
+				array('one-to-many', 'Address', array('key'=>'UserID', 'name'=>'WorkAddress', 'plural'=>'WorkAddresses'))
 			)
 		)
 	)

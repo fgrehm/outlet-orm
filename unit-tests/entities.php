@@ -56,13 +56,13 @@ class User {
 
 	private $addresses = array();
 
-	public function getAddresses () {
+	public function getWorkAddresses () {
 		return $this->addresses;
 	}
-	public function setAddresses(array $addresses) {
+	public function setWorkAddresses(array $addresses) {
 		$this->addresses = $addresses;
 	}
-	public function addAddress(Address $addr) {
+	public function addWorkAddress(Address $addr) {
 		$this->addresses[] = $addr;
 	}
 }
