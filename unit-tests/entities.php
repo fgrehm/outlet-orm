@@ -1,5 +1,11 @@
 <?php
 
+class Address {
+	public $ID;
+	public $UserID;
+	public $Street;
+}
+
 class Bug {
 	public $ID;
 	public $Title;
@@ -47,4 +53,17 @@ class User {
 	public $ID;
 	public $FirstName;
 	public $LastName;
+
+	private $addresses = array();
+
+	public function getAddresses () {
+		return $this->addresses;
+	}
+	public function setAddresses(array $addresses) {
+		$this->addresses = $addresses;
+	}
+	public function addAddress(Address $addr) {
+		$this->addresses[] = $addr;
+	}
 }
+
