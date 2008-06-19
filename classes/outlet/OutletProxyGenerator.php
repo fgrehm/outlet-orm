@@ -63,7 +63,10 @@ class OutletProxyGenerator {
 							$key = $assoc[2]['key'];
 							$pk_prop = OutletMapper::getPkProp($clazz);
 
-							$c .= "  function get{$entity}s() { \n";
+							// use the plural setting or add an 's' if plural is not defined
+							$plural = (isset($assoc[2]['plural'])) ? $assoc[2]['plural'] : "{$entity}s";
+
+							$c .= "  function get{$plural}() { \n";
 							$c .= "    \$args = func_get_args(); \n";
 							$c .= "    if (count(\$args)) { \n";
 							$c .= "      if (is_null(\$args[0])) return parent::get{$entity}s(); \n";
@@ -80,13 +83,13 @@ class OutletProxyGenerator {
 							$c .= "    } else { \n";
 							$c .= "      \$q = 'where {"."$entity.$key} = '.\$this->$pk_prop. ' ' . \$q; \n";
 							$c .= "    }\n";
-							$c .= "    parent::set{$entity}s( Outlet::getInstance()->select('$entity', \$q) ); \n";
+							$c .= "    parent::set{$plural}( Outlet::getInstance()->select('$entity', \$q) ); \n";
 							/** not sure if i need this
 							$c .= "    if (!count(parent::get{$entity}s())) { \n";
 							$c .= "      \$this->$prop = Outlet::getInstance()->select('$entity', 'where $entity.$fk_foreign = '.\$this->$fk_local); \n";
 							$c .= "    } \n";
 							*/
-							$c .= "    return parent::get{$entity}s(); \n";
+							$c .= "    return parent::get{$plural}(); \n";
 							$c .= "  } \n";
 							break;
 						case 'many-to-many':
@@ -97,15 +100,18 @@ class OutletProxyGenerator {
 							$pkprop = OutletMapper::getPkProp($clazz);
 							$refpkprop = OutletMapper::getPkProp($entity);
 
-							$c .= "  function get{$name}s() { \n";
+							// use the plural setting or add an 's' if plural is not defined
+							$plural = (isset($assoc[2]['plural'])) ? $assoc[2]['plural'] : "{$entity}s";
+
+							$c .= "  function get{$plural}() { \n";
 							$c .= "    \$q = \" \n";
 							$c .= "      INNER JOIN $table ON $table.$ref_column = {"."$entity.$refpkprop} \n";
 							$c .= "      INNER JOIN {"."$clazz e} ON $table.$key_column = {e.$pkprop} \n";
 							$c .= "    \"; \n";
 
-							$c .= "    parent::set{$name}s( Outlet::getInstance()->select('$entity', \$q) ); \n";
+							$c .= "    parent::set{$plural}( Outlet::getInstance()->select('$entity', \$q) ); \n";
 
-							$c .= "    return parent::get{$name}s(); \n";
+							$c .= "    return parent::get{$plural}(); \n";
 							$c .= "  } \n";	
 							break;	
 					}
