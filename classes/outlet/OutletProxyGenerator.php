@@ -170,7 +170,7 @@ class OutletProxyGenerator {
 		$c .= "    return parent::$getter(); \n";
 		$c .= "  } \n";
 
-		$c .= "  function $setter($foreign \$ref=null) { \n";
+		$c .= "  function $setter($foreign \$ref".($config->isOptional() ? '=null' : '').") { \n";
 		$c .= "    if (is_null(\$ref)) { \n";
 
 		if ($config->isOptional()) {
