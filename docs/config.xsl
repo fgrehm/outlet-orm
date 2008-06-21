@@ -11,7 +11,7 @@
 	<xsl:param name="admon.graphics" select="'1'"/>
 	<xsl:param name="admon.graphics.path"></xsl:param>
 	<xsl:param name="chunk.section.depth" select="0"></xsl:param>
-	<xsl:param name="html.stylesheet" select="'style.css'"/>
+	<xsl:param name="html.stylesheet" select="'/manual/style.css'"/>
 	<xsl:param name="highlight.source" select="1" />
 	<xsl:param name="use.extensions" select="1" />
 
@@ -64,6 +64,22 @@
 			<xsl:call-template name="user.footer.navigation"/>
 			</div>
 		</div>
+
+<script type="text/javascript">
+<![CDATA[
+var gaJsHost = (("https:" == document.location.protocol) ? "https://ssl." : "http://www.");
+document.write(unescape("%3Cscript src='" + gaJsHost + "google-analytics.com/ga.js' type='text/javascript'%3E%3C/script%3E"));
+]]>
+</script>
+<script type="text/javascript">
+<![CDATA[
+var pageTracker = _gat._getTracker("UA-445961-4");
+pageTracker._initData();
+pageTracker._trackPageview();
+]]>
+</script>
+
+
     </body>
   </html>
 </xsl:template>

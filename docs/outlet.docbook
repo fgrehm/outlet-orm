@@ -277,6 +277,7 @@ array(
 			<programlisting language="php">
 array(
   'User' => array(
+    'table' => 'users',           // name of the database table
     'props' => array(...),        // properties mappings
     'associations' => array(...)  // relationships mappings
   ),
@@ -291,12 +292,22 @@ array(
 
 		<variablelist>
 			<varlistentry>
+				<term>table</term>
+				<listitem><para>Name of the database table or view that this entity maps to</para></listitem>
+			</varlistentry>
+			<varlistentry>
 				<term>props</term>
     			<listitem><para>An array of property mappings </para></listitem>
 			</varlistentry>
 			<varlistentry>
 				<term>associations</term>
-    			<listitem><para>An array of association mappings </para></listitem>
+    			<listitem><para><emphasis>Optional.</emphasis> An array of association mappings </para></listitem>
+			</varlistentry>
+			<varlistentry>
+				<term>plural</term>
+				<listitem><para><emphasis>Optional.</emphasis> The noun to use when referring to more than one. This is the name used by default
+					on association methods if there's no 'plural' setting set on the association itself.
+					Defaults to the entity name plus an 's'.</para></listitem>
 			</varlistentry>
 		</variablelist>
 	
@@ -374,6 +385,15 @@ array(
 											a bug and the people who are assigned to it (one-to-many from Bug to User), and you set 
 											the name to 'Assignee', the method names on the bug object will be 'getAssignees', 'setAssignees', and 'addAssignee'. 
 										</para>
+									</listitem>
+								</varlistentry>
+								<varlistentry>
+									<term>plural</term>
+									<listitem>
+										<para><emphasis>Optional.</emphasis> The noun to use when creating methods that return more than one entity.
+											Only necessary for associations that use something other than the entity name (such as 'Sender' or 'Creator' for a
+											an association with a 'User').
+											Defaults to the association name plus an 's'.</para>
 									</listitem>
 								</varlistentry>
 							</variablelist>
