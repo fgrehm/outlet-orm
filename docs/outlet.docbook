@@ -195,12 +195,12 @@ The configuration consists of an associative array with the elements:
 
 	<para>
 		This array is generally defined in a php script such as outlet-config.php. 
-		Outlet is then initialized with the path to the script:
+		Outlet is then initialized with configuration array as the parameter:
 	</para>
 
 	<informalexample>
 		<programlisting language="php">
-Outlet::init(APPROOT.'/outlet-config.php');</programlisting>
+Outlet::init(include APPROOT.'/outlet-config.php');</programlisting>
 	</informalexample>
 
 	<para>Here is a complete configuration: </para>
@@ -222,7 +222,7 @@ return array(
         'Name'      => array('name', 'varchar')
       ),
       'associations' => array(
-        array('type'=>'one-to-many', 'Bug', array('key'=>'ProjectID'))
+        array('one-to-many', 'Bug', array('key'=>'ProjectID'))
       )
     ),
     'Bug' => array(
@@ -234,7 +234,7 @@ return array(
         'Description' => array('description', 'varchar')
       ),
       'associations' => array(
-        array('type'=>'many-to-one', 'Project', array('key'=>'ProjectID'))
+        array('many-to-one', 'Project', array('key'=>'ProjectID'))
       )
     )
   )
@@ -342,6 +342,14 @@ array(
       				<varlistentry>
 						<term>autoIncrement</term>
           				<listitem><para>Whether this field is automatically incremented by the database. Defaults to false. </para></listitem>
+					</varlistentry>
+					<varlistentry>
+						<term>default</term>
+						<listitem><para>A default value. It can be an integer or a string.</para></listitem>
+					</varlistentry>
+					<varlistentry>
+						<term>defaultExpr</term>
+						<listitem><para>A default sql expression or function, such as NOW().</para></listitem>
 					</varlistentry>
 				</variablelist>
 			</listitem>
