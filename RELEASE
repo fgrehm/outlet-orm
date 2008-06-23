@@ -1,3 +1,8 @@
+==== Release 0.2 ====
+- Better error handling 
+- More config options: plural names, default values, default expressions, etc
+- Refactored the config system
+- Fixed a few bugs
 
 ==== Release 0.1 ====
 - Support for SQLite and MySQL
