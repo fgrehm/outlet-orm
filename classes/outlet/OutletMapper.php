@@ -210,10 +210,9 @@ class OutletMapper {
 				// wrap with a mapper
 				$mapped = new self($ent);
 
-				if ($mapped->isNew()) {
-					$mapped->save();
-					$this->obj->$key = $ent->$refKey;
-				}
+				if ($mapped->isNew()) $mapped->save();
+
+				$this->obj->$key = $ent->$refKey;
 			}
 		}
 	}
@@ -226,9 +225,7 @@ class OutletMapper {
 
 		$entity = $config->getEntity($this->cls);
 
-		foreach ($entity->getAssociations() as $assoc) {
-			if ($assoc->getType() == 'many-to-one') $this->saveManyToOne( $assoc );
-		}
+		$this->saveManyToOne();
 
 		$properties = $entity->getProperties();
 
@@ -244,12 +241,21 @@ class OutletMapper {
 
 		foreach ($entity->getProperties() as $prop=>$f) {
 			// skip autoIncrement fields
-			if (@$f[2]['autoIncrement']) continue;
+			if (isset($f[2]) && isset($f[2]['autoIncrement']) && $f[2]['autoIncrement']) continue;
 
 			$insert_props[] = $prop;
 			$insert_fields[] = $f[0];
-			$insert_defaults[] = @$f[2]['defaultExpr'];
+
+			if (isset($f[2])) {
+				if (isset($f[2]['default'])) 		$insert_defaults[] = $f[2]['default'];
+				elseif (isset($f[2]['defaultExpr'])) $insert_defaults[] = $f[2]['defaultExpr'];
+				continue;
+			}
+			$insert_defaults[] = false;
 		}
+	
+		var_dump($insert_defaults);	
+		var_dump($insert_fields);
 		
 		$q = "INSERT INTO $table ";
 		$q .= "(" . implode(', ', $insert_fields) . ")";
