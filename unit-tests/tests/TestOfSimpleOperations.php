@@ -47,3 +47,4 @@ class TestOfSimpleOperations extends OutletTestCase {
 	}
 
 }
+
