@@ -313,9 +313,7 @@ class OutletMapper {
 
 	public function update() {
 		// this first since this references the key
-		foreach ((array) @self::$conf[$this->cls]['associations'] as $assoc) {
-			if ($assoc[0] == 'many-to-one') $this->saveManyToOne($assoc[1], $assoc[2]);
-		}
+		$this->saveManyToOne();
 		
 		$con = Outlet::getInstance()->getConnection();
 
