@@ -253,9 +253,6 @@ class OutletMapper {
 			}
 			$insert_defaults[] = false;
 		}
-	
-		var_dump($insert_defaults);	
-		var_dump($insert_fields);
 		
 		$q = "INSERT INTO $table ";
 		$q .= "(" . implode(', ', $insert_fields) . ")";
