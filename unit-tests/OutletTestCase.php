@@ -29,7 +29,9 @@ class OutletTestSetup {
 		$pdo->exec("
 			CREATE TABLE IF NOT EXISTS projects (
 				id INTEGER PRIMARY KEY AUTOINCREMENT,
-				name TEXT
+				name TEXT,
+				created_date TEXT,
+				status_id INTEGER
 			)
 		");
 
@@ -76,7 +78,8 @@ class OutletTestSetup {
 		$pdo->exec("
 			CREATE TABLE IF NOT EXISTS projects (
 				id INTEGER PRIMARY KEY AUTO_INCREMENT,
-				name TEXT
+				name TEXT,
+				created_date DATETIME
 			)
 		");
 
