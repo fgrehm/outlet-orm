@@ -45,6 +45,24 @@ class TestOfSimpleOperations extends OutletTestCase {
 		$project = $outlet->load('Project', $project->ID);
 		$this->assertEqual(count($project->getBugs()), 2, 'Two rows returned');
 	}
+	
+	function testDefaults () {
+		// make sure that the created date of the project is assigned
+		// as per the defaultExpr setting
+		// also make sure that the status or the project is set 
+		// as per the default setting
+		$project = new Project;
+		$project->Name = 'Test Project';
+		
+		$outlet = Outlet::getInstance();
+		
+		$outlet->save($project);
+		
+		$project = $outlet->load('Project', $project->ID);
+		
+		$this->assertEqual($project->CreatedDate, date("Y-m-d H:i:s"));
+		$this->assertEqual($project->StatusID, 1);
+	}
 
 }
 

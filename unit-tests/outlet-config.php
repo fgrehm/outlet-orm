@@ -28,8 +28,10 @@ return array(
 		'Project' => array(
 			'table' => 'projects',
 			'props' => array(
-				'ID' 	=> array('id', 'int', array('pk'=>true, 'autoIncrement'=>true)),
-				'Name'	=> array('name', 'varchar')
+				'ID' 			=> array('id', 'int', array('pk'=>true, 'autoIncrement'=>true)),
+				'Name'			=> array('name', 'varchar'),
+				'CreatedDate' 	=> array('created_date', 'datetime', array('defaultExpr'=>"datetime(current_timestamp, 'localtime')")),
+				'StatusID'		=> array('status_id', 'int', array('default'=>1))
 			),
 			'associations' => array(
 				array('one-to-many', 'Bug', array('key'=>'ProjectID'))
