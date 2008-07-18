@@ -9,7 +9,7 @@ return array(
 			'table' => 'addresses',
 			'plural' => 'Addresses',
 			'props' => array(
-				'ID'		=> array('id', 'int', array('pk'=>true, 'autoIncrement'=>true)),
+				'AddressID'	=> array('id', 'int', array('pk'=>true, 'autoIncrement'=>true)),
 				'UserID'	=> array('user_id', 'int'),
 				'Street'	=> array('street', 'varchar')
 			)
@@ -17,7 +17,7 @@ return array(
 		'Bug' => array(
 			'table' => 'bugs',
 			'props' => array(
-				'ID' 		=> array('id', 'int', array('pk'=>true, 'autoIncrement'=>true)),
+				'ID' 	=> array('id', 'int', array('pk'=>true, 'autoIncrement'=>true)),
 				'Title'		=> array('title', 'varchar'),
 				'ProjectID' => array('project_id', 'int'),
 			),
@@ -28,7 +28,7 @@ return array(
 		'Project' => array(
 			'table' => 'projects',
 			'props' => array(
-				'ID' 			=> array('id', 'int', array('pk'=>true, 'autoIncrement'=>true)),
+				'ProjectID' 	=> array('id', 'int', array('pk'=>true, 'autoIncrement'=>true)),
 				'Name'			=> array('name', 'varchar'),
 				'CreatedDate' 	=> array('created_date', 'datetime', array('defaultExpr'=>"datetime(current_timestamp, 'localtime')")),
 				'StatusID'		=> array('status_id', 'int', array('default'=>1))
@@ -40,7 +40,7 @@ return array(
 		'User' => array(
 			'table' => 'users',
 			'props' => array(
-				'ID' 		=> array('id', 'int', array('pk'=>true, 'autoIncrement'=>true)),
+				'UserID' 	=> array('id', 'int', array('pk'=>true, 'autoIncrement'=>true)),
 				'FirstName' => array('first_name', 'varchar'),
 				'LastName'	=> array('last_name', 'varchar')
 			),
