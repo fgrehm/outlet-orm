@@ -1,7 +1,7 @@
 <?php
 
 class Address {
-	public $ID;
+	public $AddressID;
 	public $UserID;
 	public $Street;
 }
@@ -33,7 +33,7 @@ class Bug {
 }
 
 class Project {
-	public $ID;
+	public $ProjectID;
 	public $Name;
 	public $CreatedDate;
 	public $StatusID;
@@ -52,7 +52,7 @@ class Project {
 }
 
 class User {
-	public $ID;
+	public $UserID;
 	public $FirstName;
 	public $LastName;
 

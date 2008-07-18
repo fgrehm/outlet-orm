@@ -12,7 +12,7 @@ class TestOfSimpleOperations extends OutletTestCase {
 		// test insert
 		$bug = new Bug;
 		$bug->Title = 'Test bug';
-		$bug->ProjectID = $project->ID;
+		$bug->ProjectID = $project->ProjectID;
 
 		$outlet->save($bug);
 		
@@ -42,7 +42,7 @@ class TestOfSimpleOperations extends OutletTestCase {
 
 		$outlet->save($project);
 
-		$project = $outlet->load('Project', $project->ID);
+		$project = $outlet->load('Project', $project->ProjectID);
 		$this->assertEqual(count($project->getBugs()), 2, 'Two rows returned');
 	}
 	
@@ -58,7 +58,7 @@ class TestOfSimpleOperations extends OutletTestCase {
 		
 		$outlet->save($project);
 		
-		$project = $outlet->load('Project', $project->ID);
+		$project = $outlet->load('Project', $project->ProjectID);
 		
 		$this->assertEqual($project->CreatedDate, date("Y-m-d H:i:s"));
 		$this->assertEqual($project->StatusID, 1);

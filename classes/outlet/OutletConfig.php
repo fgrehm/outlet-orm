@@ -144,7 +144,11 @@ class OutletAssociationConfig {
 		if (isset($this->options['refKey'])) {
 			return $this->options['refKey'];
 		} else {
-			return $this->config->getEntity($this->foreign)->getPkField();
+			if ($this->type == 'one-to-many') {
+				return $this->config->getEntity($this->local)->getPkField();
+			} else {
+				return $this->config->getEntity($this->foreign)->getPkField();
+			}
 		}
 	}
 
