@@ -424,6 +424,10 @@ class OutletMapper {
 		
 		self::$map[$clazz][$pk] = $data;
 	}
+
+	static function clear ( $clazz, $pk ) {
+		if (isset(self::$map[$clazz])) unset(self::$map[$clazz]);
+	}
 	
 	/**
 	 * @param string $clazz

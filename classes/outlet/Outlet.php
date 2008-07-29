@@ -46,13 +46,17 @@ class Outlet {
 	}
 
 	public function delete ($clazz, $id) {
-		$table = $this->conf['classes'][$clazz]['table'];
-		$pks = $this->getPkFields($clazz);
-		$pk = array_shift($pks);
+		$pk = $this->config->getEntity($clazz)->getPkField();
+		$q = "DELETE FROM {"."$clazz} WHERE {"."$clazz.$pk} = '" . $id . "'";
 
-		$q = "DELETE FROM $table WHERE ".$pk[0]." = '" . $id . "'";
+		$q = OutletMapper::processQuery($q);
 
-		return $this->con->exec($q);
+		$res = $this->con->exec($q);
+
+		// remove from identity map
+		OutletMapper::clear($clazz, $id);
+
+		return $res;
 	}
 
 	public function select ( $clazz, $query='', $params=array()) {
