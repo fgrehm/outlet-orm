@@ -1,3 +1,6 @@
+==== Release 0.5 ====
+- Fixed a bug with Outlet->delete (another one)
+
 ==== Release 0.4 ====
 - Fixed a bug with one-to-many relationships
 

@@ -64,5 +64,28 @@ class TestOfSimpleOperations extends OutletTestCase {
 		$this->assertEqual($project->StatusID, 1);
 	}
 
+	function testDelete () {
+		$project = new Project;
+		$project->Name = 'Test Project';
+		
+		$outlet = Outlet::getInstance();
+		
+		$outlet->save($project);
+		
+		$project = $outlet->load('Project', $project->ProjectID);
+
+		$project_id = $project->ProjectID;
+
+		//$outlet->delete('Project', $project_id);
+
+		// I'll have to do something better than this 
+		// when I get a chance
+		try {
+			$project = $outlet->load('Project', $project_id);
+		} catch (Exception $e) {}
+
+		$this->assertTrue($e instanceof Exception, 'Project was deleted');			
+	}
+
 }
 
