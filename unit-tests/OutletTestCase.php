@@ -11,11 +11,13 @@ class OutletTestCase extends UnitTestCase {
 			case 'mysql':	OutletTestSetup::createMySQLTables( $pdo );		break;
 			default: 		OutletTestSetup::createSQLiteTables( $pdo );
 		}	
-		
+	
+		/*	
 		$pdo->exec('DELETE FROM projects');
 		$pdo->exec('DELETE FROM bugs');
 		$pdo->exec('DELETE FROM users');
 		$pdo->exec('DELETE FROM watchers');
+		*/
 	}
 
 	function tearDown () {
@@ -60,6 +62,13 @@ class OutletTestSetup {
 				id INTEGER PRIMARY KEY AUTOINCREMENT,
 				first_name TEXT,
 				last_name TEXT
+			)
+		");
+
+		$pdo->exec("
+			CREATE TABLE IF NOT EXISTS profiles (
+				id INTEGER PRIMARY KEY AUTOINCREMENT,
+				user_id INTEGER NOT NULL
 			)
 		");
 

@@ -76,7 +76,7 @@ class TestOfSimpleOperations extends OutletTestCase {
 
 		$project_id = $project->ProjectID;
 
-		//$outlet->delete('Project', $project_id);
+		$outlet->delete('Project', $project_id);
 
 		// I'll have to do something better than this 
 		// when I get a chance

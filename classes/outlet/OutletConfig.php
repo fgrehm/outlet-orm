@@ -161,10 +161,12 @@ class OutletAssociationConfig {
 	}
 
 	function getGetter () {
-		if ($this->type == 'many-to-one') {
-			return "get".$this->getForeignName();
-		} else {
-			return "get".$this->getForeignPlural();
+		switch ($this->type) {
+			case 'many-to-one':
+			case 'one-to-one':
+				return "get".$this->getForeignName();
+			default:
+				return "get".$this->getForeignPlural();
 		}
 	}
 	

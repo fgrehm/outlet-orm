@@ -108,21 +108,6 @@ class OutletMapper {
 
 	static function getPkProp ( $clazz ) {
 		return Outlet::getInstance()->getConfig()->getEntity($clazz)->getPkField();
-		/*
-		foreach ($conf['classes'][$clazz]['props'] as $key=>$f) {
-			if (@$f[2]['pk'] == true) {
-				$pks[] = $key;
-			}
-
-			if (!count($pks)) throw new Exception('You must specified at least one primary key');
-
-			if (count($pks) == 1) {
-				return $pks[0];
-			} else {
-				return $pks;
-			}
-		}
-		*/
 	}
 
 	static function getTable ($clazz) {
@@ -217,6 +202,29 @@ class OutletMapper {
 		}
 	}
 
+	private function saveOneToOne () {
+		$conf = Outlet::getInstance()->getConfig()->getEntity($this->cls);
+
+		foreach ($conf->getAssociations() as $assoc) {
+			if ($assoc->getType() != 'one-to-one') continue;
+
+			$key 	= $assoc->getKey();
+			$refKey	= $assoc->getRefKey();
+			$getter = $assoc->getGetter();
+
+			$ent = $this->obj->$getter();
+
+			if ($ent) {
+				// wrap with a mapper
+				$mapped = new self($ent);
+
+				if ($mapped->isNew()) $mapped->save();
+
+				$this->obj->$key = $ent->$refKey;
+			}
+		}
+	}
+
 	private function insert () {
 		$outlet = Outlet::getInstance();
 		
@@ -225,6 +233,7 @@ class OutletMapper {
 
 		$entity = $config->getEntity($this->cls);
 
+		$this->saveOneToOne();
 		$this->saveManyToOne();
 
 		$properties = $entity->getProperties();

@@ -34,6 +34,7 @@ class OutletProxyGenerator {
 				switch ($assoc->getType()) {
 					case 'one-to-many': $c .= $this->createOneToManyFunctions($assoc); break;
 					case 'many-to-one': $c .= $this->createManyToOneFunctions($assoc); break;
+					case 'one-to-one':	$c .= $this->createOneToOneFunctions($assoc); break;
 					default: throw new Exception("invalid association type: {$assoc->getType()}");
 				}
 			}
@@ -41,79 +42,24 @@ class OutletProxyGenerator {
 		}
 
 		return $c;
+	}
 
-		/*
-		foreach ($conf['classes'] as $clazz => $settings) {
-			$c = "";
-			$c .= "class {$clazz}_OutletProxy extends $clazz implements OutletProxy { \n";
-			if (isset($settings['associations'])) {
-				foreach ($settings['associations'] as $assoc) {	
-					$type 	= $assoc[0];
-					$entity = $assoc[1];
+	function createOneToOneFunctions (OutletAssociationConfig $config) {
+		$foreign	= $config->getForeign();
+		$key 		= $config->getKey();
+		$getter 	= $config->getGetter();
+		$setter		= $config->getSetter();
 
-					//$fk_local 	= $assoc[3];
+		$c = '';
+		$c .= "  function $getter() { \n";
+		$c .= "    if (is_null(\$this->$key)) return parent::$getter(); \n";
+		$c .= "    if (is_null(parent::$getter()) && \$this->$key) { \n";
+		$c .= "      parent::$setter( Outlet::getInstance()->load('$foreign', \$this->$key) ); \n";
+		$c .= "    } \n";
+		$c .= "    return parent::$getter(); \n";
+		$c .= "  } \n";
 
-					switch ($type) {
-						case 'many-to-one': 
-							$key = $assoc[2]['key'];
-							$name = (@$assoc[2]['name'] ? $assoc[2]['name'] : $entity);
-							$optional = (@$assoc[2]['optional'] ? $assoc[2]['optional'] : false);
-
-							$c .= "  function get$name() { \n";
-							$c .= "    if (is_null(\$this->$key)) return parent::get$name(); \n";
-							$c .= "    if (is_null(parent::get$name()) && \$this->$key) { \n";
-							$c .= "      parent::set$name( Outlet::getInstance()->load('$entity', \$this->$key) ); \n";
-							$c .= "    } \n";
-							$c .= "    return parent::get$name(); \n";
-							$c .= "  } \n";
-							if ($optional) {
-								$c .= "  function set$name($entity \$ref=null) { \n";
-								$c .= "    if (is_null(\$ref)) { \n";
-								$c .= "      \$this->$key = null; \n";
-								$c .= "      return parent::set$name(null); \n";
-								$c .= "    } \n";
-							} else {
-								$c .= "  function set$name($entity \$ref) { \n";
-							}
-							$c .= "    \$mapped = new OutletMapper(\$ref); \n";
-							$c .= "    \$this->$key = \$mapped->getPK(); \n";
-							$c .= "    return parent::set$name(\$ref); \n";
-							$c .= "  } \n";
-							break;
-						case 'one-to-many':
-							$c .= $this->createOneToManyFunctions($clazz, $assoc[1], $assoc[2]);
-							break;
-						case 'many-to-many':
-							$key_column = $assoc[2]['key_column'];
-							$ref_column = $assoc[2]['ref_column'];
-							$table = $assoc[2]['table'];
-							$name = (@$assoc[2]['name'] ? $assoc[2]['name'] : $entity);
-							$pkprop = OutletMapper::getPkProp($clazz);
-							$refpkprop = OutletMapper::getPkProp($entity);
-
-							// use the plural setting or add an 's' if plural is not defined
-							$plural = (isset($conf['classes'][$entity]['plural'])) ? $conf['classes'][$entity]['plural'] : "{$entity}s";
-
-							$c .= "  function get{$plural}() { \n";
-							$c .= "    \$q = \" \n";
-							$c .= "      INNER JOIN $table ON $table.$ref_column = {"."$entity.$refpkprop} \n";
-							$c .= "      INNER JOIN {"."$clazz e} ON $table.$key_column = {e.$pkprop} \n";
-							$c .= "    \"; \n";
-
-							$c .= "    parent::set{$plural}( Outlet::getInstance()->select('$entity', \$q) ); \n";
-
-							$c .= "    return parent::get{$plural}(); \n";
-							$c .= "  } \n";	
-							break;	
-					}
-				}
-			}
-			$c .= "} \n";
-
-			$s .= $c;
-		}
-		return $s;
-		*/
+		return $c;
 	}
 
 	function createOneToManyFunctions (OutletAssociationConfig $config) {

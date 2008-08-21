@@ -28,7 +28,7 @@ class Outlet {
 	 * @return Outlet instance
 	 */
 	static function getInstance () {
-		if (!self::$instance) throw new OutletException('You must first initialize Outlet by calling Outlet::nit( $conf )');
+		if (!self::$instance) throw new OutletException('You must first initialize Outlet by calling Outlet::init( $conf )');
 		return self::$instance;
 	}
 
