@@ -47,6 +47,16 @@ return array(
 			'associations' => array(
 				array('one-to-many', 'Address', array('key'=>'UserID', 'name'=>'WorkAddress', 'plural'=>'WorkAddresses'))
 			)
+		),
+		'Profile' => array(
+			'table' => 'profiles',
+			'props' => array(
+				'ProfileID' 	=> array('id', 'int', array('pk'=>true, 'autoIncrement'=>true)),
+				'UserID' 		=> array('user_id', 'int')
+			),
+			'associations' => array(
+				array('one-to-one', 'User', array('key'=>'UserID'))
+			)
 		)
 	)
 );

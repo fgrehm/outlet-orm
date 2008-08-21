@@ -38,6 +38,25 @@ class TestOfRelationships extends OutletTestCase {
 		$outlet->save( $bug );
 	}
 
+	/*
+	function testAddBugWithNoProject () {
+		$bug = new Bug;
+		$bug->Title = 'Test Bug';
+
+		$outlet = Outlet::getInstance();
+
+		$outlet->save( $bug );
+	}
+	*/
+
+	function testOneToOne () {
+		$profile = new Profile;
+	
+		$outlet = Outlet::getInstance();
+
+		$outlet->save( $profile );
+	}
+
 	function testPlural () {
 		$addr = new Address;
 		$addr->Street = 'Test Street';
