@@ -41,8 +41,16 @@ class Outlet {
 
 	
 	public function save (&$obj) {
+		$con = $this->getConnection();
+
+		$con->beginTransaction();
+
 		$mapper = new OutletMapper($obj);
-		return $mapper->save();
+		$return = $mapper->save();
+	
+		$con->commit();
+
+		return $return;
 	}
 
 	public function delete ($clazz, $id) {
