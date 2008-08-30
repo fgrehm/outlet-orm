@@ -78,6 +78,8 @@ class OutletProxyGenerator {
 		$c .= "    } else { \n";
 		$c .= "      \$q = ''; \n";
 		$c .= "    } \n";
+		$c .= "    if (isset(\$args[1])) \$params = \$args[1]; \n";
+		$c .= "    else \$params = array(); \n";
 
 		//$c .= "      if (\$q===false) return parent::get$prop(); \n";
 		
@@ -87,7 +89,7 @@ class OutletProxyGenerator {
 		$c .= "    } else { \n";
 		$c .= "      \$q = 'where {"."$foreign.$key} = '.\$this->$pk_prop. ' ' . \$q; \n";
 		$c .= "    }\n";
-		$c .= "    parent::{$setter}( Outlet::getInstance()->select('$foreign', \$q) ); \n";
+		$c .= "    parent::{$setter}( Outlet::getInstance()->select('$foreign', \$q, \$params) ); \n";
 		/** not sure if i need this
 		$c .= "    if (!count(parent::get{$entity}s())) { \n";
 		$c .= "      \$this->$prop = Outlet::getInstance()->select('$entity', 'where $entity.$fk_foreign = '.\$this->$fk_local); \n";
