@@ -55,7 +55,7 @@ class Outlet {
 
 	public function delete ($clazz, $id) {
 		$pk = $this->config->getEntity($clazz)->getPkField();
-		$q = "DELETE FROM {"."$clazz} WHERE {"."$clazz.$pk} = '" . $id . "'";
+		$q = "DELETE FROM {"."$clazz} WHERE {"."$clazz.$pk} = " . $this->quote($id);
 
 		$q = OutletMapper::processQuery($q);
 
@@ -65,6 +65,10 @@ class Outlet {
 		OutletMapper::clear($clazz, $id);
 
 		return $res;
+	}
+
+	public function quote ($val) {
+		return $this->getConnection()->quote($val);
 	}
 
 	public function select ( $clazz, $query='', $params=array()) {
