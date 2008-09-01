@@ -369,7 +369,7 @@ class OutletMapper {
 	}
 	
 	static function processQuery ( $q ) {
-		preg_match_all('/\{[a-zA-Z0-9]+(( |\.)[a-zA-Z0-9]+)*\}/', $q, $matches, PREG_SET_ORDER);
+		preg_match_all('/\{[a-zA-Z0-9_]+(( |\.)[a-zA-Z0-9_]+)*\}/', $q, $matches, PREG_SET_ORDER);
 		
 		// check if it's an update statement
 		$update = (stripos(trim($q), 'UPDATE')===0);
