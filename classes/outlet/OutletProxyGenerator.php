@@ -84,11 +84,13 @@ class OutletProxyGenerator {
 		//$c .= "      if (\$q===false) return parent::get$prop(); \n";
 		
 		// if there's a where clause
+		$c .= "    \$q = trim(\$q); \n";
 		$c .= "    if (stripos(\$q, 'where') !== false) { \n";
 		$c .= "      \$q = 'where {"."$foreign.$key} = '.\$this->$pk_prop.' and ' . substr(\$q, 5); \n";
 		$c .= "    } else { \n";
 		$c .= "      \$q = 'where {"."$foreign.$key} = '.\$this->$pk_prop. ' ' . \$q; \n";
 		$c .= "    }\n";
+		//$c .= "    echo \$q; \n";
 		$c .= "    parent::{$setter}( Outlet::getInstance()->select('$foreign', \$q, \$params) ); \n";
 		/** not sure if i need this
 		$c .= "    if (!count(parent::get{$entity}s())) { \n";

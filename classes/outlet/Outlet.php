@@ -55,11 +55,17 @@ class Outlet {
 
 	public function delete ($clazz, $id) {
 		$pk = $this->config->getEntity($clazz)->getPkField();
-		$q = "DELETE FROM {"."$clazz} WHERE {"."$clazz.$pk} = " . $this->quote($id);
+		//TODO Replace $this->quote with something that will work with an ODBC Connection
+		//$q = "DELETE FROM {"."$clazz} WHERE {"."$clazz.$pk} = " . $this->quote($id);
+		$q = "DELETE FROM {"."$clazz} WHERE {"."$clazz.$pk} = ?";
 
 		$q = OutletMapper::processQuery($q);
+		
+		$stmt = $this->getConnection()->prepare($q);
 
-		$res = $this->con->exec($q);
+		$res = $stmt->execute(array($id));
+
+		//$res = $this->con->exec($q);
 
 		// remove from identity map
 		OutletMapper::clear($clazz, $id);
@@ -140,7 +146,7 @@ class Outlet {
 	}
 
 
-	private function populateObject($clazz, $obj, array $values) {
+	public function populateObject($clazz, $obj, array $values) {
 		$entity = $this->config->getEntity($clazz);
 		$fields = $entity->getProperties();
 		foreach ($fields as $key=>$f) {

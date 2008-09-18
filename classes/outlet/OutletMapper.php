@@ -393,7 +393,14 @@ class OutletMapper {
 
 				// if it's an alias
 				if (isset($aliased[$tmp[0]])) {
-					$col = $tmp[0].'.'.self::$conf[$aliased[$tmp[0]]]['props'][$tmp[1]][0];
+					$aliased_table = $aliased[$tmp[0]];
+					
+					// check for the existence of the field configuration
+					if (!isset(self::$conf[$aliased_table]['props'][$tmp[1]])) {
+						throw new Exception("Property [$tmp[1]] does not exist on configuration for entity [$aliased_table]");
+					}
+					
+					$col = $tmp[0].'.'.self::$conf[$aliased_table]['props'][$tmp[1]][0];
 				} else {
 					// if it's an update statement,
 					// we must not include the table
@@ -410,6 +417,8 @@ class OutletMapper {
 					$col,
 					$q
 				);
+				
+
 
 			// if it's a non-aliased class
 			} else {
@@ -419,7 +428,7 @@ class OutletMapper {
 			}
 
 		}
-
+		
 		return $q;
 	}
 	
