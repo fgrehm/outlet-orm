@@ -22,21 +22,39 @@ class OutletPDO extends PDO {
 
 	function beginTransaction () {
 		if (!$this->nestedTransactionLevel++) {
-			return parent::beginTransaction();
+			
+			// since dblib driver doesn't support transactions
+			if ($this->driver == 'dblib') {
+				return $this->exec('BEGIN TRANSACTION');
+			} else {
+				return parent::beginTransaction();
+			}
 		}
 		return true;
 	}
 
 	function commit () {
 		if (!--$this->nestedTransactionLevel) {
-			return parent::commit();
+			
+			// since dblib driver doesn't support transactions
+			if ($this->driver == 'dblib') {
+				return $this->exec('COMMIT TRANSACTION');
+			} else {
+				return parent::commit();
+			}
 		}
 		return true;
 	}
 	
 	function rollBack () {
 		if (!--$this->nestedTransactionLevel) {
-			return parent::rollBack();
+			
+			// since dblib driver doesn't support transactions
+			if ($this->driver == 'dblib') {
+				$this->exec('ROLLBACK TRANSACTION');
+			} else {
+				return parent::rollBack();
+			}
 		}
 		return true;
 	}
