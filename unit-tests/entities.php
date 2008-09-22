@@ -11,6 +11,9 @@ class Bug {
 	public $Title;
 	public $ProjectID;
 
+	// test member with underscore
+	public $Test_One;
+
 	private $project;
 	private $watchers = array();
 
