@@ -20,6 +20,7 @@ return array(
 				'ID' 	=> array('id', 'int', array('pk'=>true, 'autoIncrement'=>true)),
 				'Title'		=> array('title', 'varchar'),
 				'ProjectID' => array('project_id', 'int'),
+				'Test_One'	=> array('title', 'varchar') // test an identifier with an underscore on it
 			),
 			'associations' => array(
 				array('many-to-one', 'Project', array('key'=>'ProjectID'))
