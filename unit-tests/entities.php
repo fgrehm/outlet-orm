@@ -35,6 +35,11 @@ class Bug {
 	}
 }
 
+class Machine {
+	public $Name;
+	public $Description;
+}
+
 class Project {
 	public $ProjectID;
 	public $Name;

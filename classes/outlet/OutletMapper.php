@@ -255,12 +255,16 @@ class OutletMapper {
 			$insert_props[] = $prop;
 			$insert_fields[] = $f[0];
 
+			// if there's options
+			// TODO: Clean this up
 			if (isset($f[2])) {
 				if (isset($f[2]['default'])) 		$insert_defaults[] = $f[2]['default'];
 				elseif (isset($f[2]['defaultExpr'])) $insert_defaults[] = $f[2]['defaultExpr'];
+				else $insert_defaults[] = false;
 				continue;
+			} else {
+				$insert_defaults[] = false;
 			}
-			$insert_defaults[] = false;
 		}
 		
 		$q = "INSERT INTO $table ";
@@ -347,7 +351,7 @@ class OutletMapper {
 			if (!@$pk[2]['pk']) continue;
 
 			$value = $con->quote( $this->obj->$key );
-			$clause[] = "$pk[0] = {$this->obj->$key}";
+			$clause[] = "$pk[0] = $value";
 		}
 		$q .= implode(' AND ', $clause);
 		
@@ -445,6 +449,10 @@ class OutletMapper {
 
 	static function clear ( $clazz, $pk ) {
 		if (isset(self::$map[$clazz])) unset(self::$map[$clazz]);
+	}
+
+	static function clearCache () {
+		self::$map = array();
 	}
 	
 	/**

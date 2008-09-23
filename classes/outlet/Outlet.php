@@ -194,7 +194,10 @@ class Outlet {
 		}
 		return $newArr;
 	}
-	
+
+	public function clearCache () {
+		OutletMapper::clearCache();
+	}	
 }
 
 class OutletException extends Exception {}
