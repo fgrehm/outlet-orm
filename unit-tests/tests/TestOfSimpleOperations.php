@@ -45,6 +45,29 @@ class TestOfSimpleOperations extends OutletTestCase {
 		$project = $outlet->load('Project', $project->ProjectID);
 		$this->assertEqual(count($project->getBugs()), 2, 'Two rows returned');
 	}
+
+	function testNonAutoIncrementingVarcharPrimaryKey () {
+		$m = new Machine;
+		$m->Name = 'test';
+		$m->Description = 'Test machine';
+
+		$outlet = Outlet::getInstance();
+
+		// test insert
+		$outlet->save( $m );
+
+		$outlet->clearCache();
+
+		// test loading
+		$machine = $outlet->load('Machine', $m->Name);
+
+		$this->assertNotNull($machine, "Machine was saved and retrieved");
+
+		// test update
+		$machine->Description = 'Updated description';
+
+		$outlet->save($machine);
+	}
 	
 	function testDefaults () {
 		// make sure that the created date of the project is assigned

@@ -7,17 +7,16 @@ class OutletTestCase extends UnitTestCase {
 		$pdo = Outlet::getInstance()->getConnection();
 
 		switch (DATABASE_DRIVER) {
-			case 'sqlite': 	OutletTestSetup::createSQLiteTables( $pdo );	break;
 			case 'mysql':	OutletTestSetup::createMySQLTables( $pdo );		break;
+			case 'sqlite': 
 			default: 		OutletTestSetup::createSQLiteTables( $pdo );
 		}	
 	
-		/*	
 		$pdo->exec('DELETE FROM projects');
 		$pdo->exec('DELETE FROM bugs');
+		$pdo->exec('DELETE FROM machines');
 		$pdo->exec('DELETE FROM users');
 		$pdo->exec('DELETE FROM watchers');
-		*/
 	}
 
 	function tearDown () {
@@ -79,6 +78,14 @@ class OutletTestSetup {
 				bug_id INTEGER,
 				PRIMARY KEY (user_id, bug_id)
 			)	
+		");
+
+		// create machines table (table with a varchar as a PK)
+		$pdo->exec("
+			CREATE TABLE IF NOT EXISTS machines (
+				name TEXT PRIMARY KEY,
+				description TEXT		
+			)
 		");
 	}
 

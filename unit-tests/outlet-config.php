@@ -26,6 +26,13 @@ return array(
 				array('many-to-one', 'Project', array('key'=>'ProjectID'))
 			)
 		),
+		'Machine' => array(
+			'table' => 'machines',
+			'props' => array(
+				'Name' 			=> array('name', 'varchar', array('pk'=>true)),
+				'Description'	=> array('description', 'varchar')
+			)
+		),
 		'Project' => array(
 			'table' => 'projects',
 			'props' => array(
