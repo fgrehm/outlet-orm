@@ -44,6 +44,22 @@ class TestOfSimpleOperations extends OutletTestCase {
 
 		$project = $outlet->load('Project', $project->ProjectID);
 		$this->assertEqual(count($project->getBugs()), 2, 'Two rows returned');
+
+		// test assignment of many to one
+		$bug3 = new Bug;
+		$bug3->Title = 'Bug 3';
+		$bug3->setProject( $project );
+
+		$outlet->save($bug3);
+
+		$project2 = new Project;
+		$project2->Name = 'Project 2';
+		$outlet->save($project2);
+
+		$bug3->setProject($project2);
+
+		$this->assertEqual($bug3->ProjectID, $project2->ProjectID, "Bug gets assigned the id of the project on setProject");
+
 	}
 
 	function testNonAutoIncrementingVarcharPrimaryKey () {
