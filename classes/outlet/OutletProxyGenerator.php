@@ -114,7 +114,7 @@ class OutletProxyGenerator {
 		$c = '';
 		$c .= "  function $getter() { \n";
 		$c .= "    if (is_null(\$this->$key)) return parent::$getter(); \n";
-		$c .= "    if (is_null(parent::$getter()) && \$this->$key) { \n";
+		$c .= "    if (is_null(parent::$getter()) && isset(\$this->$key)) { \n";
 		$c .= "      parent::$setter( Outlet::getInstance()->load('$foreign', \$this->$key) ); \n";
 		$c .= "    } \n";
 		$c .= "    return parent::$getter(); \n";
@@ -134,7 +134,7 @@ class OutletProxyGenerator {
 
 		//$c .= "    \$mapped = new OutletMapper(\$ref); \n";
 		//$c .= "    \$this->$key = \$mapped->getPK(); \n";
-		$c .= "    \$this->key = \$ref->{$refKey}; \n";
+		$c .= "    \$this->$key = \$ref->{$refKey}; \n";
 		$c .= "    return parent::$setter(\$ref); \n";
 		$c .= "  } \n";
 
