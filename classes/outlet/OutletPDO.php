@@ -58,6 +58,16 @@ class OutletPDO extends PDO {
 		}
 		return true;
 	}
+	
+	function quote ($v) {
+		if ($this->driver == 'odbc') {
+			if (is_null($v)) return 'NULL';
+			
+			return "'".str_replace("'", "''", $v)."'";
+		} else {
+			return parent::quote($v);
+		}
+	}
 }
 
 

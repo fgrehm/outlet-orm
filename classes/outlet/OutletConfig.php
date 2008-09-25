@@ -196,6 +196,9 @@ class OutletAssociationConfig {
 			else $plural = $this->options['name'].'s';
 		// else check the entity definition
 		} else {
+			if (!isset($this->config->conf['classes'][$this->foreign])) 
+				throw new OutletConfigException("Entity [{$this->foreign}] not found in configuration");	
+			
 			$foreign_def = $this->config->conf['classes'][$this->foreign];
 			// if there's a plural defined at the foreign entity
 			// else use the entity plus an 's'
