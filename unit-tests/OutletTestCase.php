@@ -31,8 +31,9 @@ class OutletTestSetup {
 			CREATE TABLE IF NOT EXISTS projects (
 				id INTEGER PRIMARY KEY AUTOINCREMENT,
 				name TEXT,
-				created_date TEXT,
-				status_id INTEGER
+				created_date TEXT NOT NULL,
+				status_id INTEGER NOT NULL,
+				description TEXT NOT NULL
 			)
 		");
 

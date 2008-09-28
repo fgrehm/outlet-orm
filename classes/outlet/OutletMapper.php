@@ -258,15 +258,17 @@ class OutletMapper {
 			// if there's options
 			// TODO: Clean this up
 			if (isset($f[2])) {
-				if (isset($f[2]['default'])) 		$insert_defaults[] = $f[2]['default'];
-				elseif (isset($f[2]['defaultExpr'])) $insert_defaults[] = $f[2]['defaultExpr'];
+				if (isset($f[2]['default'])) {
+					$this->obj->$prop = $f[2]['default'];
+					$insert_defaults[] = false;
+				} elseif (isset($f[2]['defaultExpr'])) $insert_defaults[] = $f[2]['defaultExpr'];
 				else $insert_defaults[] = false;
 				continue;
 			} else {
 				$insert_defaults[] = false;
 			}
 		}
-		
+	
 		$q = "INSERT INTO $table ";
 		$q .= "(" . implode(', ', $insert_fields) . ")";
 		$q .= " VALUES ";

@@ -101,6 +101,7 @@ class TestOfSimpleOperations extends OutletTestCase {
 		
 		$this->assertEqual($project->CreatedDate, date("Y-m-d H:i:s"));
 		$this->assertEqual($project->StatusID, 1);
+		$this->assertEqual($project->Description, 'Default Description');
 	}
 
 	function testDelete () {
