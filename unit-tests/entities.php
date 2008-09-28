@@ -45,6 +45,7 @@ class Project {
 	public $Name;
 	public $CreatedDate;
 	public $StatusID;
+	public $Description;
 
 	private $bugs = array();
 

@@ -39,7 +39,8 @@ return array(
 				'ProjectID' 	=> array('id', 'int', array('pk'=>true, 'autoIncrement'=>true)),
 				'Name'			=> array('name', 'varchar'),
 				'CreatedDate' 	=> array('created_date', 'datetime', array('defaultExpr'=>"datetime(current_timestamp, 'localtime')")),
-				'StatusID'		=> array('status_id', 'int', array('default'=>1))
+				'StatusID'		=> array('status_id', 'int', array('default'=>1)),
+				'Description'	=> array('description', 'varchar', array('default'=>'Default Description'))
 			),
 			'associations' => array(
 				array('one-to-many', 'Bug', array('key'=>'ProjectID'))

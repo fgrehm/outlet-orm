@@ -49,6 +49,7 @@ class TestOfRelationships extends OutletTestCase {
 	}
 	*/
 
+	/*
 	function testOneToOne () {
 		$profile = new Profile;
 	
@@ -56,6 +57,7 @@ class TestOfRelationships extends OutletTestCase {
 
 		$outlet->save( $profile );
 	}
+	*/
 
 	function testPlural () {
 		$addr = new Address;
