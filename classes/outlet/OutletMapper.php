@@ -340,7 +340,12 @@ class OutletMapper {
 			// skip primary key 
 			if (@$f[2]['pk']) continue;
 
-			$value = $con->quote( $this->obj->$key );
+			if (is_null($this->obj->$key)) {
+				$value = 'NULL';
+			} else {
+				$value = $con->quote( $this->obj->$key );
+			}
+
 			$ups[] = "  {".$this->cls.'.'.$key."} = $value";
 		}
 		$q .= implode(", \n", $ups);
