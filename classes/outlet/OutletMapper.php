@@ -414,6 +414,12 @@ class OutletMapper {
 						$col = self::$conf[$tmp[0]]['props'][$tmp[1]][0];
 					} else {
 						$table = self::$conf[$tmp[0]]['table'];
+						
+						// check for existence of the field configuration
+						if (!isset(self::$conf[$tmp[0]]['props'][$tmp[1]])) {
+							throw new Exception("Property [$tmp[1]] does not exist on configuration for entity [$tmp[0]]");
+						}
+						
 						$col = $table.'.'.self::$conf[$tmp[0]]['props'][$tmp[1]][0];
 					}
 				}
