@@ -81,14 +81,10 @@ class Outlet {
 		// select plus criteria
 		$q = "SELECT {"."$clazz}.* FROM {".$clazz."} " . $query;
 
-		// process the query
-		$q = OutletMapper::processQuery($q);
-
 		$proxyclass = "{$clazz}_OutletProxy";
 		$collection = array();
-
-		$stmt = $this->con->prepare($q);
-		$stmt->execute($params);
+		
+		$stmt = $this->query($q, $params);
 
 		while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
 			$obj = new $proxyclass();
@@ -197,7 +193,22 @@ class Outlet {
 
 	public function clearCache () {
 		OutletMapper::clearCache();
-	}	
+	}
+	
+	/**
+	 * @param string $query
+	 * @param array $params
+	 * @return PDOStatement
+	 */
+	public function query ( $query='', $params=array()) {
+		// process the query
+		$q = OutletMapper::processQuery($query);
+
+		$stmt = $this->con->prepare($q);
+		$stmt->execute($params);
+
+		return $stmt;
+	}
 }
 
 class OutletException extends Exception {}

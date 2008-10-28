@@ -384,8 +384,8 @@ class OutletMapper {
 		
 		// check if it's an update statement
 		$update = (stripos(trim($q), 'UPDATE')===0);
-
-		// get the aliased classes
+		
+		// get the table names
 		$aliased = array();
 		foreach ($matches as $key=>$m) {
 			// clear braces
@@ -398,8 +398,23 @@ class OutletMapper {
 
 				$q = str_replace($m[0], self::$conf[$tmp[0]]['table'].' '.$tmp[1], $q);
 
+			// if it's a non-aliased class
+			} elseif (strpos($str, '.')===false) {
+			// if it's a non-aliased class
+				$table = self::$conf[$str]['table'];
+				$aliased[$table] = $str;
+				$q = str_replace($m[0], $table, $q);
+			}
+
+		}
+
+		// update references to the properties
+		foreach ($matches as $key=>$m) {
+			// clear braces
+			$str = substr($m[0], 1, -1);
+
 			// if it's a property
-			} elseif (strpos($str, '.')!==false) {
+			if (strpos($str, '.')!==false) {
 				$tmp = explode('.', $str);
 
 				// if it's an alias
@@ -434,15 +449,7 @@ class OutletMapper {
 					$col,
 					$q
 				);
-				
-
-
-			// if it's a non-aliased class
-			} else {
-				$table = self::$conf[$str]['table'];
-				$aliased[$table] = $str;
-				$q = str_replace($m[0], $table, $q);
-			}
+			} 
 
 		}
 		
