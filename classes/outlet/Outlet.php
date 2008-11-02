@@ -77,6 +77,12 @@ class Outlet {
 		return $this->getConnection()->quote($val);
 	}
 
+	/**
+	 * @param string $clazz Name of the class as mapped on the configuration
+	 * @param string $query Query to execute as a prepared statement
+	 * @param string $params Parameters to bind to the query
+	 * @return array Collection returned by the query
+	 */
 	public function select ( $clazz, $query='', $params=array()) {
 		// select plus criteria
 		$q = "SELECT {"."$clazz}.* FROM {".$clazz."} " . $query;
@@ -85,11 +91,26 @@ class Outlet {
 		$collection = array();
 		
 		$stmt = $this->query($q, $params);
-
+		
+		// get the pk column in order to check the map
+		$props = $this->getConfig()->getEntity($clazz)->getProperties();
+		$pk = array();
+		foreach ($props as $key=>$d) {
+			if (isset($d[2]['pk']) && $d[2]['pk']) $pk[] = $d[0]; 
+		}
+			
 		while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
-			$obj = new $proxyclass();
-			$this->populateObject($clazz, $obj, $row);
-			$collection[] = $obj;
+			
+			// if the object is found on the map, use it
+			if (isset(OutletMapper::$map[$clazz][$row[$pk[0]]])) {
+				$collection[] = OutletMapper::$map[$clazz][$row[$pk[0]]]['obj'];
+				
+			// else use the one from the query
+			} else {
+				$obj = new $proxyclass();
+				$this->populateObject($clazz, $obj, $row);
+				$collection[] = $obj;
+			}
 		}
 		
 		// save in identity map
