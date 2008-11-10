@@ -86,8 +86,6 @@ class OutletQuery {
 		$q .= " FROM {".$this->from."} \n";
 		$q .= $join_q;
 		
-		echo $q;
-		
 		$stmt = $outlet->query($q);
 		
 		$res = array();
@@ -98,7 +96,6 @@ class OutletQuery {
 			}
 
 			$obj = $outlet->populateObject($from, new $from, $data);
-			
 		
 			foreach ($with as $with_key=>$w) {
 				$a = $entity_config->getAssociation($w);

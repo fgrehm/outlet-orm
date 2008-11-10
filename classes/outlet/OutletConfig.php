@@ -27,6 +27,9 @@ class OutletConfig {
 		return $this->con;
 	}
 
+	/**
+	 * @return array
+	 */
 	function getEntities () {
 		if (is_null($this->entities)) {
 			$this->entities = array();
@@ -87,8 +90,23 @@ class OutletEntityConfig {
 		return $this->table;
 	}
 
+	/**
+	 * @return array
+	 */
 	function getProperties () {
 		return $this->props;
+	}
+	
+	/**
+	 * @return array Primary key columns for this entity
+	 */
+	function getPkColumns () {
+		// get the pk column in order to check the map
+		$pk = array();
+		foreach ($this->props as $key=>$d) {
+			if (isset($d[2]['pk']) && $d[2]['pk']) $pk[] = $d[0]; 
+		}
+		return $pk;
 	}
 
 	/**

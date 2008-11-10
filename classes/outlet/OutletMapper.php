@@ -26,7 +26,7 @@ class OutletMapper {
 
 		$this->obj = &$obj;
 		
-		$this->original = $this->toArray();
+		$this->original = self::toArray($this->obj);
 	}
 	
 	static function getEntityClass ($obj) {
@@ -55,7 +55,7 @@ class OutletMapper {
 	
 	public function load () {
 		// try to retrieve it from the cache first
-		$data = self::get($this->cls, $this->getPk());
+		$data = self::get($this->cls, $this->getPkValues());
 
 		// if it's there
 		if ($data) {
@@ -89,9 +89,9 @@ class OutletMapper {
 			}
 			
 			// add it to the cache
-			self::set($this->cls, $this->getPk(), array(
+			self::set($this->cls, $this->getPkValues(), array(
 				'obj' => $this->obj,
-				'original' => $this->toArray()
+				'original' => self::toArray($this->obj)
 			));	
 		} 
 	}
@@ -100,10 +100,32 @@ class OutletMapper {
 		$pk_prop = self::getPkProp($this->cls);
 		$this->obj->$pk_prop = $pk;
 	}
-
-	public function getPK() {
-		$pk_prop = self::getPkProp($this->cls);
-		return $this->obj->$pk_prop;
+	
+	/**
+	 * Get the PK values for the entity, casted to the type defined on the config 
+	 *
+	 * @return array
+	 */
+	public function getPkValues () {
+		$pks = array();
+		foreach (Outlet::getInstance()->getConfig()->getEntity($this->cls)->getProperties() as $key=>$p) {
+			if (@$p[2]['pk']) {
+				$value = $this->obj->$key;
+				
+				// cast it if the property is defined to be an int
+				if ($p[1]=='int') $value = (int) $value;
+				
+				$pks[] = $value;
+			}
+		}
+		return $pks;
+	}
+	
+	public static function castRow ($clazz, array &$row) {
+		foreach (Outlet::getInstance()->getConfig()->getEntity($clazz)->getProperties() as $key=>$p) {			
+			// cast it if the property is defined to be an int
+			if ($p[1]=='int') $row[$p[0]] = (int) $row[$p[0]];
+		}
 	}
 
 	static function getPkProp ( $clazz ) {
@@ -371,10 +393,12 @@ class OutletMapper {
 		$this->saveManyToMany();
 	}
 
-	function toArray () {
+	static function toArray ($entity) {
+		$class = self::getEntityClass($entity);
+		
 		$arr = array();
-		foreach (self::$conf[$this->cls]['props'] as $prop=>$settings) {
-			$arr[$prop] = $this->obj->$prop;
+		foreach (Outlet::getInstance()->getConfig()->getEntity($class)->getProperties() as $key=>$p) {
+			$arr[$key] = $entity->$key;
 		}
 		return $arr;
 	}
@@ -460,11 +484,31 @@ class OutletMapper {
 		return $this->obj;
 	}
 
-	static function set ( $clazz, $pk, array $data ) {
+	/**
+	 * @param unknown_type $clazz
+	 * @param array $pks Primary key values
+	 * @param array $data
+	 */
+	static function set ( $clazz, array $pks, array $data ) {
+		// store on the map using the write type for the key (int, string)
+		$props = Outlet::getInstance()->getConfig()->getEntity($clazz)->getProperties();
+		
+		$i = 0;
+		foreach ($props as $key=>$p) {
+			if (!@$p[2]['pk']) continue;
+			
+			if ($p[1] == 'int') $pks[$i] = (int) $pks[$i]; 
+			
+			$i++;
+		}
+		
+		// if there's only one pk, use it instead of the array
+		if (is_array($pks) && count($pks)==1) $pks = $pks[0];
+		
 		// initialize map for this class
 		if (!isset(self::$map[$clazz])) self::$map[$clazz] = array();
 		
-		self::$map[$clazz][$pk] = $data;
+		self::$map[$clazz][serialize($pks)] = $data;
 	}
 
 	static function clear ( $clazz, $pk ) {
@@ -480,9 +524,12 @@ class OutletMapper {
 	 * @param mixed $pk Primary key
 	 * @return array array('obj'=>Entity, 'original'=>Original row used to populate entity)
 	 */
-	function get ( $clazz, $pk ) {
-		if (isset(self::$map[$clazz]) && isset(self::$map[$clazz][$pk])) {
-			return self::$map[$clazz][$pk];
+	function get ( $clazz, array $pk ) {
+		// if there's only one pk, use instead of the array
+		if (is_array($pk) && count($pk)==1) $pk = $pk[0];
+		
+		if (isset(self::$map[$clazz]) && isset(self::$map[$clazz][serialize($pk)])) {
+			return self::$map[$clazz][serialize($pk)];
 		}
 		return null;
 	}

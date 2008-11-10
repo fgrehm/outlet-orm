@@ -14,11 +14,6 @@ class Outlet {
 	 */
 	private $con;
 	
-	/**
-	 * @var OutletIdentityMap
-	 */
-	private $identity_map;
-	
 	static function init ( array $conf ) {
 		// instantiate
 		self::$instance = new self( $conf );
@@ -39,7 +34,12 @@ class Outlet {
 		OutletMapper::$conf = &$conf['classes'];
 	}
 
-	
+	/**
+	 * Persist the passed entity to the database by executing an INSERT or an UPDATE
+	 *
+	 * @param object $obj
+	 * @return object OutletProxy object representing the Entity
+	 */
 	public function save (&$obj) {
 		$con = $this->getConnection();
 
@@ -78,9 +78,11 @@ class Outlet {
 	}
 
 	/**
+	 * Select entities from the database. 
+	 * 
 	 * @param string $clazz Name of the class as mapped on the configuration
-	 * @param string $query Query to execute as a prepared statement
-	 * @param string $params Parameters to bind to the query
+	 * @param string $query Optional query to execute as a prepared statement
+	 * @param string $params Optional parameters to bind to the query
 	 * @return array Collection returned by the query
 	 */
 	public function select ( $clazz, $query='', $params=array()) {
@@ -93,30 +95,10 @@ class Outlet {
 		$stmt = $this->query($q, $params);
 		
 		// get the pk column in order to check the map
-		$props = $this->getConfig()->getEntity($clazz)->getProperties();
-		$pk = array();
-		foreach ($props as $key=>$d) {
-			if (isset($d[2]['pk']) && $d[2]['pk']) $pk[] = $d[0]; 
-		}
+		$pk = $this->getConfig()->getEntity($clazz)->getPkColumns();
 			
 		while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
-			
-			// if the object is found on the map, use it
-			if (isset(OutletMapper::$map[$clazz][$row[$pk[0]]])) {
-				$collection[] = OutletMapper::$map[$clazz][$row[$pk[0]]]['obj'];
-				
-			// else use the one from the query
-			} else {
-				$obj = new $proxyclass();
-				$this->populateObject($clazz, $obj, $row);
-				$collection[] = $obj;
-			}
-		}
-		
-		// save in identity map
-		foreach ($collection as $o) {
-			$mapped = new OutletMapper($o);
-			$this->identity_map[$clazz][$mapped->getPK()] = $mapped->toArray();
+			$collection[] = $this->getEntityForRow($clazz, $row);
 		}
 
 		return $collection;
@@ -167,6 +149,8 @@ class Outlet {
 
 
 	public function populateObject($clazz, $obj, array $values) {
+		OutletMapper::castRow($clazz, $values);
+		
 		$entity = $this->config->getEntity($clazz);
 		$fields = $entity->getProperties();
 		foreach ($fields as $key=>$f) {
@@ -176,6 +160,43 @@ class Outlet {
 		}
 
 		return $obj;
+	}
+	
+	/**
+	 * Return the entity for a database row
+	 * This method checks the identity map
+	 *
+	 * @param string $clazz
+	 * @param array $row
+	 */
+	public function getEntityForRow ($clazz, array $row) {
+		OutletMapper::castRow($clazz, $row);
+		
+		// get the pk column in order to check the map
+		$pks = $this->getConfig()->getEntity($clazz)->getPkColumns();
+		
+		$values = array();
+		foreach ($pks as $pk) {
+			$values[] = $row[$pk];
+		}
+
+		$data = OutletMapper::get($clazz, $values);
+		
+		$proxyclass = "{$clazz}_OutletProxy";
+		
+		if ($data) {
+			return $data['obj'];
+		} else {
+			$obj = self::populateObject($clazz, new $proxyclass, $row);
+			
+			// add it to the cache
+			OutletMapper::set($clazz, $values, array(
+				'obj' => $obj,
+				'original' => OutletMapper::toArray($obj)
+			));	
+			
+			return $obj;
+		}
 	}
 
 	public function selectOne ($clazz, $query='', $params=array()) {
