@@ -149,6 +149,9 @@ class Outlet {
 		return $this->config->getConnection();
 	}
 
+	/**
+	 * @return OutletConfig
+	 */
 	function getConfig () {
 		return $this->config;
 	}
@@ -229,6 +232,18 @@ class Outlet {
 		$stmt->execute($params);
 
 		return $stmt;
+	}
+	
+	/**
+	 * @param string $from
+	 * @return OutletQuery
+	 */
+	public function from ($from) {
+		require_once 'OutletQuery.php';
+		$q = new OutletQuery;
+		$q->from($from);
+		
+		return $q;
 	}
 }
 

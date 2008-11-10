@@ -478,7 +478,7 @@ class OutletMapper {
 	/**
 	 * @param string $clazz
 	 * @param mixed $pk Primary key
-	 * @return OutletMapper
+	 * @return array array('obj'=>Entity, 'original'=>Original row used to populate entity)
 	 */
 	function get ( $clazz, $pk ) {
 		if (isset(self::$map[$clazz]) && isset(self::$map[$clazz][$pk])) {

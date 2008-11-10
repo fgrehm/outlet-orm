@@ -37,6 +37,10 @@ class OutletConfig {
 		return $this->entities;
 	}
 
+	/**
+	 * @param string $cls
+	 * @return OutletEntityConfig
+	 */
 	function getEntity ($cls) {
 		return $this->entities[$cls];
 	}
@@ -87,6 +91,9 @@ class OutletEntityConfig {
 		return $this->props;
 	}
 
+	/**
+	 * @return array OutletAssociationConfig collection
+	 */
 	function getAssociations () {
 		if (is_null($this->associations)) {
 			$this->associations = array();
@@ -99,12 +106,24 @@ class OutletEntityConfig {
 		}
 		return $this->associations;
 	}
+	
+	/**
+	 * @param string $name
+	 * @return OutletAssociationConfig
+	 */
+	function getAssociation ($name) {
+		foreach ($this->getAssociations() as $assoc) {
+			//$assoc = new OutletAssociationConfig();
+			if ($assoc->getForeignName() == $name) return $assoc;
+		}
+	}
 
 	function getPkField () {
 		foreach ($this->props as $prop=>$def) {
 			if (@$def[2]['pk']) return $prop;
 		}
 	}
+	
 }
 
 class OutletAssociationConfig {
@@ -116,6 +135,13 @@ class OutletAssociationConfig {
 	private $type;
 	private $key;
 
+	/**
+	 * @param OutletConfig $config
+	 * @param string $type Type of association: one-to-many, many-to-one, etc
+	 * @param string $local Name of the entity where the association is defined
+	 * @param string $foreign Name of the entity that is referenced by the association
+	 * @param array $options
+	 */
 	function __construct (OutletConfig $config, $type, $local, $foreign, array $options) {
 		// all associations require a key
 		if (!isset($options['key'])) throw new OutletConfigException("Entity $local, association with $foreign: You must specify a key when defining a $type relationship");
@@ -136,6 +162,9 @@ class OutletAssociationConfig {
 		return $this->type;
 	}
 
+	/**
+	 * @return string Association key
+	 */
 	function getKey () {
 		return $this->options['key'];
 	}
@@ -156,6 +185,9 @@ class OutletAssociationConfig {
 		return (isset($this->options['optional']) && $this->options['optional']);
 	}
 
+	/**
+	 * @return string Foreign entity name
+	 */
 	function getForeign () {
 		return $this->foreign;
 	}
@@ -170,6 +202,9 @@ class OutletAssociationConfig {
 		}
 	}
 	
+	/**
+	 * @return string
+	 */
 	function getSetter () {
 		if ($this->type == 'many-to-one') {
 			return "set".$this->getForeignName();
@@ -178,6 +213,9 @@ class OutletAssociationConfig {
 		}
 	}
 
+	/**
+	 * @return string Name of the association
+	 */
 	function getForeignName () {
 		if (isset($this->options['name'])) {
 			$name = $this->options['name'];
