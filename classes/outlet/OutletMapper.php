@@ -80,12 +80,12 @@ class OutletMapper {
 	
 			$row = $stmt->fetch(PDO::FETCH_ASSOC);
 			
-			// cast the row to the types defined on the config
-			self::castRow($this->cls, $row);
-			
 			// if there's matching row, 
 			// return null
 			if (!$row) throw new Exception("No matching row found for {$this->cls} with primary key of {$this->obj->$pk_prop}");
+			
+			// cast the row to the types defined on the config
+			self::castRow($this->cls, $row);
 	
 			foreach ($props_conf as $key=>$f) {
 				$this->obj->$key = $row[$f[0]];
