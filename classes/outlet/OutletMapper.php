@@ -146,6 +146,8 @@ class OutletMapper {
 	private function saveOneToMany () {
 		$conf = Outlet::getInstance()->getConfig()->getEntity($this->cls);
 		
+		$pks = $this->getPkValues();
+		
 		foreach ($conf->getAssociations() as $assoc) {
 			if ($assoc->getType() != 'one-to-many') continue;
 
@@ -155,7 +157,7 @@ class OutletMapper {
 
 			$children = $this->obj->$getter(null);
 			foreach ($children as &$child) {
-				$child->$key = $this->getPK();
+				$child->$key = $pks[0];
 
 				$mapped = new self($child);
 				if ($mapped->isNew()) {
