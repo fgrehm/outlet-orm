@@ -80,6 +80,9 @@ class OutletMapper {
 	
 			$row = $stmt->fetch(PDO::FETCH_ASSOC);
 			
+			// cast the row to the types defined on the config
+			self::castRow($this->cls, $row);
+			
 			// if there's matching row, 
 			// return null
 			if (!$row) throw new Exception("No matching row found for {$this->cls} with primary key of {$this->obj->$pk_prop}");
@@ -347,46 +350,67 @@ class OutletMapper {
 
 		$this->saveOneToMany();
 	}
+	
+	/**
+	 * Check to see if an entity values (row) have been modified
+	 *
+	 * @param object $obj
+	 * @return boolean
+	 */
+	public function getModifiedFields () {
+		$data = self::get($this->cls, $this->getPkValues());
+		
+		$new = self::toArray($data['obj']);
+		
+		$diff = array_diff($data['original'], $new);
+		
+		return array_keys($diff);
+	}
 
 	public function update() {
 		// this first since this references the key
 		$this->saveManyToOne();
 		
-		$con = Outlet::getInstance()->getConnection();
-
-		$q = "UPDATE {".$this->cls."} \n";
-		$q .= "SET \n";
-
-		$ups = array();
-		foreach (self::$conf[$this->cls]['props'] as $key=>$f) {
-			// skip primary key 
-			if (@$f[2]['pk']) continue;
-
-			if (is_null($this->obj->$key)) {
-				$value = 'NULL';
-			} else {
-				$value = $con->quote( $this->obj->$key );
+		if ($mod = $this->getModifiedFields()) {
+			$con = Outlet::getInstance()->getConnection();
+	
+			$q = "UPDATE {".$this->cls."} \n";
+			$q .= "SET \n";
+	
+			$ups = array();
+			foreach (self::$conf[$this->cls]['props'] as $key=>$f) {
+				// skip fields that were not modified
+				if (!in_array($key, $mod)) continue;
+				
+				// skip primary key 
+				if (@$f[2]['pk']) continue;
+	
+				if (is_null($this->obj->$key)) {
+					$value = 'NULL';
+				} else {
+					$value = $con->quote( $this->obj->$key );
+				}
+	
+				$ups[] = "  {".$this->cls.'.'.$key."} = $value";
 			}
-
-			$ups[] = "  {".$this->cls.'.'.$key."} = $value";
+			$q .= implode(", \n", $ups);
+	
+			$q .= "\nWHERE ";
+	
+			$clause = array();
+			foreach (self::$conf[$this->cls]['props'] as $key=>$pk) {
+				// if it's not a primary key, skip it
+				if (!@$pk[2]['pk']) continue;
+	
+				$value = $con->quote( $this->obj->$key );
+				$clause[] = "$pk[0] = $value";
+			}
+			$q .= implode(' AND ', $clause);
+			
+			$q = self::processQuery($q);
+	
+			$con->exec($q);
 		}
-		$q .= implode(", \n", $ups);
-
-		$q .= "\nWHERE ";
-
-		$clause = array();
-		foreach (self::$conf[$this->cls]['props'] as $key=>$pk) {
-			// if it's not a primary key, skip it
-			if (!@$pk[2]['pk']) continue;
-
-			$value = $con->quote( $this->obj->$key );
-			$clause[] = "$pk[0] = $value";
-		}
-		$q .= implode(' AND ', $clause);
-		
-		$q = self::processQuery($q);
-
-		$con->exec($q);
 
 		// these last since they reference the key
 		$this->saveOneToMany();
@@ -485,7 +509,7 @@ class OutletMapper {
 	}
 
 	/**
-	 * @param unknown_type $clazz
+	 * @param string $clazz
 	 * @param array $pks Primary key values
 	 * @param array $data
 	 */

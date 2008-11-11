@@ -74,6 +74,11 @@ class OutletPDO extends PDO {
 		echo '<pre>Query ' . $q . "\n\n</pre>";
 		return parent::prepare($q);
 	}
+	
+	function exec ($q) {
+		echo '<pre>Query ' . $q . "\n\n</pre>";
+		return parent::exec($q);
+	}
 	*/
 }
 
