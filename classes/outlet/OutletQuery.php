@@ -95,7 +95,7 @@ class OutletQuery {
 				$data[$p[0]] = $row[$from_aliased.'_'.$key];
 			}
 
-			$obj = $outlet->populateObject($from, new $from, $data);
+			$obj = $outlet->getEntityForRow($from, $data);
 		
 			foreach ($with as $with_key=>$w) {
 				$a = $entity_config->getAssociation($w);
@@ -111,7 +111,7 @@ class OutletQuery {
 					
 					$foreign = $a->getForeign();
 
-					$obj->$setter($outlet->populateObject($foreign, new $foreign, $data));
+					$obj->$setter($outlet->getEntityForRow($foreign, $data));
 				}
 			}
 			
