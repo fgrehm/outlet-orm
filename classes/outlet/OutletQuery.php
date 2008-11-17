@@ -85,8 +85,9 @@ class OutletQuery {
 		$q = "SELECT ".implode(', ', $select_cols)." \n";
 		$q .= " FROM {".$this->from."} \n";
 		$q .= $join_q;
-		
-		$stmt = $outlet->query($q);
+		$q .= 'WHERE ' . $this->query;
+	
+		$stmt = $outlet->query($q, $this->params);
 		
 		$res = array();
 		while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
