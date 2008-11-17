@@ -45,6 +45,8 @@ class OutletConfig {
 	 * @return OutletEntityConfig
 	 */
 	function getEntity ($cls) {
+		if (is_null($this->entities)) $this->getEntities();
+
 		return $this->entities[$cls];
 	}
 }
