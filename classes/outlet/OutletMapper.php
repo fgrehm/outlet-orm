@@ -364,7 +364,7 @@ class OutletMapper {
 		
 		$new = self::toArray($data['obj']);
 		
-		$diff = array_diff($data['original'], $new);
+		$diff = array_diff_assoc($data['original'], $new);
 		
 		return array_keys($diff);
 	}
