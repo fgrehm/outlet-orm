@@ -245,7 +245,7 @@ class Outlet {
 	 * @param array $params
 	 * @return PDOStatement
 	 */
-	public function query ( $query='', $params=array()) {
+	public function query ( $query='', array $params=array()) {
 		// process the query
 		$q = OutletMapper::processQuery($query);
 

@@ -5,6 +5,8 @@ class OutletQuery {
 	private $with = array();
 	private $query;
 	private $params = array();
+	private $orderby;
+	private $limit;
 	
 	/**
 	 * @param string $from
@@ -33,6 +35,26 @@ class OutletQuery {
 	 */
 	function with () {
 		$this->with = func_get_args();
+		
+		return $this;
+	}
+	
+	/**
+	 * @param string $v Order clause 
+	 * @return OutletQuery
+	 */
+	function orderBy ($v) {
+		$this->orderby = $v;
+		
+		return $this;
+	}
+	
+	/**
+	 * @param $num
+	 * @return OutletQuery
+	 */
+	function limit ($num) {
+		$this->limit = $num;
 		
 		return $this;
 	}
@@ -85,7 +107,10 @@ class OutletQuery {
 		$q = "SELECT ".implode(', ', $select_cols)." \n";
 		$q .= " FROM {".$this->from."} \n";
 		$q .= $join_q;
-		$q .= 'WHERE ' . $this->query;
+		
+		if ($this->query) 		$q .= 'WHERE ' . $this->query;
+		if ($this->orderby) 	$q .= 'ORDER BY ' . $this->orderby . "\n";
+		if ($this->limit) 		$q .= 'LIMIT ' . $this->limit . "\n";
 	
 		$stmt = $outlet->query($q, $this->params);
 		
