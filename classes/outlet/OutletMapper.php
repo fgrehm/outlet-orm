@@ -287,11 +287,18 @@ class OutletMapper {
 			// if there's options
 			// TODO: Clean this up
 			if (isset($f[2])) {
-				if (isset($f[2]['default'])) {
-					$this->obj->$prop = $f[2]['default'];
+				if (is_null($this->obj->$prop)) {
+					if (isset($f[2]['default'])) {
+						$this->obj->$prop = $f[2]['default'];
+						$insert_defaults[] = false;
+					} elseif (isset($f[2]['defaultExpr'])) {
+						$insert_defaults[] = $f[2]['defaultExpr'];
+					} else {
+						$insert_defaults[] = false;
+					}
+				} else {
 					$insert_defaults[] = false;
-				} elseif (isset($f[2]['defaultExpr'])) $insert_defaults[] = $f[2]['defaultExpr'];
-				else $insert_defaults[] = false;
+				}
 				continue;
 			} else {
 				$insert_defaults[] = false;
