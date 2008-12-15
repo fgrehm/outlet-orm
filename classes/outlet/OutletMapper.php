@@ -129,7 +129,7 @@ class OutletMapper {
 			if (!array_key_exists($p[0], $row)) throw new Exception('No value found for ['.$p[0].'] in row ['.var_export($row, true).']');	
 			
 			// cast it if the property is defined to be an int
-			if ($p[1]=='int') $row[$p[0]] = (int) $row[$p[0]];
+			if ($p[1]=='int') $row[$p[0]] = is_null($row[$p[0]]) ? $row[$p[0]] : (int) $row[$p[0]];
 		}
 	}
 
