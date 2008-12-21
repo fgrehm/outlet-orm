@@ -218,7 +218,7 @@ class OutletMapper {
 			$refKey	= $assoc->getRefKey();
 			$getter = $assoc->getGetter();
 
-			$ent = $this->obj->$getter();
+			$ent =& $this->obj->$getter();
 
 			if ($ent) {
 				// wrap with a mapper

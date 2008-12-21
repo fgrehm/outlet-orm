@@ -127,5 +127,22 @@ class TestOfSimpleOperations extends OutletTestCase {
 		$this->assertTrue($e instanceof Exception, 'Project was deleted');			
 	}
 
+	function testDbFunctions () {
+		$outlet = Outlet::getInstance();
+
+		$p1 = new Project;
+		$p1->Name = 'AAAA';
+
+		$outlet->save($p1);
+
+		$p2 = new Project;
+		$p2->Name = 'BBBB';
+
+		$outlet->save($p2);
+		
+		$stmt = $outlet->query('SELECT MAX({p.Name}) as max_project FROM {Project p}');
+		$data = $stmt->fetchAll(PDO::FETCH_ASSOC);
+		var_dump($data);
+	}
 }
 

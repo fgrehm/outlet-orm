@@ -30,9 +30,9 @@ Outlet::getInstance()->createProxies();
 //require 'outlet-proxies.php';
 
 $test = new GroupTest('All Tests');
-$test->addTestFile('tests/TestOfSimpleOperations.php');
-$test->addTestFile('tests/TestOfRelationships.php');
-
+//$test->addTestFile('tests/TestOfSimpleOperations.php');
+//$test->addTestFile('tests/TestOfRelationships.php');
+$test->addTestFile('tests/TestOfIdentityMap.php');
 
 if (isset($_SERVER['HTTP_HOST'])) {
 	$test->run(new HtmlReporter);
