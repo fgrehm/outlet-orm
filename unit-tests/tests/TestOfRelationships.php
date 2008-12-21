@@ -72,5 +72,28 @@ class TestOfRelationships extends OutletTestCase {
 
 	}
 
+	function testUpdateAfterRelationshipUpdate () {
+		$outlet = Outlet::getInstance();
+
+		$p = new Project;
+		$p->Name = 'Name 1';
+
+		$b = new Bug;
+		$b->Title = 'Test Bug';
+
+		$p->addBug($b);
+
+		$outlet->save($p);		
+		$projectid = $p->ProjectID;
+
+		$p->Name = 'Name 2';
+
+		$outlet->save($p);
+
+		$p = $outlet->load('Project', $projectid);
+	
+		$this->assertEqual(	$p->Name, 'Name 2' );
+	}
+
 }
 

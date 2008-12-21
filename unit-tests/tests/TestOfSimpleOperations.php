@@ -96,6 +96,8 @@ class TestOfSimpleOperations extends OutletTestCase {
 		$outlet = Outlet::getInstance();
 		
 		$outlet->save($project);
+
+		$outlet->clearCache();
 		
 		$project = $outlet->load('Project', $project->ProjectID);
 	
