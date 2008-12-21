@@ -98,7 +98,9 @@ class TestOfSimpleOperations extends OutletTestCase {
 		$outlet->save($project);
 		
 		$project = $outlet->load('Project', $project->ProjectID);
-		
+	
+		// hmm, this might be off by a second or so
+		// TODO figure out how to accomodate that delay	
 		$this->assertEqual($project->CreatedDate, date("Y-m-d H:i:s"));
 		$this->assertEqual($project->StatusID, 1);
 		$this->assertEqual($project->Description, 'Default Description');
@@ -142,7 +144,6 @@ class TestOfSimpleOperations extends OutletTestCase {
 		
 		$stmt = $outlet->query('SELECT MAX({p.Name}) as max_project FROM {Project p}');
 		$data = $stmt->fetchAll(PDO::FETCH_ASSOC);
-		var_dump($data);
 	}
 }
 
