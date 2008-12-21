@@ -360,6 +360,12 @@ class OutletMapper {
 		$this->obj = $proxy;
 
 		$this->saveOneToMany();
+
+		// add it to the cache
+		self::set($this->cls, $this->getPkValues(), array(
+			'obj' => $this->obj,
+			'original' => self::toArray($this->obj)
+		));	
 	}
 	
 	/**
@@ -370,6 +376,11 @@ class OutletMapper {
 	 */
 	public function getModifiedFields () {
 		$data = self::get($this->cls, $this->getPkValues());
+
+		/* not sure about this yet
+		// if this entity hasn't been saved to the map
+		if (!$data) return self::toArray($this->obj);
+		*/
 		
 		$new = self::toArray($data['obj']);
 		
@@ -429,8 +440,10 @@ class OutletMapper {
 	}
 
 	static function toArray ($entity) {
+		if (!$entity) throw new Exception('You must pass an entity');
+
 		$class = self::getEntityClass($entity);
-		
+	
 		$arr = array();
 		foreach (Outlet::getInstance()->getConfig()->getEntity($class)->getProperties() as $key=>$p) {
 			$arr[$key] = $entity->$key;
