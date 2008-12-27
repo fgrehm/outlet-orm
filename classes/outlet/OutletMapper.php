@@ -458,6 +458,7 @@ class OutletMapper {
 
 		switch ($conf[1]) {
 			case 'datetime': return $v->format('Y-m-d H:i:s');
+			case 'int': return (int) $v;
 			default: return $v;
 		}
 	}
@@ -467,6 +468,7 @@ class OutletMapper {
 
 		switch ($conf[1]) {
 			case 'datetime': return new DateTime($v);
+			case 'int': return (int) $v;
 			default: return $v;
 		}
 	}
