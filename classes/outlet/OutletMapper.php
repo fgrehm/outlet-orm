@@ -126,10 +126,12 @@ class OutletMapper {
 	
 	public static function castRow ($clazz, array &$row) {
 		foreach (Outlet::getInstance()->getConfig()->getEntity($clazz)->getProperties() as $key=>$p) {
-			if (!array_key_exists($p[0], $row)) throw new Exception('No value found for ['.$p[0].'] in row ['.var_export($row, true).']');	
-			
-			// cast it if the property is defined to be an int
-			if ($p[1]=='int') $row[$p[0]] = is_null($row[$p[0]]) ? $row[$p[0]] : (int) $row[$p[0]];
+			$column = $p[0];
+
+			if (!array_key_exists($column, $row)) throw new Exception('No value found for ['.$column.'] in row ['.var_export($row, true).']');	
+		
+			// cast if it's anything other than a string
+			$row[$column] = self::toPhpValue($p, $row[$column]);
 		}
 	}
 
@@ -410,7 +412,7 @@ class OutletMapper {
 				if (is_null($this->obj->$key)) {
 					$value = 'NULL';
 				} else {
-					$value = $con->quote( $this->obj->$key );
+					$value = $con->quote( self::toSqlValue( $f, $this->obj->$key ) );
 				}
 	
 				$ups[] = "  {".$this->cls.'.'.$key."} = $value";
@@ -424,7 +426,7 @@ class OutletMapper {
 				// if it's not a primary key, skip it
 				if (!@$pk[2]['pk']) continue;
 	
-				$value = $con->quote( $this->obj->$key );
+				$value = $con->quote( self::toSqlValue( $pk, $this->obj->$key ) );
 				$clause[] = "$pk[0] = $value";
 			}
 			$q .= implode(' AND ', $clause);
@@ -446,9 +448,27 @@ class OutletMapper {
 	
 		$arr = array();
 		foreach (Outlet::getInstance()->getConfig()->getEntity($class)->getProperties() as $key=>$p) {
-			$arr[$key] = $entity->$key;
+			$arr[$key] = self::toSqlValue($p, $entity->$key);
 		}
 		return $arr;
+	}
+
+	static function toSqlValue ($conf, &$v) {
+		if (is_null($v)) return NULL;
+
+		switch ($conf[1]) {
+			case 'datetime': return $v->format('Y-m-d H:i:s');
+			default: return $v;
+		}
+	}
+
+	static function toPhpValue ($conf, $v) {
+		if (is_null($v)) return NULL;
+
+		switch ($conf[1]) {
+			case 'datetime': return new DateTime($v);
+			default: return $v;
+		}
 	}
 	
 	static function processQuery ( $q ) {
