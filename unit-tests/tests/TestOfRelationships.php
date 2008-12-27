@@ -49,15 +49,25 @@ class TestOfRelationships extends OutletTestCase {
 	}
 	*/
 
-	/*
 	function testOneToOne () {
+		$user = new User;
+		$user->FirstName = 'Alvaro';
+		$user->LastName = 'Carrasco';
+
+		$outlet = Outlet::getInstance();
+		$outlet->save($user);
+		
 		$profile = new Profile;
+		$profile->UserID = $user->UserID;
 	
 		$outlet = Outlet::getInstance();
 
 		$outlet->save( $profile );
+
+		$user = $profile->getUser();
+
+		var_dump($user);
 	}
-	*/
 
 	function testPlural () {
 		$addr = new Address;
@@ -68,8 +78,7 @@ class TestOfRelationships extends OutletTestCase {
 
 		$outlet = Outlet::getInstance();
 
-		$outlet->save( $user );
-
+		$outlet->save( $user );	
 	}
 
 	function testUpdateAfterRelationshipUpdate () {
