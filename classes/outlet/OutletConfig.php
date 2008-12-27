@@ -226,10 +226,12 @@ class OutletAssociationConfig {
 	 * @return string
 	 */
 	function getSetter () {
-		if ($this->type == 'many-to-one') {
-			return "set".$this->getForeignName();
-		} else {
-			return "set".$this->getForeignPlural();
+		switch ($this->type) {
+			case 'many-to-one':
+			case 'one-to-one':
+				return "set".$this->getForeignName();
+			default: 
+				return "set".$this->getForeignPlural();
 		}
 	}
 
