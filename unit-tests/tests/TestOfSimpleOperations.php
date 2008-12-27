@@ -94,16 +94,17 @@ class TestOfSimpleOperations extends OutletTestCase {
 		$project->Name = 'Test Project';
 		
 		$outlet = Outlet::getInstance();
-		
+	
 		$outlet->save($project);
+		$now = time();	
 
 		$outlet->clearCache();
 		
 		$project = $outlet->load('Project', $project->ProjectID);
-	
-		// hmm, this might be off by a second or so
-		// TODO figure out how to accomodate that delay	
-		$this->assertEqual($project->CreatedDate, date("Y-m-d H:i:s"));
+
+		// allow for a 1 sec delay	
+		$this->assertTrue( $now - ((int) $project->CreatedDate->format('U')) < 2 );
+
 		$this->assertEqual($project->StatusID, 1);
 		$this->assertEqual($project->Description, 'Default Description');
 	}
@@ -129,6 +130,19 @@ class TestOfSimpleOperations extends OutletTestCase {
 		} catch (Exception $e) {}
 
 		$this->assertTrue($e instanceof Exception, 'Project was deleted');			
+	}
+
+	function testUpdate () {
+		$p = new Project;
+		$p->Name = 'Project test update';
+
+		$outlet = Outlet::getInstance();
+
+		$outlet->save($p);
+
+		$p->CreatedDate = new DateTime('2009-01-25');
+
+		$outlet->save($p);
 	}
 
 	function testDbFunctions () {
