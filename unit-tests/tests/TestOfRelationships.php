@@ -65,8 +65,6 @@ class TestOfRelationships extends OutletTestCase {
 		$outlet->save( $profile );
 
 		$user = $profile->getUser();
-
-		var_dump($user);
 	}
 
 	function testPlural () {
