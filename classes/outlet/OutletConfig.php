@@ -20,9 +20,13 @@ class OutletConfig {
 	function getConnection () {
 		if (!$this->con) {
 			$conn = $this->conf['connection'];
-			$this->con = new OutletPDO($conn['dsn'], @$conn['username'], @$conn['password']);	
-			$this->con->setAttribute( PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION );
-			$this->con->setDialect( $conn['dialect'] );
+
+			$dsn = $conn['dsn'];
+			$driver = substr($dsn, 0, strpos($dsn, ':'));
+
+			$pdo = new PDO($conn['dsn'], @$conn['username'], @$conn['password']);
+
+			$this->con = new OutletConnection($pdo, $driver, $conn['dialect']);
 		} 
 		return $this->con;
 	}

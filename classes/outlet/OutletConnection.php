@@ -1,23 +1,24 @@
 <?php
 
-class OutletPDO extends PDO {
+class OutletConnection {
 	private $driver;
 	private $dialect;
+	private $pdo;
 
 	protected $nestedTransactionLevel = 0;
 
-	function __construct ($dsn, $user=null, $pass=null) {
-		// store the driver
-		$this->driver = substr($dsn, 0, strpos($dsn, ':'));		
-
-		parent::__construct($dsn, $user, $pass);
+	function __construct (PDO $pdo, $driver, $dialect) {
+		$this->pdo = $pdo;
+		$this->driver = $driver;
+		$this->dialect = $dialect;
 	}	
 
-	function setDialect ($dialect) {
-		$this->dialect = $dialect;
-	}
 	function getDialect () {
 		return $this->dialect;
+	}
+
+	function getPDO () {
+		return $this->pdo;
 	}
 
 	function beginTransaction () {
@@ -27,7 +28,7 @@ class OutletPDO extends PDO {
 			if ($this->driver == 'dblib') {
 				return $this->exec('BEGIN TRANSACTION');
 			} else {
-				return parent::beginTransaction();
+				return $this->pdo->beginTransaction();
 			}
 		}
 		return true;
@@ -40,7 +41,7 @@ class OutletPDO extends PDO {
 			if ($this->driver == 'dblib') {
 				return $this->exec('COMMIT TRANSACTION');
 			} else {
-				return parent::commit();
+				return $this->pdo->commit();
 			}
 		}
 		return true;
@@ -53,7 +54,7 @@ class OutletPDO extends PDO {
 			if ($this->driver == 'dblib') {
 				$this->exec('ROLLBACK TRANSACTION');
 			} else {
-				return parent::rollBack();
+				return $this->pdo->rollBack();
 			}
 		}
 		return true;
@@ -65,21 +66,14 @@ class OutletPDO extends PDO {
 			
 			return "'".str_replace("'", "''", $v)."'";
 		} else {
-			return parent::quote($v);
+			return $this->pdo->quote($v);
 		}
 	}
-	
-	/*
-	function prepare ($q) {
-		echo '<pre>Query ' . $q . "\n\n</pre>";
-		return parent::prepare($q);
+
+	function __call ($method, $args) {
+		return call_user_func_array(array($this->pdo, $method), $args);
 	}
 	
-	function exec ($q) {
-		echo '<pre>Query ' . $q . "\n\n</pre>";
-		return parent::exec($q);
-	}
-	*/
 }
 
 

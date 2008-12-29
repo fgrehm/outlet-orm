@@ -1,5 +1,5 @@
 <?php
-require 'OutletPDO.php';
+require 'OutletConnection.php';
 require 'OutletMapper.php';
 require 'OutletProxy.php';
 require 'OutletConfig.php';
