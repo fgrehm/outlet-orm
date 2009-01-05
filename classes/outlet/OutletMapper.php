@@ -88,7 +88,7 @@ class OutletMapper {
 			
 			// if there's matching row, 
 			// return null
-			if (!$row) throw new Exception("No matching row found for {$this->cls} with primary key of {$this->obj->$pk_prop}");
+			if (!$row) throw new Exception("No matching row found for {$this->cls} with primary key of [".implode(',', $pks)."]");
 			
 			// cast the row to the types defined on the config
 			self::castRow($this->cls, $row);
@@ -106,8 +106,15 @@ class OutletMapper {
 	}
 	
 	public function setPk ($pk) {
-		$pk_prop = current(Outlet::getInstance()->getConfig()->getEntity($this->cls)->getPkFields());
-		$this->obj->$pk_prop = $pk;
+		if (!is_array($pk)) $pk = array($pk);
+		
+		$pk_props = Outlet::getInstance()->getConfig()->getEntity($this->cls)->getPkFields();
+		
+		if (count($pk)!=count($pk_props)) throw new OutletException('You must pass the following pk: ['.implode(',', $pk_props).'], you passed: ['.implode(',', $pk).']');
+		
+		foreach ($pk_props as $key=>$prop) {
+			$this->obj->$prop = $pk[$key];
+		}
 	}
 	
 	/**
