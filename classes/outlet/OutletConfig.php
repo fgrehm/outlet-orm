@@ -142,10 +142,12 @@ class OutletEntityConfig {
 		}
 	}
 
-	function getPkField () {
+	function getPkFields () {
+		$fields = array();
 		foreach ($this->props as $prop=>$def) {
-			if (@$def[2]['pk']) return $prop;
+			if (@$def[2]['pk']) $fields[] = $prop;
 		}
+		return $fields;
 	}
 	
 }
@@ -198,9 +200,9 @@ class OutletAssociationConfig {
 			return $this->options['refKey'];
 		} else {
 			if ($this->type == 'one-to-many') {
-				return $this->config->getEntity($this->local)->getPkField();
+				return current($this->config->getEntity($this->local)->getPkFields());
 			} else {
-				return $this->config->getEntity($this->foreign)->getPkField();
+				return current($this->config->getEntity($this->foreign)->getPkFields());
 			}
 		}
 	}

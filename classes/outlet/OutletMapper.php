@@ -65,18 +65,24 @@ class OutletMapper {
 		} else {
 			$props_conf = self::getFields($this->cls);
 			$props = array_keys($props_conf);
-			$pk_prop = self::getPkProp($this->cls);
+			$pks = $this->getPkValues();
 	
 			// craft select
 			$q = "SELECT {".$this->cls.'.';
 			$q .= implode('}, {'.$this->cls.'.', $props) . "}\n";
 			$q .= "FROM {".$this->cls."} \n";
-			$q .= "WHERE {".$this->cls.'.'.$pk_prop."} = ?";
+			
+			$pk_q = array();
+			foreach (array_keys($pks) as $pkp) {
+				$pk_q[] = '{'.$this->cls.'.'.$pkp.'} = ?';
+			}
+			
+			$q .= "WHERE " . implode(' AND ', $pk_q);
 			
 			$q = self::processQuery($q);
 	
 			$stmt = Outlet::getInstance()->getConnection()->prepare($q);
-			$stmt->execute(array($this->obj->$pk_prop));
+			$stmt->execute(array_values($pks));
 	
 			$row = $stmt->fetch(PDO::FETCH_ASSOC);
 			
@@ -100,7 +106,7 @@ class OutletMapper {
 	}
 	
 	public function setPk ($pk) {
-		$pk_prop = self::getPkProp($this->cls);
+		$pk_prop = current(Outlet::getInstance()->getConfig()->getEntity($this->cls)->getPkFields());
 		$this->obj->$pk_prop = $pk;
 	}
 	
@@ -110,15 +116,24 @@ class OutletMapper {
 	 * @return array
 	 */
 	public function getPkValues () {
+		return self::getPkValuesForObject($this->cls, $this->obj);
+	}
+	
+	/**
+	 * @param $class
+	 * @param $obj
+	 * @return array
+	 */
+	static function getPkValuesForObject ($class, $obj) {
 		$pks = array();
-		foreach (Outlet::getInstance()->getConfig()->getEntity($this->cls)->getProperties() as $key=>$p) {
+		foreach (Outlet::getInstance()->getConfig()->getEntity($class)->getProperties() as $key=>$p) {
 			if (@$p[2]['pk']) {
-				$value = $this->obj->$key;
+				$value = $obj->$key;
 				
 				// cast it if the property is defined to be an int
 				if ($p[1]=='int') $value = (int) $value;
 				
-				$pks[] = $value;
+				$pks[$key] = $value;
 			}
 		}
 		return $pks;
@@ -133,10 +148,6 @@ class OutletMapper {
 			// cast if it's anything other than a string
 			$row[$column] = self::toPhpValue($p, $row[$column]);
 		}
-	}
-
-	static function getPkProp ( $clazz ) {
-		return Outlet::getInstance()->getConfig()->getEntity($clazz)->getPkField();
 	}
 
 	static function getTable ($clazz) {
@@ -555,25 +566,21 @@ class OutletMapper {
 	}
 
 	/**
+	 * Save object to the identity map
+	 * 
 	 * @param string $clazz
 	 * @param array $pks Primary key values
 	 * @param array $data
 	 */
 	static function set ( $clazz, array $pks, array $data ) {
 		// store on the map using the write type for the key (int, string)
-		$props = Outlet::getInstance()->getConfig()->getEntity($clazz)->getProperties();
+		$pks = self::getPkValuesForObject($clazz, $data['obj']);
 		
-		$i = 0;
-		foreach ($props as $key=>$p) {
-			if (!@$p[2]['pk']) continue;
-			
-			if ($p[1] == 'int') $pks[$i] = (int) $pks[$i]; 
-			
-			$i++;
-		}
+		// just in case
+		reset($pks);
 		
 		// if there's only one pk, use it instead of the array
-		if (is_array($pks) && count($pks)==1) $pks = $pks[0];
+		if (is_array($pks) && count($pks)==1) $pks = current($pks);
 		
 		// initialize map for this class
 		if (!isset(self::$map[$clazz])) self::$map[$clazz] = array();
@@ -596,7 +603,7 @@ class OutletMapper {
 	 */
 	function get ( $clazz, array $pk ) {
 		// if there's only one pk, use instead of the array
-		if (is_array($pk) && count($pk)==1) $pk = $pk[0];
+		if (is_array($pk) && count($pk)==1) $pk = array_shift($pk);
 		
 		if (isset(self::$map[$clazz]) && isset(self::$map[$clazz][serialize($pk)])) {
 			return self::$map[$clazz][serialize($pk)];
