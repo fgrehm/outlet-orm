@@ -54,18 +54,22 @@ class Outlet {
 	}
 
 	public function delete ($clazz, $id) {
-		$pk = $this->config->getEntity($clazz)->getPkField();
-		//TODO Replace $this->quote with something that will work with an ODBC Connection
-		//$q = "DELETE FROM {"."$clazz} WHERE {"."$clazz.$pk} = " . $this->quote($id);
-		$q = "DELETE FROM {"."$clazz} WHERE {"."$clazz.$pk} = ?";
+		if (!is_array($id)) $id = array($id);
+		
+		$pks = $this->config->getEntity($clazz)->getPkFields();
+		
+		$pk_q = array();
+		foreach ($pks as $pk) {
+			$pk_q[] = '{'.$clazz.'.'.$pk.'} = ?';
+		}
+		
+		$q = "DELETE FROM {"."$clazz} WHERE " . implode(' AND ', $pk_q);
 
 		$q = OutletMapper::processQuery($q);
 		
 		$stmt = $this->getConnection()->prepare($q);
 
-		$res = $stmt->execute(array($id));
-
-		//$res = $this->con->exec($q);
+		$res = $stmt->execute($id);
 
 		// remove from identity map
 		OutletMapper::clear($clazz, $id);
