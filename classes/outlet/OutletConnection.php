@@ -74,6 +74,11 @@ class OutletConnection {
 		return call_user_func_array(array($this->pdo, $method), $args);
 	}
 	
+	function prepare ($q) {
+		LoggerManager::getRootLogger()->info("Query: \n".$q."\n");
+		return $this->pdo->prepare($q);
+	}
+	
 }
 
 
