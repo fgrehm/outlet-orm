@@ -14,7 +14,7 @@ class OutletMapper {
 	private $new = true;
 
 	function __construct (&$obj) {
-		if (!is_object($obj)) throw new Exception('You must pass and object');
+		if (!is_object($obj)) throw new Exception('You must pass an object');
 		if ($obj instanceof OutletMapper) throw new Exception('You passed and OutletMapper object');
 		
 		if ($obj instanceof OutletProxy) $this->new = false;
