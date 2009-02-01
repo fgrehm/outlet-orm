@@ -17,6 +17,9 @@ class OutletConfig {
 		$this->conf = $conf;
 	}	
 
+	/**
+	 * @return OutletConnection
+	 */
 	function getConnection () {
 		if (!$this->con) {
 			$conn = $this->conf['connection'];
@@ -25,6 +28,7 @@ class OutletConfig {
 			$driver = substr($dsn, 0, strpos($dsn, ':'));
 
 			$pdo = new PDO($conn['dsn'], @$conn['username'], @$conn['password']);
+			$pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 
 			$this->con = new OutletConnection($pdo, $driver, $conn['dialect']);
 		} 
@@ -124,7 +128,23 @@ class OutletEntityConfig {
 			$conf = $this->config->conf['classes'][$this->clazz];
 			if (isset($conf['associations'])) {
 				foreach ($conf['associations'] as $assoc) {
-					$this->associations[] = new OutletAssociationConfig($this->config, $assoc[0], $this->getClass(), $assoc[1], $assoc[2]);
+					switch ($assoc[0]) {
+						case 'one-to-many': 
+							$a = new OutletOneToManyConfig($this->config, $this->getClass(), $assoc[1], $assoc[2]);
+							break;
+						case 'many-to-one':
+							$a = new OutletManyToOneConfig($this->config, $this->getClass(), $assoc[1], $assoc[2]);
+							break;
+						case 'many-to-many':
+							$a = new OutletManyToManyConfig($this->config, $this->getClass(), $assoc[1], $assoc[2]);
+							break;
+						case 'one-to-one':
+							$a = new OutletOneToOneConfig($this->config, $this->getClass(), $assoc[1], $assoc[2]);
+							break;
+						default:
+							$a = new OutletAssociationConfig($this->config, $assoc[0], $this->getClass(), $assoc[1], $assoc[2]);
+					}
+					$this->associations[] = $a;
 				}
 			}
 		}
@@ -152,14 +172,14 @@ class OutletEntityConfig {
 	
 }
 
-class OutletAssociationConfig {
-	private $config;
+abstract class OutletAssociationConfig {
+	protected $config;
 
-	private $local;
-	private $pk;
-	private $foreign;
-	private $type;
-	private $key;
+	protected $local;
+	protected $pk;
+	protected $foreign;
+	protected $type;
+	protected $key;
 
 	/**
 	 * @param OutletConfig $config
@@ -168,7 +188,7 @@ class OutletAssociationConfig {
 	 * @param string $foreign Name of the entity that is referenced by the association
 	 * @param array $options
 	 */
-	function __construct (OutletConfig $config, $type, $local, $foreign, array $options) {
+	function __construct (OutletConfig $config, $local, $foreign, array $options) {
 		// all associations require a key
 		if (!isset($options['key'])) throw new OutletConfigException("Entity $local, association with $foreign: You must specify a key when defining a $type relationship");
 
@@ -176,7 +196,6 @@ class OutletAssociationConfig {
 
 		$this->local 	= $local;
 		$this->foreign 	= $foreign;
-		$this->type 	= $type;
 		$this->options	= $options;
 	}
 
@@ -272,6 +291,51 @@ class OutletAssociationConfig {
 			else $plural = $this->foreign.'s';
 		}
 		return $plural;
+	}
+}
+
+class OutletOneToManyConfig extends OutletAssociationConfig {
+	protected $type = 'one-to-many';
+	
+	public function __construct (OutletConfig $config, $local, $foreign, array $options) {
+		$this->storage = isset($options['storage']) ? $options['storage'] : 'array';
+
+		parent::__construct($config, $local, $foreign, $options);
+	}
+	
+	public function getStorage () {
+		return $this->storage;
+	}
+}
+
+class OutletManyToOneConfig extends OutletAssociationConfig {
+	protected $type = 'many-to-one';
+}
+
+class OutletOneToOneConfig extends OutletAssociationConfig {
+	protected $type = 'one-to-one';
+}
+
+class OutletManyToManyConfig extends OutletAssociationConfig {
+	protected $type = 'many-to-many';
+	protected $table;
+	protected $otherKey;
+	
+	public function __construct (OutletConfig $config, $local, $foreign, array $options) {
+		if (!isset($options['table'])) throw new OutletConfigException("Entity $local, association with $foreign: You must specify a table when defining a many-to-many relationship");
+		
+		$this->table = $options['table'];
+		$this->otherKey = $options['otherKey'];
+		
+		parent::__construct($config, $local, $foreign, $options);
+	}
+	
+	public function getOtherKey () {
+		return $this->otherKey;
+	}
+	
+	public function getLinkingTable () {
+		return $this->table;
 	}
 }
 

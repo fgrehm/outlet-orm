@@ -35,6 +35,7 @@ class OutletProxyGenerator {
 					case 'one-to-many': $c .= $this->createOneToManyFunctions($assoc); break;
 					case 'many-to-one': $c .= $this->createManyToOneFunctions($assoc); break;
 					case 'one-to-one':	$c .= $this->createOneToOneFunctions($assoc); break;
+					case 'many-to-many': $c .= $this->createManyToManyFunctions($assoc); break;
 					default: throw new Exception("invalid association type: {$assoc->getType()}");
 				}
 			}
@@ -80,23 +81,46 @@ class OutletProxyGenerator {
 		$c .= "    } \n";
 		$c .= "    if (isset(\$args[1])) \$params = \$args[1]; \n";
 		$c .= "    else \$params = array(); \n";
-
-		//$c .= "      if (\$q===false) return parent::get$prop(); \n";
 		
 		// if there's a where clause
+		//$c .= "    echo \$q; \n";
 		$c .= "    \$q = trim(\$q); \n";
 		$c .= "    if (stripos(\$q, 'where') !== false) { \n";
-		$c .= "      \$q = 'where {"."$foreign.$key} = '.\$this->$pk_prop.' and ' . substr(\$q, 5); \n";
+		$c .= "      \$q = '{"."$foreign.$key} = '.\$this->$pk_prop.' and ' . substr(\$q, 5); \n";
 		$c .= "    } else { \n";
-		$c .= "      \$q = 'where {"."$foreign.$key} = '.\$this->$pk_prop. ' ' . \$q; \n";
+		$c .= "      \$q = '{"."$foreign.$key} = '.\$this->$pk_prop. ' ' . \$q; \n";
 		$c .= "    }\n";
-		//$c .= "    echo \$q; \n";
-		$c .= "    parent::{$setter}( Outlet::getInstance()->select('$foreign', \$q, \$params) ); \n";
-		/** not sure if i need this
-		$c .= "    if (!count(parent::get{$entity}s())) { \n";
-		$c .= "      \$this->$prop = Outlet::getInstance()->select('$entity', 'where $entity.$fk_foreign = '.\$this->$fk_local); \n";
+		//$c .= "    echo \"<h2>\$q</h2>\"; \n";
+		
+		$c .= "    \$query = Outlet::getInstance()->from('$foreign')->where(\$q, \$params); \n";
+		$c .= "    if (!parent::{$getter}() instanceof OutletCollection) { \n";
+		$c .= "      parent::{$setter}( new OutletCollection( \$query ) ); \n";
+		$c .= "    } else { \n";
+		$c .= "      parent::{$getter}()->setQuery( \$query ); \n";
 		$c .= "    } \n";
-		*/
+		$c .= "    return parent::{$getter}(); \n";
+		$c .= "  } \n";
+
+		return $c;
+	}
+
+	function createManyToManyFunctions (OutletManyToManyConfig $config) {
+		$foreign	= $config->getForeign();
+		$key 		= $config->getKey();
+		$pk_prop 	= $config->getRefKey();
+		$getter		= $config->getGetter();
+		$setter		= $config->getSetter();
+		$table		= $config->getLinkingTable();
+		$otherKey	= $config->getOtherKey();
+	
+		$c = '';	
+		$c .= "  function {$getter}() { \n";
+		$c .= "    if (parent::$getter() instanceof OutletCollection) return parent::$getter(); \n";
+		//$c .= "    if (stripos(\$q, 'where') !== false) { \n";
+		$c .= "    \$q = Outlet::getInstance()->from('$foreign') \n";
+		$c .= "        ->innerJoin('$table ON {$table}.{$otherKey} = {"."$foreign.$pk_prop}') \n";
+		$c .= "        ->where('{$table}.{$key} = ?', array(\$this->$pk_prop)); \n";
+		$c .= "    parent::{$setter}( new OutletCollection( \$q ) ); \n";
 		$c .= "    return parent::{$getter}(); \n";
 		$c .= "  } \n";
 

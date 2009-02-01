@@ -3,6 +3,8 @@ require 'OutletConnection.php';
 require 'OutletMapper.php';
 require 'OutletProxy.php';
 require 'OutletConfig.php';
+require 'Collection.php';
+require 'OutletCollection.php';
 
 class Outlet {
 	static $instance;
@@ -29,6 +31,7 @@ class Outlet {
 
 	private function __construct (array $conf) {
 		$this->config = new OutletConfig( $conf );
+		
 		$this->con = $this->config->getConnection();
 
 		OutletMapper::$conf = &$conf['classes'];
@@ -45,8 +48,7 @@ class Outlet {
 
 		$con->beginTransaction();
 
-		$mapper = new OutletMapper($obj);
-		$return = $mapper->save();
+		$return = OutletMapper::save( $obj );
 	
 		$con->commit();
 
@@ -113,23 +115,14 @@ class Outlet {
 		$gen = new OutletProxyGenerator($this->config);
 		$c = $gen->generate();
 		eval($c);
-	}
-
+	} 
 
 	public function load ($clazz, $pk) {
-		// create a proxy
-		$proxyclass = "{$clazz}_OutletProxy";
-		
-		// create a mapper
-		$mapper = new OutletMapper( new $proxyclass );
-		$mapper->setPk( $pk );
-		$mapper->load();
-
-		return $mapper->getObj();
+		return OutletMapper::load($clazz, $pk);
 	}
 
 	/**
-	 * @return OutletPDO
+	 * @return OutletConnection
 	 */
 	function getConnection () {
 		return $this->config->getConnection();
