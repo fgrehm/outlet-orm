@@ -15,7 +15,7 @@ class Bug {
 	public $Test_One;
 
 	private $project;
-	private $watchers = array();
+	private $watchers;
 
 	function getProject () {
 		return $this->project;
@@ -27,7 +27,7 @@ class Bug {
 	function getWatchers () {
 		return $this->watchers;	
 	}
-	function setWatchers (array $watchers) {
+	function setWatchers (Collection $watchers) {
 		$this->watchers = $watchers;
 	}
 	function addWatcher(User $watcher) {
@@ -47,12 +47,16 @@ class Project {
 	public $StatusID;
 	public $Description;
 
-	private $bugs = array();
+	private $bugs;
+	
+	function __construct () {
+		$this->bugs = new Collection;
+	}
 
 	function getBugs () {
 		return $this->bugs;
 	}
-	function setBugs (array $bugs) {
+	function setBugs (Collection $bugs) {
 		$this->bugs = $bugs;
 	}
 	function addBug (Bug $bug) {
@@ -65,12 +69,16 @@ class User {
 	public $FirstName;
 	public $LastName;
 
-	private $addresses = array();
+	private $addresses;
+	
+	function __construct () {
+		$this->addresses = new Collection;
+	}
 
 	public function getWorkAddresses () {
 		return $this->addresses;
 	}
-	public function setWorkAddresses(array $addresses) {
+	public function setWorkAddresses(Collection $addresses) {
 		$this->addresses = $addresses;
 	}
 	public function addWorkAddress(Address $addr) {
