@@ -246,7 +246,7 @@ class OutletMapper {
 				
 				$stmt = $con->prepare($q);
 			
-				$stmt->execute($pks);
+				$stmt->execute(array_values($pks));
 			}
 
 			$new = $children->getLocalIterator();
@@ -254,7 +254,7 @@ class OutletMapper {
 			foreach ($new as $child) {
 				if ($child instanceof OutletProxy) {
 					$child_pks = self::getPkValues($child);
-					$id = $child_pks[0];
+					$id = current($child_pks);
 				} else {
 					$id = $child;
 				}
@@ -266,7 +266,7 @@ class OutletMapper {
 
 				$stmt = $con->prepare($q);
 
-				$stmt->execute(array($pks[0], $id));	
+				$stmt->execute(array(current($pks), $id));	
 			}
                                         
 			$obj->$setter( $children );
