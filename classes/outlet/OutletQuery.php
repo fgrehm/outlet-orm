@@ -147,11 +147,18 @@ class OutletQuery {
 		$stmt = $outlet->query($q, $this->params);
 		
 		$res = array();
-        while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {            
+        while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {         
 			$data = array();
-			foreach ($from_props as $key=>$p) {
-				$data[$p[0]] = $row[$from_aliased.'_'.$key];
-			}
+			// Postgres returns columns as lowercase
+			// TODO: Maybe everything should be converted to lower in query creation / processing to avoid this
+			if ($outlet->getConnection()->getDialect() == 'pgsql')
+        		foreach ($from_props as $key=>$p) {
+					$data[$p[0]] = $row[strtolower($from_aliased).'_'.strtolower($key)];
+				}
+			else
+				foreach ($from_props as $key=>$p) {
+					$data[$p[0]] = $row[$from_aliased.'_'.$key];
+				}
 
 			$obj = $outlet->getEntityForRow($from, $data);
 		

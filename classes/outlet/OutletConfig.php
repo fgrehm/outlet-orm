@@ -67,6 +67,8 @@ class OutletEntityConfig {
 	private $clazz;
 	private $props;
 	private $associations;
+	
+	private $sequenceName = '';
 
 	function __construct (OutletConfig $config, $entity, array $conf) {
 		$this->config = $config;
@@ -90,6 +92,20 @@ class OutletEntityConfig {
 		$this->table = $conf['table'];
 		$this->clazz = $entity;
 		$this->props = $conf['props'];
+		$this->sequenceName = isset($conf['sequenceName']) ? $conf['sequenceName'] : '';
+		
+		// Adjusts sequence name for postgres if it is not specified
+		if (($config->getConnection()->getDialect() == 'pgsql') && ($this->sequenceName == ''))
+		{
+			foreach ($this->props as $key=>$d) {
+				// Property needs to be primary key and auto increment
+				if ((isset($d[2]['pk']) && $d[2]['pk']) && (isset($d[2]['autoIncrement']) && $d[2]['autoIncrement'])){
+					// default name for sequence = {table}_{column}_seq
+					$this->sequenceName = $this->table.'_'.$d[0].'_seq';
+					break;					
+				}
+			}
+		}
 	}
 
 	function getClass () {
@@ -170,6 +186,9 @@ class OutletEntityConfig {
 		return $fields;
 	}
 	
+	function getSequenceName(){
+		return $this->sequenceName;
+	}
 }
 
 abstract class OutletAssociationConfig {

@@ -407,7 +407,8 @@ class OutletMapper {
 		foreach ($entity->getProperties() as $key=>$f) {
 			$field = $key;
 			if (@$f[2]['autoIncrement']) {
-				$id = $outlet->getLastInsertId();
+				// Sequence name will be set and is needed for Postgres
+				$id = $outlet->getLastInsertId($entity->getSequenceName());
 				$proxy->$field = $id;
 			} else {
 				$proxy->$field = $obj->$field;

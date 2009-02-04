@@ -135,12 +135,16 @@ class Outlet {
 		return $this->config;
 	}
 	
-	
-	function getLastInsertId () {
+	/**
+	 * Returns last generated ID
+	 * 
+	 * If using PostgreSQL the $sequenceName needs to be specified
+	 */
+	function getLastInsertId ($sequenceName = '') {
 		if ($this->getConnection()->getDialect() == 'mssql') {
 			return $this->con->query('SELECT SCOPE_IDENTITY()')->fetchColumn(0);
-		} else {
-			return $this->con->lastInsertId();
+		} else{
+			return $this->con->lastInsertId($sequenceName);
 		}
 	}
 
