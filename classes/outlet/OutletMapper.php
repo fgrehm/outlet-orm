@@ -94,7 +94,8 @@ class OutletMapper {
 			
 			// if there's matching row, 
 			// return null
-			if (!$row) throw new Exception("No matching row found for {$cls} with primary key of [".implode(',', $pks)."]");
+			//if (!$row) throw new Exception("No matching row found for {$cls} with primary key of [".implode(',', $pks)."]");
+			if (!$row) return null;
 			
 			// cast the row to the types defined on the config
 			self::castRow($cls, $row);
