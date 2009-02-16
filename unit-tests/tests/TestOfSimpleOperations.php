@@ -126,11 +126,9 @@ class TestOfSimpleOperations extends OutletTestCase {
 
 		// I'll have to do something better than this 
 		// when I get a chance
-		try {
-			$project = $outlet->load('Project', $project_id);
-		} catch (Exception $e) {}
+		$project = $outlet->load('Project', $project_id);
 
-		$this->assertTrue($e instanceof Exception, 'Project was deleted');			
+		$this->assertTrue(is_null($project), 'Project was deleted');			
 	}
 
 	function testUpdate () {
