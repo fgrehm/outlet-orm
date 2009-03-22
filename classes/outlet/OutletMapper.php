@@ -230,8 +230,8 @@ class OutletMapper {
 		foreach (self::getConfig($obj)->getAssociations() as $assoc) {
 			if ($assoc->getType() != 'many-to-many') continue;
 
-			$key_column = $assoc->getKey();
-			$ref_column = $assoc->getOtherKey();
+			$key_column = $assoc->getTableKeyLocal();
+			$ref_column = $assoc->getTableKeyForeign();
 			$table = $assoc->getLinkingTable();
 			$name = $assoc->getForeignName();
             

@@ -54,7 +54,8 @@ return array(
 				'LastName'	=> array('last_name', 'varchar')
 			),
 			'associations' => array(
-				array('one-to-many', 'Address', array('key'=>'UserID', 'name'=>'WorkAddress', 'plural'=>'WorkAddresses'))
+				array('one-to-many', 'Address', array('key'=>'UserID', 'name'=>'WorkAddress', 'plural'=>'WorkAddresses')),
+				array('many-to-many', 'Bug', array('table'=>'watchers', 'tableKeyLocal'=>'user_id', 'tableKeyForeign'=>'bug_id'))
 			)
 		),
 		'Profile' => array(

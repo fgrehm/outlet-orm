@@ -106,20 +106,23 @@ class OutletProxyGenerator {
 
 	function createManyToManyFunctions (OutletManyToManyConfig $config) {
 		$foreign	= $config->getForeign();
-		$key 		= $config->getKey();
-		$pk_prop 	= $config->getRefKey();
+		
+		$tableKeyLocal 		= $config->getTableKeyLocal();
+		$tableKeyForeign 	= $config->getTableKeyForeign();
+		
+		$pk_prop 	= $config->getKey();
+		$ref_pk		= $config->getRefKey();
 		$getter		= $config->getGetter();
 		$setter		= $config->getSetter();
 		$table		= $config->getLinkingTable();
-		$otherKey	= $config->getOtherKey();
 	
 		$c = '';	
 		$c .= "  function {$getter}() { \n";
 		$c .= "    if (parent::$getter() instanceof OutletCollection) return parent::$getter(); \n";
 		//$c .= "    if (stripos(\$q, 'where') !== false) { \n";
 		$c .= "    \$q = Outlet::getInstance()->from('$foreign') \n";
-		$c .= "        ->innerJoin('$table ON {$table}.{$otherKey} = {"."$foreign.$pk_prop}') \n";
-		$c .= "        ->where('{$table}.{$key} = ?', array(\$this->$pk_prop)); \n";
+		$c .= "        ->innerJoin('$table ON {$table}.{$tableKeyForeign} = {"."$foreign.$pk_prop}') \n";
+		$c .= "        ->where('{$table}.{$tableKeyLocal} = ?', array(\$this->$ref_pk)); \n";
 		$c .= "    parent::{$setter}( new OutletCollection( \$q ) ); \n";
 		$c .= "    return parent::{$getter}(); \n";
 		$c .= "  } \n";

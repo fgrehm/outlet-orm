@@ -71,6 +71,14 @@ class User_OutletProxy extends User implements OutletProxy {
     } 
     return parent::getWorkAddresses(); 
   } 
+  function getBugs() { 
+    if (parent::getBugs() instanceof OutletCollection) return parent::getBugs(); 
+    $q = Outlet::getInstance()->from('Bug') 
+        ->innerJoin('watchers ON watchers.bug_id = {Bug.ID}') 
+        ->where('watchers.user_id = ?', array($this->UserID)); 
+    parent::setBugs( new OutletCollection( $q ) ); 
+    return parent::getBugs(); 
+  } 
 } 
 class Profile_OutletProxy extends Profile implements OutletProxy { 
   function getUser() { 

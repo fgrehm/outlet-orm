@@ -208,9 +208,6 @@ abstract class OutletAssociationConfig {
 	 * @param array $options
 	 */
 	function __construct (OutletConfig $config, $local, $foreign, array $options) {
-		// all associations require a key
-		if (!isset($options['key'])) throw new OutletConfigException("Entity $local, association with $foreign: You must specify a key when defining a $type relationship");
-
 		$this->config 	= $config;
 
 		$this->local 	= $local;
@@ -224,25 +221,6 @@ abstract class OutletAssociationConfig {
 
 	function getType () {
 		return $this->type;
-	}
-
-	/**
-	 * @return string Association key
-	 */
-	function getKey () {
-		return $this->options['key'];
-	}
-
-	function getRefKey () {
-		if (isset($this->options['refKey'])) {
-			return $this->options['refKey'];
-		} else {
-			if ($this->type == 'one-to-many') {
-				return current($this->config->getEntity($this->local)->getPkFields());
-			} else {
-				return current($this->config->getEntity($this->foreign)->getPkFields());
-			}
-		}
 	}
 
 	function isOptional () {
@@ -317,44 +295,112 @@ class OutletOneToManyConfig extends OutletAssociationConfig {
 	protected $type = 'one-to-many';
 	
 	public function __construct (OutletConfig $config, $local, $foreign, array $options) {
-		$this->storage = isset($options['storage']) ? $options['storage'] : 'array';
+		// one-to-many requires a key
+		if (!isset($options['key'])) throw new OutletConfigException("Entity $local, association with $foreign: You must specify a 'key' when defining a one-to-many relationship");
 
 		parent::__construct($config, $local, $foreign, $options);
 	}
 	
-	public function getStorage () {
-		return $this->storage;
+	public function getKey() {
+		return $this->options['key'];
+	}
+	
+	function getRefKey () {
+		if (isset($this->options['refKey'])) {
+			return $this->options['refKey'];
+		} else {
+			return current($this->config->getEntity($this->local)->getPkFields());
+		}
 	}
 }
 
 class OutletManyToOneConfig extends OutletAssociationConfig {
 	protected $type = 'many-to-one';
+	
+	public function __construct (OutletConfig $config, $local, $foreign, array $options) {
+		// many-to-one requires a key
+		if (!isset($options['key'])) throw new OutletConfigException("Entity $local, association with $foreign: You must specify a 'key' when defining a many-to-one relationship");
+		
+		parent::__construct($config, $local, $foreign, $options);
+	}
+	
+	public function getKey() {
+		return $this->options['key'];
+	}
+	
+	function getRefKey () {
+		if (isset($this->options['refKey'])) {
+			return $this->options['refKey'];
+		} else {
+			return current($this->config->getEntity($this->foreign)->getPkFields());
+		}
+	}
 }
 
 class OutletOneToOneConfig extends OutletAssociationConfig {
-	protected $type = 'one-to-one';
+	protected $type = 'one-to-one'; 
+	
+	public function __construct (OutletConfig $config, $local, $foreign, array $options) {
+		if (!isset($options['key'])) throw new OutletConfigException("Entity $local, association with $foreign: You must specify a 'key' when defining a one-to-one relationship");
+	
+		parent::__construct($config, $local, $foreign, $options);
+	}
+	
+	public function getKey () {
+		return $this->options['key'];
+	}
+	
+	function getRefKey () {
+		if (isset($this->options['refKey'])) {
+			return $this->options['refKey'];
+		} else {
+			return current($this->config->getEntity($this->local)->getPkFields());
+		}
+	}
 }
 
 class OutletManyToManyConfig extends OutletAssociationConfig {
 	protected $type = 'many-to-many';
 	protected $table;
-	protected $otherKey;
+	protected $tableKeyLocal;
+	protected $tableKeyForeign;
 	
 	public function __construct (OutletConfig $config, $local, $foreign, array $options) {
 		if (!isset($options['table'])) throw new OutletConfigException("Entity $local, association with $foreign: You must specify a table when defining a many-to-many relationship");
 		
-		$this->table = $options['table'];
-		$this->otherKey = $options['otherKey'];
+		$this->table 			= $options['table'];
+		$this->tableKeyLocal 	= $options['tableKeyLocal'];
+		$this->tableKeyForeign 	= $options['tableKeyForeign'];
 		
 		parent::__construct($config, $local, $foreign, $options);
 	}
 	
-	public function getOtherKey () {
-		return $this->otherKey;
+	public function getTableKeyLocal () {
+		return $this->tableKeyLocal;
+	}
+	
+	public function getTableKeyForeign () {
+		return $this->tableKeyForeign;
 	}
 	
 	public function getLinkingTable () {
 		return $this->table;
+	}
+	
+	function getKey () {
+		if (isset($this->options['key'])) {
+			return $this->options['key'];
+		} else {
+			return current($this->config->getEntity($this->foreign)->getPkFields());
+		}
+	}
+
+	function getRefKey () {
+		if (isset($this->options['refKey'])) {
+			return $this->options['refKey'];
+		} else {
+			return current($this->config->getEntity($this->local)->getPkFields());
+		}
 	}
 }
 

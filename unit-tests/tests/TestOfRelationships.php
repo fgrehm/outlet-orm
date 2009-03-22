@@ -66,6 +66,30 @@ class TestOfRelationships extends OutletTestCase {
 
 		$user = $profile->getUser();
 	}
+	
+	function testManyToMany () {
+		$user = new User;
+		$user->Firstname = 'Alvaro';
+		$user->LastName = 'Carrasco';
+		
+		$bug = new Bug;
+		$bug->Name = 'Test Bug';
+		
+		$project = new Project;
+		$project->Name = 'Test Project';
+		
+		$bug->setProject($project);
+		
+		$outlet = Outlet::getInstance();
+		$outlet->save($user);
+		$outlet->save($bug);
+		
+		$user->getBugs()->add($bug);
+		
+		$outlet->save($user);
+		
+		$this->assertTrue(count($user->getBugs()) == 1, 'One project attached to this user');
+	}
 
 	function testPlural () {
 		$addr = new Address;
