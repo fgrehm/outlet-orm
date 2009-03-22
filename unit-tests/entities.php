@@ -64,27 +64,6 @@ class Project {
 	}
 }
 
-class User {
-	public $UserID;
-	public $FirstName;
-	public $LastName;
-
-	private $addresses;
-	
-	function __construct () {
-		$this->addresses = new Collection;
-	}
-
-	public function getWorkAddresses () {
-		return $this->addresses;
-	}
-	public function setWorkAddresses(Collection $addresses) {
-		$this->addresses = $addresses;
-	}
-	public function addWorkAddress(Address $addr) {
-		$this->addresses[] = $addr;
-	}
-}
 
 class Profile {
 	public $ProfileID;
@@ -97,6 +76,38 @@ class Profile {
 	}
 	public function setUser (User $u) {
 		$this->user = $u;	
+	}
+}
+
+
+class User {
+	public $UserID;
+	public $FirstName;
+	public $LastName;
+
+	private $addresses;
+	private $bugs;
+	
+	function __construct () {
+		$this->addresses = new Collection;
+		$this->bugs = new Collection;
+	}
+
+	public function getWorkAddresses () {
+		return $this->addresses;
+	}
+	public function setWorkAddresses(Collection $addresses) {
+		$this->addresses = $addresses;
+	}
+	public function addWorkAddress(Address $addr) {
+		$this->addresses[] = $addr;
+	}
+	
+	public function getBugs () {
+		return $this->bugs;
+	}
+	public function setBugs (Collection $bugs) {
+		$this->bugs = $bugs;
 	}
 }
 
