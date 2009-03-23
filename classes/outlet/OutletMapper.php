@@ -355,9 +355,9 @@ class OutletMapper {
 			// if there's options
 			// TODO: Clean this up
 			if (isset($f[2])) {
-				if (is_null($obj->$prop)) {
+				if (is_null( self::getProp( $obj, $prop ) )) {
 					if (isset($f[2]['default'])) {
-						$obj->$prop = $f[2]['default'];
+						self::setProp( $obj, $prop, $f[2]['default']);
 						$insert_defaults[] = false;
 					} elseif (isset($f[2]['defaultExpr'])) {
 						$insert_defaults[] = $f[2]['defaultExpr'];
@@ -394,8 +394,7 @@ class OutletMapper {
 			// skip the defaults
 			if ($insert_defaults[$key]) continue;
 
-			//$values[] = $obj->$p;
-            $values[] = self::toSqlValue( $properties[$p], $obj->$p );
+            $values[] = self::toSqlValue( $properties[$p], self::getProp($obj, $p) );
 		}
     
 		$stmt->execute($values);
@@ -412,7 +411,7 @@ class OutletMapper {
 				$id = $outlet->getLastInsertId($entity->getSequenceName());
 				$proxy->$field = $id;
 			} else {
-				$proxy->$field = $obj->$field;
+				$proxy->$field = self::getProp( $obj, $field );
 			}
 		}
 	
@@ -437,6 +436,28 @@ class OutletMapper {
 			'obj' => $obj,
 			'original' => self::toArray($obj)
 		));	
+	}
+	
+	static function getProp ($obj, $prop) {
+		$config = self::getConfig($obj);
+		
+		if ($config->useGettersAndSetters()) {
+			$getter = "get$prop";
+			return $obj->$getter();
+		} else {
+			return $obj->$prop;
+		}
+	}
+	
+	static function setProp ($obj, $prop, $value) {
+		$config = self::getConfig($obj);
+		
+		if ($config->useGettersAndSetters()) {
+			$setter = "set$prop";
+			$obj->$setter( $value );
+		} else {
+			$obj->$prop = $value;
+		}
 	}
 	
 	/**

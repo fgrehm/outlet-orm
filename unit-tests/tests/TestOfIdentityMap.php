@@ -10,7 +10,7 @@ class TestOfIdentityMap extends OutletTestCase {
 		$outlet = Outlet::getInstance();
 
 		$p = new Project;
-		$p->Name = 'Project 1';
+		$p->setName('Project 1');
 	
 		$b1 = new Bug;
 		$b1->Title = 'Bug 1';

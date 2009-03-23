@@ -57,6 +57,10 @@ class OutletConfig {
 
 		return $this->entities[$cls];
 	}
+	
+	function useGettersAndSetters () {
+		return isset($this->conf['useGettersAndSetters']) ? $this->conf['useGettersAndSetters'] : false;
+	}
 }
 
 class OutletEntityConfig {
@@ -69,6 +73,8 @@ class OutletEntityConfig {
 	private $associations;
 	
 	private $sequenceName = '';
+	
+	private $useGettersAndSetters;
 
 	function __construct (OutletConfig $config, $entity, array $conf) {
 		$this->config = $config;
@@ -93,6 +99,8 @@ class OutletEntityConfig {
 		$this->clazz = $entity;
 		$this->props = $conf['props'];
 		$this->sequenceName = isset($conf['sequenceName']) ? $conf['sequenceName'] : '';
+		
+		$this->useGettersAndSetters = isset($conf['useGettersAndSetters']) ? $conf['useGettersAndSetters'] : $config->useGettersAndSetters();
 		
 		// Adjusts sequence name for postgres if it is not specified
 		if (($config->getConnection()->getDialect() == 'pgsql') && ($this->sequenceName == ''))
@@ -188,6 +196,10 @@ class OutletEntityConfig {
 	
 	function getSequenceName(){
 		return $this->sequenceName;
+	}
+	
+	function useGettersAndSetters () {
+		return $this->useGettersAndSetters;
 	}
 }
 
