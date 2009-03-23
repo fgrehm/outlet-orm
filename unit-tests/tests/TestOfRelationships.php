@@ -5,7 +5,7 @@ class TestOfRelationships extends OutletTestCase {
 	function testOneToMany () {
 		// insert a project and some bugs
 		$project = new Project;
-		$project->Name = 'Cool Project';
+		$project->setName('Cool Project');
 
 		$bug1 = new Bug;
 		$bug1->Title = 'Bug 1';	
@@ -29,7 +29,7 @@ class TestOfRelationships extends OutletTestCase {
 		$bug->Title = 'Test Bug';
 
 		$project = new Project;
-		$project->Name = 'Test Project';
+		$project->setName('Test Project');
 
 		$bug->setProject( $project );
 
@@ -58,7 +58,7 @@ class TestOfRelationships extends OutletTestCase {
 		$outlet->save($user);
 		
 		$profile = new Profile;
-		$profile->UserID = $user->UserID;
+		$profile->setUserID( $user->UserID );
 	
 		$outlet = Outlet::getInstance();
 
@@ -76,7 +76,7 @@ class TestOfRelationships extends OutletTestCase {
 		$bug->Name = 'Test Bug';
 		
 		$project = new Project;
-		$project->Name = 'Test Project';
+		$project->setName('Test Project');
 		
 		$bug->setProject($project);
 		
@@ -107,7 +107,7 @@ class TestOfRelationships extends OutletTestCase {
 		$outlet = Outlet::getInstance();
 
 		$p = new Project;
-		$p->Name = 'Name 1';
+		$p->setName('Name 1');
 
 		$b = new Bug;
 		$b->Title = 'Test Bug';

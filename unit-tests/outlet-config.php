@@ -44,7 +44,8 @@ return array(
 			),
 			'associations' => array(
 				array('one-to-many', 'Bug', array('key'=>'ProjectID'))
-			)
+			),
+			'useGettersAndSetters' => true
 		),
 		'User' => array(
 			'table' => 'users',
@@ -66,7 +67,8 @@ return array(
 			),
 			'associations' => array(
 				array('one-to-one', 'User', array('key'=>'UserID'))
-			)
+			),
+			'useGettersAndSetters' => true
 		)
 	)
 );

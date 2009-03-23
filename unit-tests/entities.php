@@ -41,16 +41,28 @@ class Machine {
 }
 
 class Project {
-	public $ProjectID;
-	public $Name;
-	public $CreatedDate;
-	public $StatusID;
-	public $Description;
+	private $ProjectID;
+	private $Name;
+	private $CreatedDate;
+	private $StatusID;
+	private $Description;
 
 	private $bugs;
 	
 	function __construct () {
 		$this->bugs = new Collection;
+	}
+	
+	function __call ($method, $args) {
+		if (strpos($method, 'get') === 0) {
+			$prop = substr($method, 3);
+			return $this->$prop;
+		} elseif (strpos($method, 'set') === 0) {
+			$prop = substr($method, 3);
+			return $this->$prop = $args[0];
+		} else {
+			throw new Exception('Undefined method: Project->' . $method);
+		}
 	}
 
 	function getBugs () {
@@ -66,10 +78,24 @@ class Project {
 
 
 class Profile {
-	public $ProfileID;
-	public $UserID;
+	private $ProfileID;
+	private $UserID;
 
 	private $user;
+	
+	function getProfileID () {
+		return $this->ProfileID;
+	}
+	function setProfileID ($id) {
+		$this->ProfileID = $id;
+	}
+	
+	function getUserID () {
+		return $this->UserID;
+	}
+	function setUserID ($id) {
+		$this->UserID = $id;
+	}
 
 	public function getUser () {
 		return $this->user;

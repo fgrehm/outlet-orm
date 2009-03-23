@@ -5,7 +5,7 @@ class TestOfSimpleOperations extends OutletTestCase {
 	function testCrudOperations() {
 		$outlet = Outlet::getInstance();
 		$project = new Project;
-		$project->Name = 'Project 1';
+		$project->setName('Project 1');
 		
 		Outlet::getInstance()->save($project);
 
@@ -54,7 +54,7 @@ class TestOfSimpleOperations extends OutletTestCase {
 		$outlet->save($bug3);
 
 		$project2 = new Project;
-		$project2->Name = 'Project 2';
+		$project2->setName('Project 2');
 		$outlet->save($project2);
 
 		$bug3->setProject($project2);
@@ -92,7 +92,7 @@ class TestOfSimpleOperations extends OutletTestCase {
 		// also make sure that the status or the project is set 
 		// as per the default setting
 		$project = new Project;
-		$project->Name = 'Test Project';
+		$project->setName('Test Project');
 		
 		$outlet = Outlet::getInstance();
 	
@@ -112,7 +112,7 @@ class TestOfSimpleOperations extends OutletTestCase {
 
 	function testDelete () {
 		$project = new Project;
-		$project->Name = 'Test Project';
+		$project->setName('Test Project');
 		
 		$outlet = Outlet::getInstance();
 		
@@ -133,7 +133,7 @@ class TestOfSimpleOperations extends OutletTestCase {
 
 	function testUpdate () {
 		$p = new Project;
-		$p->Name = 'Project test update';
+		$p->setName('Project test update');
 
 		$outlet = Outlet::getInstance();
 
@@ -148,12 +148,12 @@ class TestOfSimpleOperations extends OutletTestCase {
 		$outlet = Outlet::getInstance();
 
 		$p1 = new Project;
-		$p1->Name = 'AAAA';
+		$p1->setName('AAAA');
 
 		$outlet->save($p1);
 
 		$p2 = new Project;
-		$p2->Name = 'BBBB';
+		$p2->setName('BBBB');
 
 		$outlet->save($p2);
 		
