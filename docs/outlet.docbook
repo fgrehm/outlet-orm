@@ -16,7 +16,7 @@
 	</para>
 
 	<para>
-		It differs from other orm solutions for php in that it attempts to provide transparent, unobtrusive persistence. It does not require your entity objects to implement any interfaces or extend some sort of base class. It is also very lightweight, only a handful of classes and tools.
+		It differs from other orm solutions for php in that it provides transparent, unobtrusive persistence. It does not require your entity objects to implement any interfaces or extend some sort of base class. It is also very lightweight, only a handful of classes and tools.
 	</para>
 
 	<para>
@@ -37,7 +37,7 @@
 					<para>PHP 5.2 or higher.</para>
 				</listitem>
 				<listitem>
-					<para>PDO extension with a suitable driver (only tested with MySQL ans SQLite).</para>
+					<para>PDO extension with a suitable driver (only tested with MySQL, SQLite, MS SQL, and PostgreSQL).</para>
 				</listitem>
 			</itemizedlist>	
 	</section>
@@ -48,7 +48,7 @@
 			<title>From Package</title>
 			<orderedlist>
 				<listitem>
-					<para>Download a package from <ulink url="http://outlet.knowledgehead.com/wiki/index.php/Main_Page#Downloads">here</ulink>.</para>
+					<para>Download a package from <ulink url="http://www.outlet-orm.org/site/downloads">here</ulink>.</para>
 				</listitem>
 				<listitem>
 					<para>Unzip the package.</para>
@@ -96,8 +96,6 @@ class Bug {
     }
 
     function setProject (Project $p) {
-        echo "TEST";
-        blah('testing');
         $this->project = $p;
     }
 }</programlisting>
@@ -191,6 +189,13 @@ The configuration consists of an associative array with the elements:
 			<term>classes</term>
     		<listitem><para>Mapping configuration for each of the entity classes</para></listitem>
 		</varlistentry>
+		<varlistentry>
+			<term>useGettersAndSetters</term>
+    		<listitem>
+				<para><emphasis>Optional.</emphasis> Whether to use getters and setters instead of the properties directly. 
+					This can be overridden by the entity config. Defaults to false.</para>
+			</listitem>
+		</varlistentry>
 	</variablelist>
 
 	<para>
@@ -203,7 +208,7 @@ The configuration consists of an associative array with the elements:
 Outlet::init(include APPROOT.'/outlet-config.php');</programlisting>
 	</informalexample>
 
-	<para>Here is a complete configuration: </para>
+	<para>Here is a sample configuration: </para>
 
 	<example>
 		<title>Sample configuration: outlet-config.php</title>
@@ -212,7 +217,8 @@ return array(
   'connection' => array(
     'dsn'      => 'mysql:host=myserver.com;dbname=mydb',
     'username' => 'user',
-    'password' => 'pass'
+    'password' => 'pass',
+    'dialect' => 'mysql'
   ),
   'classes' => array(
     'Project' => array(
@@ -250,7 +256,8 @@ return array(
 array(
   'dsn' => 'mysql:hostname=myhost.com;dbname=testdb',
   'username' => 'testdbuser',
-  'password' => 'testdbpass'
+  'password' => 'testdbpass',
+  'dialect' => 'mysql'
 )]]></programlisting>
 		</informalexample>
 
@@ -266,6 +273,10 @@ array(
 			<varlistentry>
 				<term>password</term>
 				<listitem><para>A password if the database driver requires it </para></listitem>
+			</varlistentry>
+			<varlistentry>
+				<term>dialect</term>
+				<listitem><para>The dialect to use. It can be mysql, mssql, or sqlite.</para></listitem>
 			</varlistentry>
 		</variablelist>
 
@@ -308,6 +319,13 @@ array(
 				<listitem><para><emphasis>Optional.</emphasis> The noun to use when referring to more than one. This is the name used by default
 					on association methods if there's no 'plural' setting set on the association itself.
 					Defaults to the entity name plus an 's'.</para></listitem>
+			</varlistentry>
+			<varlistentry>
+				<term>useGettersAndSetters</term>
+				<listitem>
+					<para><emphasis>Optional.</emphasis> Whether to use getters and setters instead of the properties directly. 
+						When set, this will override the global configuration of the same name. Defaults to the global configuration, which in turn defaults to false.</para>
+				</listitem>
 			</varlistentry>
 		</variablelist>
 	
@@ -438,6 +456,66 @@ array(
 						</listitem>
 					</varlistentry>
 
+					<varlistentry>
+						<term>one-to-one</term>
+						<listitem>
+							<variablelist>
+								<varlistentry>
+									<term>key</term>
+              						<listitem><para>The name of the property on this entity that contains the primary key of the related entity. </para></listitem>
+								</varlistentry>
+								<varlistentry>
+									<term>name</term>
+              						<listitem>
+										<para><emphasis>Optional.</emphasis> Defaults to the name of the related entity. </para>
+              							<para>
+											The name to give the relationship. This value is used to create the method that returns the associated entity. 
+										</para>
+									</listitem>
+								</varlistentry>
+								<varlistentry>
+          							<term>optional</term>
+              						<listitem>
+										<para><emphasis>Optional.</emphasis> Defaults to false. </para>
+              							<para>Whether to allow this relationship to be optional (allow null). </para>
+									</listitem>
+								</varlistentry>
+							</variablelist>
+						</listitem>
+					</varlistentry>
+
+					<varlistentry>
+						<term>many-to-many</term>
+						<listitem>
+							<variablelist>
+								<varlistentry>
+          							<term>table</term>
+              						<listitem><para>The name of the linking table.</para></listitem>
+								</varlistentry>
+          						<varlistentry>
+									<term>tableKeyLocal</term>
+              						<listitem>
+										<para>The name of the column on the linking table that contains the primary key value of this entity. </para>
+									</listitem>
+								</varlistentry>
+          						<varlistentry>
+									<term>tableKeyForeign</term>
+              						<listitem>
+										<para>The name of the column on the linking table that contains the primary key value of the foreign entity. </para>
+									</listitem>
+								</varlistentry>
+								<varlistentry>
+									<term>plural</term>
+									<listitem>
+										<para><emphasis>Optional.</emphasis> The noun to use when creating methods that return more than one entity.
+											Only necessary for associations that use something other than the entity name (such as 'Sender' or 'Creator' for a
+											an association with a 'User').
+											Defaults to the association name plus an 's'.</para>
+									</listitem>
+								</varlistentry>
+							</variablelist>
+						</listitem>
+					</varlistentry>
 				</variablelist>
 			</listitem>
 		</itemizedlist>
@@ -449,9 +527,23 @@ array(
 <chapter>
 	<title>Usage</title>
 
+	<section>
+		<title>Select by Primary Key</title>
+
+		<para>You can select a single object by using the <emphasis>load</emphasis> method and specifying the primary key: </para>
+
+		<informalexample>
+			<programlisting language="php"><![CDATA[
+<?php
+$outlet = Outlet::getInstance();
+// retrieve a Bug by primary key
+$bug = $outlet->load("Bug", 1);]]></programlisting>
+		</informalexample>
+
+	</section>
 
   	<section>
-		<title>Selecting</title>
+		<title>Select using Queries</title>
 
 		<para>A query with outlet is just a regular SQL statement except for the ability to refer to columns by their class member names. Simply wrap the identifier in curly braces and outlet will automatically replace it with the corresponding table or column name. You can even add aliases:</para>
 
@@ -465,33 +557,38 @@ $bugs = $outlet->select("Bug", "INNER JOIN {Project p} ON {Bug.ProjectID} = {p.P
 //   ON bugs.project_id = p.project_id</programlisting>
 		</informalexample>
 
-		<para>
-			Although referring to the columns by their class member name is recommended, you're always free to simple use straight sql.
-		</para>
+		<para></para>
 
-		<section>
-			<title>select</title>
-
-			<informalexample>
-				<programlisting language="php"><![CDATA[
+		<informalexample>
+			<programlisting language="php"><![CDATA[
 <?php
 $outlet = Outlet::getInstance();
 // retrieve an array of Bug objects by using a prepared statement
 $bugs = $outlet->select("Bug", "WHERE {Bug.StatusID} = ?", array(1));]]></programlisting>
-			</informalexample>
-		</section>
+		</informalexample>
 
-		<section>
-			<title>load</title>
+		<para>
+			Although referring to the columns by their class member name is recommended, you're always free to simple use straight sql.
+		</para>
 
-			<informalexample>
-				<programlisting language="php"><![CDATA[
+	</section>
+
+	<section>
+		<title>Select using Fluent Interface</title>
+
+		<informalexample>
+			<programlisting language="php"><![CDATA[
 <?php
 $outlet = Outlet::getInstance();
-// retrieve a Bug by primary key
-$bug = $outlet->load("Bug", 1);]]></programlisting>
-			</informalexample>
-		</section>
+
+// select bugs with a status of one,
+// include the projects (eager fetching)
+$bugs = $outlet->from("Bug")
+  ->with('Project')
+  ->where("WHERE {Bug.StatusID} = ?", array(1))
+  ->find();]]></programlisting>
+		</informalexample>
+
 	</section>
 
 	<section>
