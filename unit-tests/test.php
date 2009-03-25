@@ -1,6 +1,8 @@
 <?php
 if (isset($_SERVER['argv'][1])) {
 	define('DATABASE_DRIVER', $_SERVER['argv'][1]);
+} elseif (isset($_GET['driver'])) {
+	define('DATABASE_DRIVER', $_GET['driver']);
 } else {
 	define('DATABASE_DRIVER', 'sqlite');
 }
@@ -19,10 +21,16 @@ require_once 'entities.php';
 require_once 'OutletTestCase.php';
 
 // basic setup
-$conf = include('outlet-config.php');
-
 switch (DATABASE_DRIVER) {
-	case 'sqlite':	break; //default
+	case 'sqlite':
+            $conf = include('outlet-config-sqlite.php');
+            break;
+        case 'mysql':
+            $conf = include('outlet-config-mysql.php');
+            break;
+        case 'pgsql':
+            $conf = include('outlet-config-pgsql.php');
+            break;
 	default: throw new Exception('Unsupported database driver: '.DATABASE_DRIVER);
 }
 Outlet::init($conf);
@@ -33,6 +41,7 @@ $test = new GroupTest('All Tests');
 $test->addTestFile('tests/TestOfSimpleOperations.php');
 $test->addTestFile('tests/TestOfRelationships.php');
 $test->addTestFile('tests/TestOfIdentityMap.php');
+$test->addTestFile('tests/TestOfFluentInterfaceQueryAPI.php');
 
 if (isset($_SERVER['HTTP_HOST'])) {
 	$test->run(new HtmlReporter);

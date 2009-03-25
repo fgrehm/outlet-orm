@@ -327,6 +327,13 @@ array(
 						When set, this will override the global configuration of the same name. Defaults to the global configuration, which in turn defaults to false.</para>
 				</listitem>
 			</varlistentry>
+			<varlistentry>
+				<term>sequenceName</term>
+				<listitem>
+					<para><emphasis>Optional, specify it if you are using PostgreSQL.</emphasis> Since PostgreSQL uses sequences instead of auto increment columns, the PDO driver need the sequence name in order to get the generated new id.
+						If not specified it will use the default: {table_name}_{column_name}_seq</para>
+				</listitem>
+			</varlistentry>s
 		</variablelist>
 	
 	</section>
@@ -583,9 +590,12 @@ $outlet = Outlet::getInstance();
 
 // select bugs with a status of one,
 // include the projects (eager fetching)
+// and paginates data
 $bugs = $outlet->from("Bug")
   ->with('Project')
   ->where("WHERE {Bug.StatusID} = ?", array(1))
+  ->limit(10)
+  ->offset(20)
   ->find();]]></programlisting>
 		</informalexample>
 

@@ -20,7 +20,7 @@ return array(
 				'ID' 	=> array('id', 'int', array('pk'=>true, 'autoIncrement'=>true)),
 				'Title'		=> array('title', 'varchar'),
 				'ProjectID' => array('project_id', 'int'),
-				'Test_One'	=> array('title', 'varchar') // test an identifier with an underscore on it
+				'Test_One'	=> array('test_one', 'int') // test an identifier with an underscore on it
 			),
 			'associations' => array(
 				array('many-to-one', 'Project', array('key'=>'ProjectID'))
@@ -66,7 +66,7 @@ return array(
 				'UserID' 		=> array('user_id', 'int')
 			),
 			'associations' => array(
-				array('one-to-one', 'User', array('key'=>'UserID'))
+				array('one-to-one', 'User', array('key'=>'UserID', 'refKey' => 'UserID'))
 			),
 			'useGettersAndSetters' => true
 		)
