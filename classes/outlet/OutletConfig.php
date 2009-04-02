@@ -55,6 +55,8 @@ class OutletConfig {
 	function getEntity ($cls) {
 		if (is_null($this->entities)) $this->getEntities();
 
+		if (!isset($this->entities[$cls])) throw new OutletException('Entity ['.$cls.'] has not been defined in the configuration');
+
 		return $this->entities[$cls];
 	}
 	
