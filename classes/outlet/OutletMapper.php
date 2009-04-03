@@ -608,32 +608,36 @@ class OutletMapper {
 
 			// if it's a property
 			if (strpos($str, '.')!==false) {
-				$tmp = explode('.', $str);
+				list($en, $prop) = explode('.', $str);
 
 				// if it's an alias
-				if (isset($aliased[$tmp[0]])) {
-					$aliased_table = $aliased[$tmp[0]];
-					
+				if (isset($aliased[$en])) {
+					$entity = $aliased[$en];
+
 					// check for the existence of the field configuration
-					if (!isset(self::$conf[$aliased_table]['props'][$tmp[1]])) {
-						throw new OutletException("Property [$tmp[1]] does not exist on configuration for entity [$aliased_table]");
+					if (!isset(self::$conf[$entity]['props'][$prop])) {
+						throw new OutletException("Property [$prop] does not exist on configuration for entity [$entity]");
 					}
 					
-					$col = $tmp[0].'.'.self::$conf[$aliased_table]['props'][$tmp[1]][0];
+					$col = $en.'.'.self::$conf[$entity]['props'][$prop][0];
 				} else {
+					$entity = $en;
+
+					if (!isset(self::$conf[$entity])) throw new OutletException('String ['.$entity.'] is not a valid entity or alias, check your query');
+
 					// if it's an update statement,
 					// we must not include the table
 					if ($update) {
-						$col = self::$conf[$tmp[0]]['props'][$tmp[1]][0];
+						$col = self::$conf[$entity]['props'][$prop][0];
 					} else {
-						$table = self::$conf[$tmp[0]]['table'];
+						$table = self::$conf[$entity]['table'];
 						
 						// check for existence of the field configuration
-						if (!isset(self::$conf[$tmp[0]]['props'][$tmp[1]])) {
-							throw new OutletException("Property [$tmp[1]] does not exist on configuration for entity [$tmp[0]]");
+						if (!isset(self::$conf[$entity]['props'][$prop])) {
+							throw new OutletException("Property [$prop] does not exist on configuration for entity [$entity]");
 						}
 						
-						$col = $table.'.'.self::$conf[$tmp[0]]['props'][$tmp[1]][0];
+						$col = $table.'.'.self::$conf[$entity]['props'][$prop][0];
 					}
 				}
 
