@@ -118,6 +118,8 @@ class OutletQuery {
 			$with_aliased[$with_key] = (count($tmp)>1 ? $tmp[1] : $tmp[0]);
 			
 			$assoc = $entity_config->getAssociation($with[$with_key]);
+
+			if (!$assoc) throw new OutletException('No association found with entity or alias ['.$with[$with_key].']');
 			
 			$props = $config->getEntity($assoc->getForeign())->getProperties();
 			foreach ($props as $key=>$p) {
