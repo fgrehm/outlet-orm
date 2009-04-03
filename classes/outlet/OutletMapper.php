@@ -12,8 +12,8 @@ class OutletMapper {
 	function __construct (&$obj) {
 		throw new Exception('deprecated');
 
-		if (!is_object($obj)) throw new Exception('You must pass an object');
-		if ($obj instanceof OutletMapper) throw new Exception('You passed and OutletMapper object');
+		if (!is_object($obj)) throw new OutletException('You must pass an object');
+		if ($obj instanceof OutletMapper) throw new OutletException('You passed and OutletMapper object');
 		
 		if ($obj instanceof OutletProxy) $this->new = false;
 		
@@ -48,7 +48,7 @@ class OutletMapper {
 	}
 	
 	static function load ($cls, $pk) {
-		if (!$pk) throw new Exception("Must pass a valid primary key value, passed: ".var_export($pk));
+		if (!$pk) throw new OutletException("Must pass a valid primary key value, passed: ".var_export($pk));
 
 		if (!is_array($pk)) $pks = array($pk);
 		else $pks = $pk;
@@ -159,7 +159,7 @@ class OutletMapper {
 		foreach (Outlet::getInstance()->getConfig()->getEntity($clazz)->getProperties() as $key=>$p) {
 			$column = $p[0];
 
-			if (!array_key_exists($column, $row)) throw new Exception('No value found for ['.$column.'] in row ['.var_export($row, true).']');	
+			if (!array_key_exists($column, $row)) throw new OutletException('No value found for ['.$column.'] in row ['.var_export($row, true).']');	
 		
 			// cast if it's anything other than a string
 			$row[$column] = self::toPhpValue($p, $row[$column]);
@@ -535,7 +535,7 @@ class OutletMapper {
 	}
 
 	static function toArray ($entity) {
-		if (!$entity) throw new Exception('You must pass an entity');
+		if (!$entity) throw new OutletException('You must pass an entity');
 
 		$class = self::getEntityClass($entity);
 	
@@ -616,7 +616,7 @@ class OutletMapper {
 					
 					// check for the existence of the field configuration
 					if (!isset(self::$conf[$aliased_table]['props'][$tmp[1]])) {
-						throw new Exception("Property [$tmp[1]] does not exist on configuration for entity [$aliased_table]");
+						throw new OutletException("Property [$tmp[1]] does not exist on configuration for entity [$aliased_table]");
 					}
 					
 					$col = $tmp[0].'.'.self::$conf[$aliased_table]['props'][$tmp[1]][0];
@@ -630,7 +630,7 @@ class OutletMapper {
 						
 						// check for existence of the field configuration
 						if (!isset(self::$conf[$tmp[0]]['props'][$tmp[1]])) {
-							throw new Exception("Property [$tmp[1]] does not exist on configuration for entity [$tmp[0]]");
+							throw new OutletException("Property [$tmp[1]] does not exist on configuration for entity [$tmp[0]]");
 						}
 						
 						$col = $table.'.'.self::$conf[$tmp[0]]['props'][$tmp[1]][0];
