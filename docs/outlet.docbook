@@ -353,7 +353,7 @@ array(
 		<itemizedlist>
 			<listitem><para>The indexes are the properties of the class being mapped.</para></listitem>
     		<listitem><para>The first element of each mapping is the name of the column.</para></listitem>
-    		<listitem><para>The second is the column type, which can be either int or varchar.</para></listitem>
+    		<listitem><para>The second is the column type, which can be: int, varchar, datetime or float.</para></listitem>
 			<listitem>
 				<para>
 					The third element is an array of optional settings:

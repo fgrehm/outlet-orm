@@ -14,6 +14,9 @@ class Bug {
 	// test member with underscore
 	public $Test_One;
 
+    // test float
+    public $TimeToFix;
+
 	private $project;
 	private $watchers;
 

@@ -554,7 +554,12 @@ class OutletMapper {
 		switch ($conf[1]) {
 			case 'date': return $v->format('Y-m-d');
 			case 'datetime': return $v->format('Y-m-d H:i:s');
+
 			case 'int': return (int) $v;
+
+            case 'float': return (float) $v;
+
+            // Strings
 			default: return $v;
 		}
 	}
@@ -569,7 +574,10 @@ class OutletMapper {
 				return new DateTime($v);
 			
 			case 'int': return (int) $v;
-			
+
+            case 'float': return (float) $v;
+
+            // Strings
 			default: return $v;
 		}
 	}
