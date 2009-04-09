@@ -213,6 +213,8 @@ abstract class OutletAssociationConfig {
 	protected $foreign;
 	protected $type;
 	protected $key;
+    protected $localUseGettersAndSetters;
+    protected $foreignUseGettersAndSetters;
 
 	/**
 	 * @param OutletConfig $config
@@ -224,10 +226,20 @@ abstract class OutletAssociationConfig {
 	function __construct (OutletConfig $config, $local, $foreign, array $options) {
 		$this->config 	= $config;
 
-		$this->local 	= $local;
+        $this->local 	= $local;
 		$this->foreign 	= $foreign;
 		$this->options	= $options;
+        $this->localUseGettersAndSetters = $this->config->getEntity($local)->useGettersAndSetters();
+        $this->foreignUseGettersAndSetters = $this->config->getEntity($foreign)->useGettersAndSetters();
 	}
+
+    function getForeignUseGettersAndSetters(){
+        return $this->foreignUseGettersAndSetters;
+    }
+
+    function getLocalUseGettersAndSetters(){
+        return $this->localUseGettersAndSetters;
+    }
 
 	function getLocal () {
 		return $this->local;

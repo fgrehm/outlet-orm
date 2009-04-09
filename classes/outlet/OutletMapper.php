@@ -101,7 +101,7 @@ class OutletMapper {
 			self::castRow($cls, $row);
 	
 			foreach ($props_conf as $key=>$f) {
-				$obj->$key = $row[$f[0]];
+                self::setProp($obj, $key, $row[$f[0]]);
 			}
 			
 			// add it to the cache
@@ -144,7 +144,7 @@ class OutletMapper {
 		$pks = array();
 		foreach (self::getConfig($obj)->getProperties() as $key=>$p) {
 			if (@$p[2]['pk']) {
-				$value = $obj->$key;
+				$value = self::getProp($obj, $key);
 				
 				// cast it if the property is defined to be an int
 				if ($p[1]=='int') $value = (int) $value;
@@ -214,7 +214,8 @@ class OutletMapper {
             }
                 
             foreach (array_keys($children->getArrayCopy()) as $k) {
-                $children[$k]->$key = current($pks);
+                // TODO: make it work with composite keys
+                self::setProp($children[$k], $key, current($pks));
                 self::save($children[$k]);
             }
 
@@ -296,8 +297,8 @@ class OutletMapper {
 
 			if ($ent) {
 				if (self::isNew($ent)) self::save($ent);
-
-				$obj->$key = $ent->$refKey;
+                
+                self::setProp($obj, $key, self::getProp($ent, $refKey));
 			}
 		}
 	}
@@ -404,16 +405,16 @@ class OutletMapper {
 		$proxy = new $proxy_class;
 		
 		// copy the properties to the proxy
-		foreach ($entity->getProperties() as $key=>$f) {
-			$field = $key;
-			if (@$f[2]['autoIncrement']) {
-				// Sequence name will be set and is needed for Postgres
-				$id = $outlet->getLastInsertId($entity->getSequenceName());
-				$proxy->$field = $id;
-			} else {
-				$proxy->$field = self::getProp( $obj, $field );
-			}
-		}
+        foreach ($entity->getProperties() as $key=>$f) {
+            $field = $key;
+            if (@$f[2]['autoIncrement']) {
+                // Sequence name will be set and is needed for Postgres
+                $id = $outlet->getLastInsertId($entity->getSequenceName());
+                self::setProp( $proxy, $field , $id);
+            } else {
+                self::setProp( $proxy, $field , self::getProp( $obj, $field ));
+            }
+        }
 	
 		// copy the associated objects to the proxy
 		foreach ($entity->getAssociations() as $a) {
@@ -440,7 +441,7 @@ class OutletMapper {
 	
 	static function getProp ($obj, $prop) {
 		$config = self::getConfig($obj);
-		
+        
 		if ($config->useGettersAndSetters()) {
 			$getter = "get$prop";
 			return $obj->$getter();
@@ -501,11 +502,12 @@ class OutletMapper {
 				
 				// skip primary key 
 				if (@$f[2]['pk']) continue;
-	
-				if (is_null($obj->$key)) {
+
+                $value = self::getProp($obj, $key);
+				if (is_null($value)) {
 					$value = 'NULL';
 				} else {
-					$value = $con->quote( self::toSqlValue( $f, $obj->$key ) );
+					$value = $con->quote( self::toSqlValue( $f, $value ) );
 				}
 	
 				$ups[] = "  {".$cls.'.'.$key."} = $value";
@@ -519,13 +521,13 @@ class OutletMapper {
 				// if it's not a primary key, skip it
 				if (!@$pk[2]['pk']) continue;
 	
-				$value = $con->quote( self::toSqlValue( $pk, $obj->$key ) );
+				$value = $con->quote( self::toSqlValue( $pk, self::getProp($obj, $key) ) );
 				$clause[] = "$pk[0] = $value";
 			}
 			$q .= implode(' AND ', $clause);
 			
 			$q = self::processQuery($q);
-	
+
 			$con->exec($q);
 		}
 
@@ -541,7 +543,7 @@ class OutletMapper {
 	
 		$arr = array();
 		foreach (Outlet::getInstance()->getConfig()->getEntity($class)->getProperties() as $key=>$p) {
-			$arr[$key] = self::toSqlValue($p, $entity->$key);
+			$arr[$key] = self::toSqlValue($p, self::getProp($entity, $key));
 		}
 		return $arr;
 	}

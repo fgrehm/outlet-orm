@@ -41,15 +41,17 @@ class OutletProxyGenerator {
 			}
 			$c .= "} \n";
 		}
-
+        
 		return $c;
 	}
 
 	function createOneToOneFunctions (OutletAssociationConfig $config) {
-		$foreign	= $config->getForeign();
+        $foreign	= $config->getForeign();
 		$key 		= $config->getKey();
 		$getter 	= $config->getGetter();
 		$setter		= $config->getSetter();
+        if ($config->getLocalUseGettersAndSetters())
+            $key = 'get'.$key.'()';
 
 		$c = '';
 		$c .= "  function $getter() { \n";
@@ -69,6 +71,8 @@ class OutletProxyGenerator {
 		$pk_prop 	= $config->getRefKey();
 		$getter		= $config->getGetter();
 		$setter		= $config->getSetter();
+        if ($config->getLocalUseGettersAndSetters())
+            $pk_prop = 'get'.$pk_prop.'()';
 	
 		$c = '';	
 		$c .= "  function {$getter}() { \n";
@@ -115,6 +119,8 @@ class OutletProxyGenerator {
 		$getter		= $config->getGetter();
 		$setter		= $config->getSetter();
 		$table		= $config->getLinkingTable();
+        if ($config->getForeignUseGettersAndSetters())
+            $ref_pk = 'get'.$ref_pk.'()';
 	
 		$c = '';	
 		$c .= "  function {$getter}() { \n";
@@ -137,6 +143,11 @@ class OutletProxyGenerator {
 		$refKey		= $config->getRefKey();
 		$getter 	= $config->getGetter();
 		$setter		= $config->getSetter();
+
+        if ($config->getLocalUseGettersAndSetters())
+            $key = 'get'.$key.'()';
+        if ($config->getForeignUseGettersAndSetters())
+            $refKey = 'get'.$refKey.'()';
 
 		$c = '';
 		$c .= "  function $getter() { \n";

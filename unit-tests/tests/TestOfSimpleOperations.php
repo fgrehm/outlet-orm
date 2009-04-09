@@ -7,15 +7,15 @@ class TestOfSimpleOperations extends OutletTestCase {
 		$project = new Project;
 		$project->setName('Project 1');
 		
-		Outlet::getInstance()->save($project);
+		$outlet->save($project);
 
 		// test insert
 		$bug = new Bug;
 		$bug->Title = 'Test bug';
-		$bug->ProjectID = $project->ProjectID;
+		$bug->ProjectID = $project->getProjectID();
 
 		$outlet->save($bug);
-		
+
 		$id = $bug->ID;
 
 		$this->assertNotNull( $id, 'Row inserted' );
@@ -42,7 +42,7 @@ class TestOfSimpleOperations extends OutletTestCase {
 
 		$outlet->save($project);
 
-		$project = $outlet->load('Project', $project->ProjectID);
+		$project = $outlet->load('Project', $project->getProjectID());
 		
 		$this->assertEqual(count($project->getBugs()), 2, 'Two rows returned');
 
@@ -59,8 +59,8 @@ class TestOfSimpleOperations extends OutletTestCase {
 
 		$bug3->setProject($project2);
 
-		$this->assertEqual($bug3->ProjectID, $project2->ProjectID, "Bug gets assigned the id of the project on setProject");
-
+		$this->assertEqual($bug3->ProjectID, $project2->getProjectID(), "Bug gets assigned the id of the project on setProject");
+        
 	}
 
 	function testNonAutoIncrementingVarcharPrimaryKey () {
@@ -101,13 +101,13 @@ class TestOfSimpleOperations extends OutletTestCase {
 
 		$outlet->clearCache();
 		
-		$project = $outlet->load('Project', $project->ProjectID);
+		$project = $outlet->load('Project', $project->getProjectID());
 
 		// allow for a 1 sec delay	
-		$this->assertTrue( $now - ((int) $project->CreatedDate->format('U')) < 2 );
+		$this->assertTrue( $now - ((int) $project->getCreatedDate()->format('U')) < 2 );
 
-		$this->assertEqual($project->StatusID, 1);
-		$this->assertEqual($project->Description, 'Default Description');
+		$this->assertEqual($project->getStatusID(), 1);
+		$this->assertEqual($project->getDescription(), 'Default Description');
 	}
 
 	function testDelete () {
@@ -118,9 +118,9 @@ class TestOfSimpleOperations extends OutletTestCase {
 		
 		$outlet->save($project);
 		
-		$project = $outlet->load('Project', $project->ProjectID);
+		$project = $outlet->load('Project', $project->getProjectID());
 
-		$project_id = $project->ProjectID;
+		$project_id = $project->getProjectID();
 
 		$outlet->delete('Project', $project_id);
 
@@ -137,12 +137,31 @@ class TestOfSimpleOperations extends OutletTestCase {
 
 		$outlet = Outlet::getInstance();
 
-		$outlet->save($p);
+        $outlet->save($p);
+        $id = $p->getProjectID();
 
-		$p->CreatedDate = new DateTime('2009-01-25');
+        $p->setName('Project test update2');
+		$p->setCreatedDate(new DateTime('2009-01-25'));
 
 		$outlet->save($p);
+        $outlet->clearCache();
+
+        $p = $outlet->load('Project', $id);
+
+        $this->assertEqual($p->getName(), 'Project test update2');
+        $this->assertEqual($p->getCreatedDate()->format('Y-m-d'), '2009-01-25');
 	}
+
+    function testAutoIncrementWithGettersAndSettersEnabled(){
+        $p = new Project;
+		$p->setName('Project test update');
+        $p->setTimeSpent($value);
+
+		$outlet = Outlet::getInstance();
+
+		$outlet->save($p);
+        $this->assertNotNull($p->getProjectID());
+    }
 
 	function testDbFunctions () {
 		$outlet = Outlet::getInstance();
