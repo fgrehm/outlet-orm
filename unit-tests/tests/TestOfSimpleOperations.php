@@ -155,7 +155,6 @@ class TestOfSimpleOperations extends OutletTestCase {
     function testAutoIncrementWithGettersAndSettersEnabled(){
         $p = new Project;
 		$p->setName('Project test update');
-        $p->setTimeSpent($value);
 
 		$outlet = Outlet::getInstance();
 
