@@ -583,6 +583,9 @@ $bugs = $outlet->select("Bug", "WHERE {Bug.StatusID} = ?", array(1));]]></progra
 	<section>
 		<title>Select using Fluent Interface</title>
 
+		<para>When using the fluent interface you get a few more features, such as eager fetching. Currently eager fetching will 
+		only fetch entities related by many-to-one and one-to-one relationships.</para>
+
 		<informalexample>
 			<programlisting language="php"><![CDATA[
 <?php
