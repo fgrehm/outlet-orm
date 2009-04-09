@@ -56,7 +56,8 @@ class OutletTestSetup {
 				project_id INTEGER NOT NULL,
 				user_id INTEGER,
 				title TEXT,
-                                test_one INTEGER
+                test_one INTEGER,
+                time_to_fix FLOAT
 			)
 		");
 
@@ -123,7 +124,8 @@ class OutletTestSetup {
 				project_id INTEGER NOT NULL,
 				user_id INTEGER,
 				title TEXT,
-                                test_one INTEGER
+                test_one INTEGER,
+                time_to_fix FLOAT
 			)
 		");
 
@@ -198,7 +200,8 @@ class OutletTestSetup {
                                     project_id INTEGER NOT NULL,
                                     user_id INTEGER,
                                     title TEXT,
-                                    test_one INTEGER
+                                    test_one INTEGER,
+                                    time_to_fix FLOAT8
                             )
                     ");
                 }

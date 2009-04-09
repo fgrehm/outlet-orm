@@ -162,6 +162,62 @@ class TestOfSimpleOperations extends OutletTestCase {
         $this->assertNotNull($p->getProjectID());
     }
 
+    function testFloatProperty(){
+        $outlet = Outlet::getInstance();
+
+        $project = new Project;
+		$project->setName('Project 1');
+
+		$outlet->save($project);
+
+		// test insert
+		$bug = new Bug;
+		$bug->Title = 'Test bug';
+        $bug->setProject($project);
+
+		$outlet->save($bug);
+        
+        // Tests default value
+        $this->assertEqual($bug->TimeToFix, 2000.000001);
+
+        $bug->TimeToFix = 100000.000001;
+        $outlet->save($bug);
+
+        $id = $bug->ID;
+        // Clears cache so we guarantee that the values comes from db
+        $outlet->clearCache();
+
+        $bug = $outlet->load('Bug', $id);
+        $this->assertEqual($bug->TimeToFix, 100000.000001);
+    }
+
+    function testDataTypes(){
+        $outlet = Outlet::getInstance();
+
+        $project = new Project;
+		$project->setName('Project 1');
+
+		$outlet->save($project);
+        $project_id = $project->getProjectID();
+
+		// test insert
+		$bug = new Bug;
+		$bug->Title = 'Test bug';
+        $bug->setProject($project);
+
+		$outlet->save($bug);
+        $bug_id = $bug->ID;
+        // Clears cache so we guarantee that the values comes from db
+        $outlet->clearCache();
+
+        $bug = $outlet->load('Bug', $bug_id);
+        $project = $outlet->load('Project', $project_id);
+        $this->assertTrue(is_string($bug->Title));
+        $this->assertTrue(is_int($bug->ID));
+        $this->assertTrue(is_float($bug->TimeToFix));
+        $this->assertIsA($project->getCreatedDate(), 'DateTime');
+    }
+
 	function testDbFunctions () {
 		$outlet = Outlet::getInstance();
 

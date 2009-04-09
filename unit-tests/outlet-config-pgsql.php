@@ -22,6 +22,7 @@ return array(
 				'ID' 	=> array('id', 'int', array('pk'=>true, 'autoIncrement'=>true)),
 				'Title'		=> array('title', 'varchar'),
 				'ProjectID' => array('project_id', 'int'),
+                'TimeToFix' => array('time_to_fix', 'float', array('default' => 2000.000001)),
 				'Test_One'	=> array('test_one', 'int') // test an identifier with an underscore on it
 			),
 			'associations' => array(
