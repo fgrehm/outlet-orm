@@ -647,7 +647,14 @@ class OutletMapper {
 							throw new OutletException("Property [$prop] does not exist on configuration for entity [$entity]");
 						}
 						
-						$col = $table.'.'.self::$conf[$entity]['props'][$prop][0];
+						$propconf = self::$conf[$entity]['props'][$prop];
+						
+						// if it's an sql field
+						if (isset($propconf[2]) && isset($propconf[2]['sql'])) {
+							$col = $propconf[2]['sql'] .' as ' . $propconf[0];
+						} else {
+							$col = $table.'.'.$propconf[0];
+						}
 					}
 				}
 
