@@ -233,6 +233,7 @@ class TestOfSimpleOperations extends OutletTestCase {
 		
 		$stmt = $outlet->query('SELECT MAX({p.Name}) as max_project FROM {Project p}');
 		$data = $stmt->fetchAll(PDO::FETCH_ASSOC);
+		$this->assertEqual($data[0]['max_project'], 'BBBB');
 	}
 }
 
