@@ -48,7 +48,7 @@ class OutletMapper {
 	}
 	
 	static function load ($cls, $pk) {
-		if (!$pk) throw new OutletException("Must pass a valid primary key value, passed: ".var_export($pk));
+		if (!$pk) throw new OutletException("Must pass a valid primary key value, passed: ".var_export($pk, true));
 
 		if (!is_array($pk)) $pks = array($pk);
 		else $pks = $pk;
