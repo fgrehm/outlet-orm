@@ -1,6 +1,7 @@
 <?php
+require_once dirname(__FILE__).'/../OutletTestCase.php';
 
-class TestOfSimpleOperations extends OutletTestCase {
+class SimpleOperationsTest extends OutletTestCase {
 
 	function testCrudOperations() {
 		$outlet = Outlet::getInstance();
@@ -23,8 +24,8 @@ class TestOfSimpleOperations extends OutletTestCase {
 		// test retrieve
 		$bug = $outlet->load('Bug', $id);
 		
-		$this->assertIsA($bug, 'Bug', 'Object is a Bug');
-		$this->assertEqual( $bug->Title, 'Test bug', 'Row retrieved' );
+		$this->assertTrue($bug instanceof Bug, 'Object is a Bug');
+		$this->assertEquals( $bug->Title, 'Test bug', 'Row retrieved' );
 
 		// test update
 		$bug->Title = 'New Test Bug';	
@@ -33,7 +34,7 @@ class TestOfSimpleOperations extends OutletTestCase {
 
 		$bug = $outlet->load('Bug', $bug->ID);
 
-		$this->assertEqual( $bug->Title, 'New Test Bug', 'Row updated' );
+		$this->assertEquals( $bug->Title, 'New Test Bug', 'Row updated' );
 
 		// test update when adding a relationship entity
 		$bug2 = new Bug;
@@ -44,7 +45,7 @@ class TestOfSimpleOperations extends OutletTestCase {
 
 		$project = $outlet->load('Project', $project->getProjectID());
 		
-		$this->assertEqual(count($project->getBugs()), 2, 'Two rows returned');
+		$this->assertEquals(count($project->getBugs()), 2, 'Two rows returned');
 
 		// test assignment of many to one
 		$bug3 = new Bug;
@@ -59,7 +60,7 @@ class TestOfSimpleOperations extends OutletTestCase {
 
 		$bug3->setProject($project2);
 
-		$this->assertEqual($bug3->ProjectID, $project2->getProjectID(), "Bug gets assigned the id of the project on setProject");
+		$this->assertEquals($bug3->ProjectID, $project2->getProjectID(), "Bug gets assigned the id of the project on setProject");
         
 	}
 
@@ -106,8 +107,8 @@ class TestOfSimpleOperations extends OutletTestCase {
 		// allow for a 1 sec delay	
 		$this->assertTrue( $now - ((int) $project->getCreatedDate()->format('U')) < 2 );
 
-		$this->assertEqual($project->getStatusID(), 1);
-		$this->assertEqual($project->getDescription(), 'Default Description');
+		$this->assertEquals($project->getStatusID(), 1);
+		$this->assertEquals($project->getDescription(), 'Default Description');
 	}
 
 	function testDelete () {
@@ -148,8 +149,8 @@ class TestOfSimpleOperations extends OutletTestCase {
 
         $p = $outlet->load('Project', $id);
 
-        $this->assertEqual($p->getName(), 'Project test update2');
-        $this->assertEqual($p->getCreatedDate()->format('Y-m-d'), '2009-01-25');
+        $this->assertEquals($p->getName(), 'Project test update2');
+        $this->assertEquals($p->getCreatedDate()->format('Y-m-d'), '2009-01-25');
 	}
 
     function testAutoIncrementWithGettersAndSettersEnabled(){
@@ -178,7 +179,7 @@ class TestOfSimpleOperations extends OutletTestCase {
 		$outlet->save($bug);
         
         // Tests default value
-        $this->assertEqual($bug->TimeToFix, 2000.000001);
+        $this->assertEquals($bug->TimeToFix, 2000.000001);
 
         $bug->TimeToFix = 100000.000001;
         $outlet->save($bug);
@@ -188,7 +189,7 @@ class TestOfSimpleOperations extends OutletTestCase {
         $outlet->clearCache();
 
         $bug = $outlet->load('Bug', $id);
-        $this->assertEqual($bug->TimeToFix, 100000.000001);
+        $this->assertEquals($bug->TimeToFix, 100000.000001);
     }
 
     function testDataTypes(){
@@ -215,7 +216,7 @@ class TestOfSimpleOperations extends OutletTestCase {
         $this->assertTrue(is_string($bug->Title));
         $this->assertTrue(is_int($bug->ID));
         $this->assertTrue(is_float($bug->TimeToFix));
-        $this->assertIsA($project->getCreatedDate(), 'DateTime');
+        $this->assertTrue($project->getCreatedDate() instanceof DateTime);
     }
 
 	function testDbFunctions () {
@@ -233,7 +234,7 @@ class TestOfSimpleOperations extends OutletTestCase {
 		
 		$stmt = $outlet->query('SELECT MAX({p.Name}) as max_project FROM {Project p}');
 		$data = $stmt->fetchAll(PDO::FETCH_ASSOC);
-		$this->assertEqual($data[0]['max_project'], 'BBBB');
+		$this->assertEquals($data[0]['max_project'], 'BBBB');
 	}
 }
 

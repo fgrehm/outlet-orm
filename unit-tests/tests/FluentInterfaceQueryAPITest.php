@@ -1,4 +1,5 @@
 <?php
+require_once dirname(__FILE__).'/../OutletTestCase.php';
 
 class TestOfFluentInterfaceQueryAPI extends OutletTestCase {
 
@@ -15,7 +16,7 @@ class TestOfFluentInterfaceQueryAPI extends OutletTestCase {
 
 		$outlet->save($p);
 
-                $this->assertEqual(count($outlet->from('Project')->find()), 2);
+                $this->assertEquals(count($outlet->from('Project')->find()), 2);
 	}
 
         function testFindOne () {
@@ -81,7 +82,7 @@ class TestOfFluentInterfaceQueryAPI extends OutletTestCase {
 
                 // Postgres won't work if 'User' is used as an alias for a table
                 $profile = $outlet->from('Profile')->with('User Users')->find();
-                $this->assertEqual(1, count(OutletMapper::$map['User']));
+                $this->assertEquals(1, count(OutletMapper::$map['User']));
         }
 
         function testEagerFetchingManyToOne () {
@@ -101,7 +102,7 @@ class TestOfFluentInterfaceQueryAPI extends OutletTestCase {
                 $outlet->clearCache();
 
                 $bug = $outlet->from('Bug')->with('Project')->find();
-                $this->assertEqual(1, count(OutletMapper::$map['Project']));
+                $this->assertEquals(1, count(OutletMapper::$map['Project']));
         }
 
         function testPagination () {
@@ -115,8 +116,8 @@ class TestOfFluentInterfaceQueryAPI extends OutletTestCase {
                     $outlet->save( $project );
                 }
 
-                $this->assertEqual(10, count($outlet->from('Project')->limit(10)->find()));
+                $this->assertEquals(10, count($outlet->from('Project')->limit(10)->find()));
 
-                $this->assertEqual(5, count($outlet->from('Project')->limit(10)->offset(20)->find()));
+                $this->assertEquals(5, count($outlet->from('Project')->limit(10)->offset(20)->find()));
         }
 }

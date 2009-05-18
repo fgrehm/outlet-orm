@@ -1,4 +1,5 @@
 <?php
+require_once dirname(__FILE__).'/../OutletTestCase.php';
 
 class TestOfIdentityMap extends OutletTestCase {
 
@@ -24,7 +25,7 @@ class TestOfIdentityMap extends OutletTestCase {
 
 		$outlet->save($b2);
 
-		$this->assertEqual(
+		$this->assertEquals(
 			count($outlet->select('Project', 'where {Project.Name} = ?', array('Project 1'))),
 			1,
 			'Only one project inserted'

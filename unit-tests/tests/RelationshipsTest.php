@@ -1,6 +1,7 @@
 <?php
+require_once dirname(__FILE__).'/../OutletTestCase.php';
 
-class TestOfRelationships extends OutletTestCase {
+class RelationshipsTest extends OutletTestCase {
 
 	function testOneToMany () {
 		// insert a project and some bugs
@@ -21,7 +22,7 @@ class TestOfRelationships extends OutletTestCase {
 
 		$project = $outlet->load('Project', $project->getProjectID());
 
-		$this->assertEqual( count($project->getBugs()), 2 );
+		$this->assertEquals( count($project->getBugs()), 2 );
 	}
 
 	function testManyToOne () {
@@ -123,7 +124,7 @@ class TestOfRelationships extends OutletTestCase {
 
 		$p = $outlet->load('Project', $projectid);
 	
-		$this->assertEqual(	$p->getName(), 'Name 2' );
+		$this->assertEquals(	$p->getName(), 'Name 2' );
 	}
 
 }
