@@ -1,6 +1,9 @@
 <?php
+//error_reporting(E_STRICT);
+require_once dirname(__FILE__).'/init.php';
+require_once 'PHPUnit/Framework.php';
 
-class OutletTestCase extends UnitTestCase {
+abstract class OutletTestCase extends PHPUnit_Framework_TestCase {
 
 	function setUp () {
 		// create database
@@ -8,27 +11,29 @@ class OutletTestCase extends UnitTestCase {
 
 		switch (DATABASE_DRIVER) {
 			case 'mysql':	OutletTestSetup::createMySQLTables( $pdo );		break;
-                        case 'pgsql':	OutletTestSetup::createPostgresTables( $pdo );		break;
+			case 'pgsql':	OutletTestSetup::createPostgresTables( $pdo );		break;
 			case 'sqlite': 
 			default: 		OutletTestSetup::createSQLiteTables( $pdo );
 		}	
 
 		$pdo->exec('DELETE FROM projects');
-                $pdo->exec('DELETE FROM addresses');
+		$pdo->exec('DELETE FROM addresses');
 		$pdo->exec('DELETE FROM bugs');
 		$pdo->exec('DELETE FROM machines');
 		$pdo->exec('DELETE FROM users');
 		$pdo->exec('DELETE FROM watchers');
-                $pdo->exec('DELETE FROM profiles');
+		$pdo->exec('DELETE FROM profiles');
+
+		parent::setUp();
 	}
 
 	function tearDown () {
-            
+		parent::tearDown();            
 	}
 }
 
 class OutletTestSetup {
-	function createSQLiteTables ($pdo) {
+	static function createSQLiteTables ($pdo) {
 		// create projects table
 		$pdo->exec("
 			CREATE TABLE IF NOT EXISTS projects (
