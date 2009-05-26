@@ -191,7 +191,7 @@ class OutletEntityConfig {
 	function getPkFields () {
 		$fields = array();
 		foreach ($this->props as $prop=>$def) {
-			if (@$def[2]['pk']) $fields[] = $prop;
+			if (isset($def[2]['pk']) && $def[2]['pk']) $fields[] = $prop;
 		}
 		return $fields;
 	}
@@ -380,7 +380,7 @@ class OutletOneToOneConfig extends OutletAssociationConfig {
 		if (isset($this->options['refKey'])) {
 			return $this->options['refKey'];
 		} else {
-			return current($this->config->getEntity($this->local)->getPkFields());
+			return current($this->config->getEntity($this->foreign)->getPkFields());
 		}
 	}
 }

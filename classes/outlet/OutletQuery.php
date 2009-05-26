@@ -183,10 +183,17 @@ class OutletQuery {
                     }
                     // Many-to-one or one-to-one
                     else
-                    {   
-                        foreach ($with_entity->getProperties() as $key=>$p) {
-                            $data[$p[0]] = $row[$with_aliased[$with_key].'_'.$key];
-                        }
+                    {
+                        // Postgres returns columns as lowercase
+                        // TODO: Maybe everything should be converted to lower in query creation / processing to avoid this
+                        if ($outlet->getConnection()->getDialect() == 'pgsql')
+                            foreach ($with_entity->getProperties() as $key=>$p) {
+                                $data[$p[0]] = $row[strtolower($with_aliased[$with_key].'_'.$key)];
+                            }
+                        else
+                            foreach ($with_entity->getProperties() as $key=>$p) {
+                                $data[$p[0]] = $row[$with_aliased[$with_key].'_'.$key];
+                            }
 
                         $obj->$setter($outlet->getEntityForRow($foreign, $data));
                     }
