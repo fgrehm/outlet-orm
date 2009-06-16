@@ -1,5 +1,8 @@
 <?php
 
+/**
+ * @method PDOStatement prepare (string $statement)
+ */
 class OutletConnection {
 	private $driver;
 	private $dialect;
@@ -74,5 +77,4 @@ class OutletConnection {
 		return call_user_func_array(array($this->pdo, $method), $args);
 	}
 }
-
 
