@@ -254,7 +254,7 @@ return array(
 		<informalexample>
 			<programlisting language="php"><![CDATA[
 array(
-  'dsn' => 'mysql:hostname=myhost.com;dbname=testdb',
+  'dsn' => 'mysql:host=myhost.com;dbname=testdb',
   'username' => 'testdbuser',
   'password' => 'testdbpass',
   'dialect' => 'mysql'
