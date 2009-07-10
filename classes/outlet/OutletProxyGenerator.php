@@ -97,10 +97,12 @@ class OutletProxyGenerator {
         //$c .= "    echo \"<h2>\$q</h2>\"; \n";
 
         $c .= "    \$query = Outlet::getInstance()->from('$foreign')->where(\$q, \$params); \n";
-        $c .= "    if (!parent::{$getter}() instanceof OutletCollection) { \n";
+        $c .= "    \$cur_coll = parent::{$getter}(); \n";
+        
+        // only set the collection if the parent is not already an OutletCollection
+        // or if the query is different from the previous query
+        $c .= "    if (!\$cur_coll instanceof OutletCollection || \$cur_coll->getQuery() != \$query) { \n";
         $c .= "      parent::{$setter}( new OutletCollection( \$query ) ); \n";
-        $c .= "    } else { \n";
-        $c .= "      parent::{$getter}()->setQuery( \$query ); \n";
         $c .= "    } \n";
         $c .= "    return parent::{$getter}(); \n";
         $c .= "  } \n";

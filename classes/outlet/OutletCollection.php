@@ -13,12 +13,11 @@ class OutletCollection extends Collection {
 		$this->q = $q;
 	}
 	
-	function setQuery (OutletQuery $q) {
-		// if the query is different from the previous one
-		if ($this->q != $q) {
-			$this->q = $q;
-			$this->loaded = false;
-		}
+	/**
+	 * @return OutletQuery
+	 */
+	function getQuery () {
+		return $this->q;
 	}
 	
 	/**
