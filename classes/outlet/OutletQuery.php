@@ -194,8 +194,22 @@ class OutletQuery {
                             foreach ($with_entity->getProperties() as $key=>$p) {
                                 $data[$p[0]] = $row[$with_aliased[$with_key].'_'.$key];
                             }
-
-                        $obj->$setter($outlet->getEntityForRow($foreign, $data));
+                            
+                        $f = $with_entity->getPkColumns();
+                        
+						// check to see if we found any data for the related entity
+						// using the pk
+						$data_returned = false;
+						$pk_values = array();
+						foreach ($f as $k) {
+							if (isset($data[$k])) {
+								$data_returned = true;
+								break;
+							}
+						}
+						
+						// only fill object if there was data returned
+						if ($data_returned) $obj->$setter($outlet->getEntityForRow($foreign, $data));
                     }
 				}
 			}
