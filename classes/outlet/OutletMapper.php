@@ -410,7 +410,7 @@ class OutletMapper {
             if (@$f[2]['autoIncrement']) {
             // Sequence name will be set and is needed for Postgres
                 $id = $outlet->getLastInsertId($entity->getSequenceName());
-                self::setProp( $proxy, $field , $id);
+                self::setProp( $proxy, $field , self::toPhpValue($f, $id));
             } else {
                 self::setProp( $proxy, $field , self::getProp( $obj, $field ));
             }
