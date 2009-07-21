@@ -12,7 +12,7 @@ class Outlet {
     private $config;
 
     /**
-     * @var OutletPDO
+     * @var OutletConnection
      */
     private $con;
 
@@ -256,6 +256,13 @@ class Outlet {
         $stmt->execute($params);
 
         return $stmt;
+    }
+    
+    public function prepare ($query) {
+    	$q = OutletMapper::processQuery($query);
+    	
+    	$stmt = $this->con->prepare($q);
+    	return $stmt;
     }
 
     /**

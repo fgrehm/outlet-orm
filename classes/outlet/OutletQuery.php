@@ -9,6 +9,9 @@ class OutletQuery {
 	private $orderby;
 	private $limit;
     private $offset;
+    private $select;
+    private $groupBy;
+    private $having;
 	
 	/**
 	 * @param string $from
@@ -32,12 +35,20 @@ class OutletQuery {
 		return $this;
 	}
 	
+	/**
+	 * @param string $join
+	 * @return OutletQuery
+	 */
 	function innerJoin ($join) {
 		$this->joins[] = 'INNER JOIN ' . $join . "\n";
 		
 		return $this;
 	}
 
+	/**
+	 * @param string $join
+	 * @return OutletQuery
+	 */
 	function leftJoin ($join) {
 		$this->joins[] = 'LEFT JOIN ' . $join . "\n";
 
@@ -72,6 +83,16 @@ class OutletQuery {
 		
 		return $this;
 	}
+	
+	/**
+	 * @param string $s
+	 * @return OutletQuery
+	 */
+	function select ($s) {
+		$this->select = $s;
+		
+		return $this;
+	}
     
     /**
      * @param $num
@@ -81,6 +102,22 @@ class OutletQuery {
         $this->offset = $num;
         
         return $this;
+    }
+    
+    /**
+     * @param $s
+     * @return OutletQuery
+     */
+    function groupBy($s) {
+    	$this->groupBy = $s;
+    	
+    	return $this;
+    }
+    
+    function having($s) {
+    	$this->having = $s;
+    	
+    	return $this;
     }
 	
 	/**
@@ -131,25 +168,31 @@ class OutletQuery {
 		}
 		
 		$q = "SELECT ".implode(', ', $select_cols)." \n";
+		
+		if ($this->select) $q .= ", ".$this->select;
+		
 		$q .= " FROM {".$this->from."} \n";
 		$q .= $join_q;
 		
 		$q .= implode("\n", $this->joins);
 		
 		if ($this->query) 		$q .= 'WHERE ' . $this->query."\n";
+		if ($this->groupBy)		$q .= 'GROUP BY ' . $this->groupBy."\n";
 		if ($this->orderby) 	$q .= 'ORDER BY ' . $this->orderby . "\n";
+		if ($this->having)		$q .= 'HAVING ' . $this->having . "\n";
+		
         // TODO: Make it work on MS SQL
         //       In SQL Server 2005 http://www.singingeels.com/Articles/Pagination_In_SQL_Server_2005.aspx
 		if ($this->limit){
             $q .= 'LIMIT '.$this->limit;
             if ($this->offset)
                 $q .= ' OFFSET '.$this->offset;
-        }                                                            
+        }
 	
 		$stmt = $outlet->query($q, $this->params);
 		
 		$res = array();
-        while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {         
+        while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
 			$data = array();
 			// Postgres returns columns as lowercase
 			// TODO: Maybe everything should be converted to lower in query creation / processing to avoid this
