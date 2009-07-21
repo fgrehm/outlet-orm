@@ -10,9 +10,14 @@ class OutletConnection {
 
 	protected $nestedTransactionLevel = 0;
 
-	function __construct (PDO $pdo, $driver, $dialect) {
+	/**
+	 * Assume that the driver supports transactions until proven otherwise
+	 * @var bool
+	 */
+	protected $driverSupportsTransactions = true;
+
+	function __construct (PDO $pdo, $dialect) {
 		$this->pdo = $pdo;
-		$this->driver = $driver;
 		$this->dialect = $dialect;
 	}	
 
@@ -28,10 +33,12 @@ class OutletConnection {
 		if (!$this->nestedTransactionLevel++) {
 			
 			// since dblib driver doesn't support transactions
-			if ($this->driver == 'dblib') {
-				return $this->exec('BEGIN TRANSACTION');
-			} else {
+			try {
 				return $this->pdo->beginTransaction();
+			} catch (PDOException $e) {
+				// save the fact that this driver (probably dblib) doesn't support transactions
+				if ($this->driverSupportsTransactions) $this->driverSupportsTransactions = false;	
+				return $this->exec('BEGIN TRANSACTION');
 			}
 		}
 		return true;
@@ -41,10 +48,10 @@ class OutletConnection {
 		if (!--$this->nestedTransactionLevel) {
 			
 			// since dblib driver doesn't support transactions
-			if ($this->driver == 'dblib') {
-				return $this->exec('COMMIT TRANSACTION');
-			} else {
+			if ($this->driverSupportsTransactions) {
 				return $this->pdo->commit();
+			} else {
+				return $this->exec('COMMIT TRANSACTION');
 			}
 		}
 		return true;
@@ -54,23 +61,25 @@ class OutletConnection {
 		if (!--$this->nestedTransactionLevel) {
 			
 			// since dblib driver doesn't support transactions
-			if ($this->driver == 'dblib') {
-				$this->exec('ROLLBACK TRANSACTION');
-			} else {
+			if ($this->driverSupportsTransactions) {
 				return $this->pdo->rollBack();
+			} else {
+				$this->exec('ROLLBACK TRANSACTION');
 			}
 		}
 		return true;
 	}
 	
 	function quote ($v) {
-		if ($this->driver == 'odbc') {
-			if (is_null($v)) return 'NULL';
-			
-			return "'".str_replace("'", "''", $v)."'";
-		} else {
-			return $this->pdo->quote($v);
-		}
+		$quoted = $this->pdo->quote($v);
+		
+		// odbc doesn't support quote and returns false
+		// quote it manually if that's the case	
+		if ($v !== false && $quoted===false) {
+			if (is_int($v)) $quoted = $v;
+			else $quoted = "'".str_replace("'", "''", $v)."'";
+		}	
+		return $quoted;
 	}
 
 	function __call ($method, $args) {

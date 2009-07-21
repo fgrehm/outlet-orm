@@ -10,7 +10,11 @@ class OutletConfig {
 	function __construct (array $conf) {
 		// validate config
 		if (!isset($conf['connection'])) throw new OutletConfigException('Element [connection] not found in configuration');
-		if (!isset($conf['connection']['dsn'])) throw new OutletConfigException('Element [connection][dsn] not found in configuration');
+
+		if (!isset($conf['connection']['dsn']) && !isset($conf['connection']['pdo'])) {
+			throw new OutletConfigException('You must set either [connection][pdo] or [connection][dsn] in configuration');
+		}
+
 		if (!isset($conf['connection']['dialect'])) throw new OutletConfigException('Element [connection][dialect] not found in configuration');
 		if (!isset($conf['classes'])) throw new OutletConfigException('Element [classes] missing in configuration');
 
@@ -24,13 +28,14 @@ class OutletConfig {
 		if (!$this->con) {
 			$conn = $this->conf['connection'];
 
-			$dsn = $conn['dsn'];
-			$driver = substr($dsn, 0, strpos($dsn, ':'));
+			if (isset($conn['pdo'])) {
+				$pdo = $conn['pdo'];
+			} else {
+				$pdo = new PDO($conn['dsn'], @$conn['username'], @$conn['password']);
+				$pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+			}
 
-			$pdo = new PDO($conn['dsn'], @$conn['username'], @$conn['password']);
-			$pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-
-			$this->con = new OutletConnection($pdo, $driver, $conn['dialect']);
+			$this->con = new OutletConnection($pdo, $conn['dialect']);
 		} 
 		return $this->con;
 	}

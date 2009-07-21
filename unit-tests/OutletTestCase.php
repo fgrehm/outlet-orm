@@ -4,6 +4,9 @@ require_once dirname(__FILE__).'/init.php';
 require_once 'PHPUnit/Framework.php';
 
 abstract class OutletTestCase extends PHPUnit_Framework_TestCase {
+	// for some reason having this set to true (default) 
+	// makes phpunit try to serialize PDO
+	protected $backupGlobals = false;
 
 	function setUp () {
 		// create database
