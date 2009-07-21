@@ -1,7 +1,8 @@
 <?php
 return array(
 	'connection' => array(
-		'dsn' => 'sqlite:test.sq3',
+		//'dsn' => 'sqlite:test.sq3',
+		'pdo' => new PDO('sqlite:test.sq3'),
 		'dialect' => 'sqlite'
 	),
 	'classes' => array(
