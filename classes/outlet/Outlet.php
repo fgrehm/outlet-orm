@@ -16,6 +16,11 @@ class Outlet {
      */
     private $con;
 
+    /**
+     * Initialize outlet with an array configuration
+     * 
+     * @param array $conf
+     */
     static function init ( array $conf ) {
         // instantiate
         self::$instance = new self( $conf );
@@ -55,6 +60,13 @@ class Outlet {
         return $return;
     }
 
+    /**
+     * Perform a DELETE statement for the corresponding entity
+     * 
+     * @param string $clazz Class of the entity (not the proxy) 
+     * @param mixed $id Primary key of the entity
+     * @return mixed
+     */
     public function delete ($clazz, $id) {
         if (!is_array($id)) $id = array($id);
 
@@ -111,6 +123,15 @@ class Outlet {
         return $collection;
     }
 
+    /**
+     * Generate the proxy classes that will perform the actual work
+     * 
+     * This method creates a string with the class definitions and then
+     * uses eval to create them. For better performance it's recommented
+     * that, instead of calling this method, you use the outletgen.php 
+     * script to generate the proxies and include them directly. This will
+     * allow byte-code caches to cache the proxies code. 
+     */
     public function createProxies () {
         require_once 'OutletProxyGenerator.php';
         $gen = new OutletProxyGenerator($this->config);
@@ -118,6 +139,13 @@ class Outlet {
         eval($c);
     }
 
+    /**
+     * Select ONE entity from the database using it's primary key
+     * 
+     * @param $clazz
+     * @param $pk
+     * @return unknown_type
+     */
     public function load ($clazz, $pk) {
         return OutletMapper::load($clazz, $pk);
     }
@@ -149,7 +177,14 @@ class Outlet {
         }
     }
 
-
+	/**
+	 * Populate an object with the values from an associative array indexed by column names
+	 * 
+	 * @param array $clazz Class of the entity
+	 * @param $obj Instance of the entity (probably brand new) or a subclass
+	 * @param array $values Associative array indexed by column name
+	 * @return object 
+	 */
     public function populateObject($clazz, $obj, array $values) {
         OutletMapper::castRow($clazz, $values);
 
@@ -202,6 +237,13 @@ class Outlet {
         }
     }
 
+    /**
+     * Execute a full select but only return the first result
+     * 
+     * @param $clazz
+     * @param $query
+     * @param $params
+     */
     public function selectOne ($clazz, $query='', $params=array()) {
         $res = $this->select($clazz, $query, $params);
         if (count($res)) {
@@ -258,6 +300,12 @@ class Outlet {
         return $stmt;
     }
     
+    /**
+     * Parse a query containing outlet entities and return a PDOStatement (not executed)
+     * 
+     * @param string $query
+     * @return PDOStatement
+     */
     public function prepare ($query) {
     	$q = OutletMapper::processQuery($query);
     	
