@@ -25,6 +25,9 @@ class OutletConnection {
 		return $this->dialect;
 	}
 
+	/**
+	 * @return PDO
+	 */
 	function getPDO () {
 		return $this->pdo;
 	}

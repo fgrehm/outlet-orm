@@ -1,6 +1,8 @@
 <?php
 
 class OutletMapper {
+	const IDENTIFIER_PATTERN = '/\{[a-zA-Z0-9_]+(( |\.)[a-zA-Z0-9_]+)*\}/';
+	
     static $conf;
     static $map = array();
 
@@ -68,11 +70,20 @@ class OutletMapper {
             $obj = new $proxyclass;
 
             $props_conf = self::getFields( $cls );
-            $props = array_keys($props_conf);
+            
+            $props = array();
+            foreach ($props_conf as $key=>$conf) {
+            	// if it's sql we must specify an alias
+            	if (isset($conf[2]) && isset($conf[2]['sql'])) {
+            		$props[] = '{'.$cls.'.'.$key.'} as ' . $conf[0];
+            	} else {
+            		$props[] = '{'.$cls.'.'.$key.'}';
+            	}
+            }
 
             // craft select
-            $q = "SELECT {".$cls.'.';
-            $q .= implode('}, {'.$cls.'.', $props) . "}\n";
+            $q = "SELECT ";
+            $q .= implode(', ', $props) . "\n";
             $q .= "FROM {".$cls."} \n";
 
             $pk_props = self::getConfig($obj)->getPkFields();
@@ -82,9 +93,9 @@ class OutletMapper {
                 $pk_q[] = '{'.$cls.'.'.$pkp.'} = ?';
             }
 
-            $q .= "WHERE " . implode(' AND ', $pk_q);
+			$q .= "WHERE " . implode(' AND ', $pk_q);
 
-            $q = self::processQuery($q);
+			$q = self::processQuery($q);
 
             $stmt = Outlet::getInstance()->getConnection()->prepare($q);
 
@@ -94,15 +105,9 @@ class OutletMapper {
 
             // if there's matching row,
             // return null
-            //if (!$row) throw new Exception("No matching row found for {$cls} with primary key of [".implode(',', $pks)."]");
             if (!$row) return null;
-
-            // cast the row to the types defined on the config
-            self::castRow($cls, $row);
-
-            foreach ($props_conf as $key=>$f) {
-                self::setProp($obj, $key, $row[$f[0]]);
-            }
+            
+            Outlet::getInstance()->populateObject($cls, $obj, $row);
 
             // add it to the cache
             self::set($cls, self::getPkValues($obj), array(
@@ -581,9 +586,28 @@ class OutletMapper {
             default: return $v;
         }
     }
+    
+    static function processSubQuery ($q, $class, $alias) {
+		preg_match_all(self::IDENTIFIER_PATTERN, $q, $matches, PREG_SET_ORDER);
+		
+		foreach ($matches as $key=>$m) {
+			// clear braces
+            $str = substr($m[0], 1, -1);
 
+            if (isset(self::$conf[$class]['props'][$str])) {
+				$q = str_replace($m[0], $alias.'.'.self::$conf[$class]['props'][$str][0], $q);
+            }
+        }
+        
+        return $q;
+    }
+    
+    /**
+     * @param string $q
+     * @return string
+     */
     static function processQuery ( $q ) {
-        preg_match_all('/\{[a-zA-Z0-9_]+(( |\.)[a-zA-Z0-9_]+)*\}/', $q, $matches, PREG_SET_ORDER);
+        preg_match_all(self::IDENTIFIER_PATTERN, $q, $matches, PREG_SET_ORDER);
 
         // check if it's an update statement
         $update = (stripos(trim($q), 'UPDATE')===0);
@@ -619,44 +643,44 @@ class OutletMapper {
             // if it's a property
             if (strpos($str, '.')!==false) {
                 list($en, $prop) = explode('.', $str);
-
+                
+                
                 // if it's an alias
                 if (isset($aliased[$en])) {
-                    $entity = $aliased[$en];
-
-                    // check for the existence of the field configuration
-                    if (!isset(self::$conf[$entity]['props'][$prop])) {
-                        throw new OutletException("Property [$prop] does not exist on configuration for entity [$entity]");
-                    }
-
-                    $col = $en.'.'.self::$conf[$entity]['props'][$prop][0];
+                	$entity = $aliased[$en];
                 } else {
-                    $entity = $en;
+                	$entity = $en;
+				}
+				
+				// check for the existence of the entity configuration
+				if (!isset(self::$conf[$entity])) {
+					throw new OutletException('String ['.$entity.'] is not a valid entity or alias, check your query');
+				}
+				
+				// check for the existence of the field configuration
+				if (!isset(self::$conf[$entity]['props'][$prop])) {
+					throw new OutletException("Property [$prop] does not exist on configuration for entity [$entity]");
+				}
+				
+				$propconf = self::$conf[$entity]['props'][$prop];
 
-                    if (!isset(self::$conf[$entity])) throw new OutletException('String ['.$entity.'] is not a valid entity or alias, check your query');
+				// if it's an update statement,
+				// we must not include the table
+				if ($update) {
+					// skip if it's an sql field
+					if (!isset($propconf[2]) || !isset($propconf[2]['sql'])) {
+						$col = $propconf[0];
+					}
+				} else {
+					$table = self::$conf[$entity]['table'];
 
-                    // if it's an update statement,
-                    // we must not include the table
-                    if ($update) {
-                        $col = self::$conf[$entity]['props'][$prop][0];
-                    } else {
-                        $table = self::$conf[$entity]['table'];
-
-                        // check for existence of the field configuration
-                        if (!isset(self::$conf[$entity]['props'][$prop])) {
-                            throw new OutletException("Property [$prop] does not exist on configuration for entity [$entity]");
-                        }
-
-                        $propconf = self::$conf[$entity]['props'][$prop];
-
-                        // if it's an sql field
-                        if (isset($propconf[2]) && isset($propconf[2]['sql'])) {
-                            $col = $propconf[2]['sql'] .' as ' . $propconf[0];
-                        } else {
-                            $col = $table.'.'.$propconf[0];
-                        }
-                    }
-                }
+					// if it's an sql field
+					if (isset($propconf[2]) && isset($propconf[2]['sql'])) {
+						$col = '('. self::processSubQuery($propconf[2]['sql'], $entity, $en) .')';
+					} else {
+						$col = $en.'.'.$propconf[0];
+					}
+				}
 
                 $q = str_replace(
                     $m[0],
@@ -664,7 +688,6 @@ class OutletMapper {
                     $q
                 );
             }
-
         }
 
         return $q;

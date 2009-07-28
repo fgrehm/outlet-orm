@@ -38,8 +38,8 @@ class Outlet {
         $this->config = new OutletConfig( $conf );
 
         $this->con = $this->config->getConnection();
-
-        OutletMapper::$conf = &$conf['classes'];
+		
+		OutletMapper::$conf = &$conf['classes'];
     }
 
     /**
@@ -194,7 +194,6 @@ class Outlet {
             if (!array_key_exists($f[0], $values)) throw new OutletException("Field [$f[0]] defined in the config is not defined in table [".$entity->getTable()."]");
 
             OutletMapper::setProp($obj, $key, $values[$f[0]]);
-            //			$obj->$key = $values[$f[0]];
         }
 
         return $obj;
@@ -231,7 +230,7 @@ class Outlet {
             OutletMapper::set($clazz, $values, array(
                 'obj' => $obj,
                 'original' => OutletMapper::toArray($obj)
-                ));
+            ));
 
             return $obj;
         }
