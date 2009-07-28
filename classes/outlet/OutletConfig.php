@@ -77,13 +77,15 @@ class OutletEntityConfig {
 
 	private $clazz;
 	private $props;
-	private $associations = array();
+	private $associations;
 	
 	private $sequenceName = '';
 	
 	private $useGettersAndSetters;
 
 	function __construct (OutletConfig $config, $entity, array $conf) {
+		$this->config = $config;
+
 		if (!isset($conf['table'])) throw new OutletConfigException('Mapping for entity ['.$entity.'] is missing element [table]');
 		if (!isset($conf['props'])) throw new OutletConfigException('Mapping for entity ['.$entity.'] is missing element [props]');
 
@@ -119,31 +121,6 @@ class OutletEntityConfig {
 				}
 			}
 		}
-		
-		// create associations
-		$this->associations = array();
-		$conf = $config->conf['classes'][$this->clazz];
-		if (isset($conf['associations'])) {
-			foreach ($conf['associations'] as $assoc) {
-				switch ($assoc[0]) {
-					case 'one-to-many': 
-						$a = new OutletOneToManyConfig($config, $entity, $assoc[1], $assoc[2]);
-						break;
-					case 'many-to-one':
-						$a = new OutletManyToOneConfig($config, $entity, $assoc[1], $assoc[2]);
-						break;
-					case 'many-to-many':
-						$a = new OutletManyToManyConfig($config, $entity, $assoc[1], $assoc[2]);
-						break;
-					case 'one-to-one':
-						$a = new OutletOneToOneConfig($config, $entity, $assoc[1], $assoc[2]);
-						break;
-					default:
-						$a = new OutletAssociationConfig($config, $assoc[0], $entity, $assoc[1], $assoc[2]);
-				}
-				$this->associations[] = $a;
-			}
-		}
 	}
 
 	function getClass () {
@@ -177,6 +154,31 @@ class OutletEntityConfig {
 	 * @return array OutletAssociationConfig collection
 	 */
 	function getAssociations () {
+		if (is_null($this->associations)) {
+			$this->associations = array();
+			$conf = $this->config->conf['classes'][$this->clazz];
+			if (isset($conf['associations'])) {
+				foreach ($conf['associations'] as $assoc) {
+					switch ($assoc[0]) {
+						case 'one-to-many': 
+							$a = new OutletOneToManyConfig($this->config, $this->getClass(), $assoc[1], $assoc[2]);
+							break;
+						case 'many-to-one':
+							$a = new OutletManyToOneConfig($this->config, $this->getClass(), $assoc[1], $assoc[2]);
+							break;
+						case 'many-to-many':
+							$a = new OutletManyToManyConfig($this->config, $this->getClass(), $assoc[1], $assoc[2]);
+							break;
+						case 'one-to-one':
+							$a = new OutletOneToOneConfig($this->config, $this->getClass(), $assoc[1], $assoc[2]);
+							break;
+						default:
+							$a = new OutletAssociationConfig($this->config, $assoc[0], $this->getClass(), $assoc[1], $assoc[2]);
+					}
+					$this->associations[] = $a;
+				}
+			}
+		}
 		return $this->associations;
 	}
 	
