@@ -648,8 +648,10 @@ class OutletMapper {
                 // if it's an alias
                 if (isset($aliased[$en])) {
                 	$entity = $aliased[$en];
+					$alias = $en;
                 } else {
                 	$entity = $en;
+					$alias = self::$conf[$entity]['table'];
 				}
 				
 				// check for the existence of the entity configuration
@@ -672,13 +674,11 @@ class OutletMapper {
 						$col = $propconf[0];
 					}
 				} else {
-					$table = self::$conf[$entity]['table'];
-
 					// if it's an sql field
 					if (isset($propconf[2]) && isset($propconf[2]['sql'])) {
-						$col = '('. self::processSubQuery($propconf[2]['sql'], $entity, $en) .')';
+						$col = '('. self::processSubQuery($propconf[2]['sql'], $entity, $alias) .')';
 					} else {
-						$col = $en.'.'.$propconf[0];
+						$col = $alias.'.'.$propconf[0];
 					}
 				}
 
