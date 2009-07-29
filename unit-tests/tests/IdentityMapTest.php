@@ -32,25 +32,25 @@ class TestOfIdentityMap extends OutletTestCase {
 		);
 	}
 
-        function testMap () {
-                $outlet = Outlet::getInstance();
+	function testMap () {
+		$outlet = Outlet::getInstance();
 
 		$p = new Project;
 		$p->setName('Project 1');
 
 		$outlet->save($p);
 
-                $p_map = $outlet->select('Project', 'where {Project.ProjectID} = ?', array($p->getProjectID()));
-                $p_map = $p_map[0];
+		$p_map = $outlet->select('Project', 'where {Project.ProjectID} = ?', array($p->getProjectID()));
+		$p_map = $p_map[0];
 
-                $this->assertTrue($p === $p_map, 'Diferent object on identity map');
+		$this->assertTrue($p === $p_map, 'Diferent object on identity map');
 
-                $outlet->clearCache();
+		$outlet->clearCache();
 
-                $p_map = $outlet->select('Project', 'where {Project.ProjectID} = ?', array($p->getProjectID()));
-                $p_map = $p_map[0];
+		$p_map = $outlet->select('Project', 'where {Project.ProjectID} = ?', array($p->getProjectID()));
+		$p_map = $p_map[0];
 
-                $this->assertTrue($p !== $p_map, 'Equal object on identity map');
-        }
+		$this->assertTrue($p !== $p_map, 'Equal object on identity map');
+	}
 }
 
