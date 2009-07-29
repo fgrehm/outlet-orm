@@ -139,6 +139,16 @@ class OutletEntityConfig {
 	}
 	
 	/**
+	 * @param string $prop
+	 * @return array
+	 */
+	function getProperty ($prop) {
+		if (!isset($this->props[$prop])) throw new OutletConfigException('Entity ['.$this->getClass().'] does not have a property ['.$prop.']');
+		
+		return $this->props[$prop];
+	}
+	
+	/**
 	 * @return array Primary key columns for this entity
 	 */
 	function getPkColumns () {

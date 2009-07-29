@@ -1,6 +1,10 @@
 <?php
 
 class OutletQuery {
+	/**
+	 * @var Outlet
+	 */
+	private $outlet;
 	private $from;
 	private $with = array();
 	private $joins = array();
@@ -8,10 +12,14 @@ class OutletQuery {
 	private $params = array();
 	private $orderby;
 	private $limit;
-    private $offset;
-    private $select;
-    private $groupBy;
-    private $having;
+	private $offset;
+	private $select;
+	private $groupBy;
+	private $having;
+	
+	public function __construct (Outlet $outlet) {
+		$this->outlet = $outlet;
+	}
 	
 	/**
 	 * @param string $from
@@ -93,38 +101,38 @@ class OutletQuery {
 		
 		return $this;
 	}
-    
-    /**
-     * @param $num
-     * @return OutletQuery
-     */
-    function offset ($num) {
-        $this->offset = $num;
-        
-        return $this;
-    }
-    
-    /**
-     * @param $s
-     * @return OutletQuery
-     */
-    function groupBy($s) {
-    	$this->groupBy = $s;
-    	
-    	return $this;
-    }
-    
-    function having($s) {
-    	$this->having = $s;
-    	
-    	return $this;
-    }
+	
+	/**
+	 * @param $num
+	 * @return OutletQuery
+	 */
+	function offset ($num) {
+		$this->offset = $num;
+		
+		return $this;
+	}
+	
+	/**
+	 * @param $s
+	 * @return OutletQuery
+	 */
+	function groupBy($s) {
+		$this->groupBy = $s;
+		
+		return $this;
+	}
+	
+	function having($s) {
+		$this->having = $s;
+		
+		return $this;
+	}
 	
 	/**
 	 * @return array
 	 */
 	function find () {
-		$outlet = Outlet::getInstance();
+		$outlet = $this->outlet;
 		
 		// get the 'from'
 		$tmp = explode(' ', $this->from);
@@ -132,7 +140,7 @@ class OutletQuery {
 		$from = $tmp[0];
 		$from_aliased = (count($tmp)>1 ? $tmp[1] : $tmp[0]);
 
-		$config = Outlet::getInstance()->getConfig();
+		$config = $this->outlet->getConfig();
 		$entity_config = $config->getEntity($from);
 		$props = $entity_config->getProperties();
 		
@@ -181,23 +189,23 @@ class OutletQuery {
 		if ($this->orderby) 	$q .= 'ORDER BY ' . $this->orderby . "\n";
 		if ($this->having)		$q .= 'HAVING ' . $this->having . "\n";
 		
-        // TODO: Make it work on MS SQL
-        //       In SQL Server 2005 http://www.singingeels.com/Articles/Pagination_In_SQL_Server_2005.aspx
+		// TODO: Make it work on MS SQL
+		//	   In SQL Server 2005 http://www.singingeels.com/Articles/Pagination_In_SQL_Server_2005.aspx
 		if ($this->limit){
-            $q .= 'LIMIT '.$this->limit;
-            if ($this->offset)
-                $q .= ' OFFSET '.$this->offset;
-        }
+			$q .= 'LIMIT '.$this->limit;
+			if ($this->offset)
+				$q .= ' OFFSET '.$this->offset;
+		}
 	
 		$stmt = $outlet->query($q, $this->params);
 		
 		$res = array();
-        while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
+		while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
 			$data = array();
 			// Postgres returns columns as lowercase
 			// TODO: Maybe everything should be converted to lower in query creation / processing to avoid this
 			if ($outlet->getConnection()->getDialect() == 'pgsql')
-        		foreach ($from_props as $key=>$p) {
+				foreach ($from_props as $key=>$p) {
 					$data[$p[0]] = $row[strtolower($from_aliased).'_'.strtolower($key)];
 				}
 			else
@@ -214,32 +222,32 @@ class OutletQuery {
 					$data = array();					
 					$setter = $a->getSetter();
 					$foreign = $a->getForeign();
-                    $with_entity = $config->getEntity($foreign);
-                    
-                    if ($a instanceof OutletOneToManyConfig)
-                    {
-                        // TODO: Implement...                                             
-                    }
-                    elseif ($a instanceof OutletManyToManyConfig)
-                    {
-                        // TODO: Implement...
-                    }
-                    // Many-to-one or one-to-one
-                    else
-                    {
-                        // Postgres returns columns as lowercase
-                        // TODO: Maybe everything should be converted to lower in query creation / processing to avoid this
-                        if ($outlet->getConnection()->getDialect() == 'pgsql')
-                            foreach ($with_entity->getProperties() as $key=>$p) {
-                                $data[$p[0]] = $row[strtolower($with_aliased[$with_key].'_'.$key)];
-                            }
-                        else
-                            foreach ($with_entity->getProperties() as $key=>$p) {
-                                $data[$p[0]] = $row[$with_aliased[$with_key].'_'.$key];
-                            }
-                            
-                        $f = $with_entity->getPkColumns();
-                        
+					$with_entity = $config->getEntity($foreign);
+					
+					if ($a instanceof OutletOneToManyConfig)
+					{
+						// TODO: Implement...											 
+					}
+					elseif ($a instanceof OutletManyToManyConfig)
+					{
+						// TODO: Implement...
+					}
+					// Many-to-one or one-to-one
+					else
+					{
+						// Postgres returns columns as lowercase
+						// TODO: Maybe everything should be converted to lower in query creation / processing to avoid this
+						if ($outlet->getConnection()->getDialect() == 'pgsql')
+							foreach ($with_entity->getProperties() as $key=>$p) {
+								$data[$p[0]] = $row[strtolower($with_aliased[$with_key].'_'.$key)];
+							}
+						else
+							foreach ($with_entity->getProperties() as $key=>$p) {
+								$data[$p[0]] = $row[$with_aliased[$with_key].'_'.$key];
+							}
+							
+						$f = $with_entity->getPkColumns();
+						
 						// check to see if we found any data for the related entity
 						// using the pk
 						$data_returned = false;
@@ -253,7 +261,7 @@ class OutletQuery {
 						
 						// only fill object if there was data returned
 						if ($data_returned) $obj->$setter($outlet->getEntityForRow($foreign, $data));
-                    }
+					}
 				}
 			}
 			

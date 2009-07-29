@@ -16,7 +16,7 @@ class TestOfFluentInterfaceQueryAPI extends OutletTestCase {
 
 		$outlet->save($p);
 
-                $this->assertEquals(count($outlet->from('Project')->find()), 2);
+		$this->assertEquals(count($outlet->from('Project')->find()), 2);
 	}
 
         function testFindOne () {
@@ -27,7 +27,7 @@ class TestOfFluentInterfaceQueryAPI extends OutletTestCase {
 
 		$outlet->save($p);
 
-                $this->assertTrue($outlet->from('Project')->findOne() === $p);
+		$this->assertTrue($outlet->from('Project')->findOne() === $p);
 	}
 
         /*
@@ -62,31 +62,30 @@ class TestOfFluentInterfaceQueryAPI extends OutletTestCase {
          
          */
 
-        function testEagerFetchingOneToOne () {
-                $user = new User;
+	function testEagerFetchingOneToOne () {
+		$outlet = Outlet::getInstance();
+
+		$user = new User;
 		$user->FirstName = 'Alvaro';
 		$user->LastName = 'Carrasco';
 
-		$outlet = Outlet::getInstance();
 		$outlet->save($user);
 
 		$profile = new Profile;
 		$profile->setUserID( $user->UserID );
 
-		$outlet = Outlet::getInstance();
-
 		$outlet->save( $profile );
 
-                // clear cache because it will be used to check if user was loaded
-                $outlet->clearCache();
+		// clear cache because it will be used to check if user was loaded
+		$outlet->clearCache();
 
-                // Postgres won't work if 'User' is used as an alias for a table
-                $profile = $outlet->from('Profile')->with('User Users')->find();
-                $this->assertEquals(1, count(OutletMapper::$map['User']));
-        }
+		// Postgres won't work if 'User' is used as an alias for a table
+		$profile = $outlet->from('Profile')->with('User Users')->find();
+		$this->assertEquals(1, count($outlet->mapper->map['User']));
+	}
 
-        function testEagerFetchingManyToOne () {
-                $bug = new Bug;
+	function testEagerFetchingManyToOne () {
+		$bug = new Bug;
 		$bug->Title = 'Test Bug';
 
 		$project = new Project;
@@ -98,12 +97,12 @@ class TestOfFluentInterfaceQueryAPI extends OutletTestCase {
 
 		$outlet->save( $bug );
 
-                // clear cache because it will be used to check if project was loaded
-                $outlet->clearCache();
+		// clear cache because it will be used to check if project was loaded
+		$outlet->clearCache();
 
-                $bug = $outlet->from('Bug')->with('Project')->find();
-                $this->assertEquals(1, count(OutletMapper::$map['Project']));
-        }
+		$bug = $outlet->from('Bug')->with('Project')->find();
+		$this->assertEquals(1, count($outlet->mapper->map['Project']));
+	}
 
         function testPagination () {
                 $outlet = Outlet::getInstance();

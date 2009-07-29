@@ -88,5 +88,18 @@ class OutletConnection {
 	function __call ($method, $args) {
 		return call_user_func_array(array($this->pdo, $method), $args);
 	}
+	
+	/**
+	 * Returns last generated ID
+	 *
+	 * If using PostgreSQL the $sequenceName needs to be specified
+	 */
+	function lastInsertId ($sequenceName = '') {
+		if ($this->getDialect() == 'mssql') {
+			return $this->query('SELECT SCOPE_IDENTITY()')->fetchColumn(0);
+		} else{
+			return $this->pdo->lastInsertId($sequenceName);
+		}
+	}
 }
 
