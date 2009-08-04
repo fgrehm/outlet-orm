@@ -11,6 +11,13 @@ class NestedSetBrowser {
 	protected $right;
 	protected $qualifiers;
 	
+	/**
+	 * @param Outlet $outlet Instance of outlet
+	 * @param string $cls Entity class in which the hierarchy is stored
+	 * @param array $qualifiers Properties of the entity that determine which tree to look for children
+	 * @param string $left Name of class property that represents the left value
+	 * @param string $right Name of class property that represents the right value
+	 */
 	public function __construct (Outlet $outlet, $cls, $qualifiers = array(), $left='Left', $right='Right') {
 		$this->outlet = $outlet;
 		$this->cls = $cls;

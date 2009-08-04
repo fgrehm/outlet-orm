@@ -83,7 +83,6 @@ class OutletMapper {
 	}
 
 	/**
-	 * @param $class
 	 * @param $obj
 	 * @return array
 	 */
@@ -95,13 +94,18 @@ class OutletMapper {
 
 				// cast it if the property is defined to be an int
 				if ($p[1]=='int') $value = (int) $value;
-
+				
 				$pks[$key] = $value;
 			}
 		}
 		return $pks;
 	}
 
+    /**
+     * @param string $cls Entity class
+     * @param mixed $pk Primary key
+     * @return Object
+     */
 	public function load ($cls, $pk) {
 	   if (!$pk) throw new OutletException("Must pass a valid primary key value, passed: ".var_export($pk, true));
 
