@@ -596,7 +596,7 @@ $outlet = Outlet::getInstance();
 // and paginates data
 $bugs = $outlet->from("Bug")
   ->with('Project')
-  ->where("WHERE {Bug.StatusID} = ?", array(1))
+  ->where("{Bug.StatusID} = ?", array(1))
   ->limit(10)
   ->offset(20)
   ->find();]]></programlisting>
