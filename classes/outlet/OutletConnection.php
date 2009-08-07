@@ -16,6 +16,10 @@ class OutletConnection {
 	 */
 	protected $driverSupportsTransactions = true;
 
+	/**
+	 * @param PDO $pdo
+	 * @param string $dialect It can be 'sqlite', 'mysql', 'mssql', or 'pgsql'
+	 */
 	function __construct (PDO $pdo, $dialect) {
 		$this->pdo = $pdo;
 		$this->dialect = $dialect;
