@@ -1,5 +1,7 @@
 <?php
-
+/**
+ * @package outlet
+ */
 class OutletMapper {
 	const IDENTIFIER_PATTERN = '/\{[a-zA-Z0-9_]+(( |\.)[a-zA-Z0-9_]+)*\}/';
 

@@ -1,5 +1,7 @@
 <?php
-
+/**
+ * @package outlet
+ */
 class OutletConfig {
 	public $conf;
 

@@ -1,4 +1,7 @@
 <?php
+/**
+ * @package outlet
+ */
 set_include_path(dirname(__FILE__).'/..'.PATH_SEPARATOR.get_include_path());
 require 'outlet/Outlet.php';
 require 'outlet/OutletProxyGenerator.php';

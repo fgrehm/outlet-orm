@@ -1,5 +1,7 @@
 <?php
-
+/**
+ * @package outlet
+ */
 class OutletQuery {
 	/**
 	 * @var Outlet

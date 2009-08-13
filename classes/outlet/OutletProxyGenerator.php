@@ -1,5 +1,7 @@
 <?php
-
+/**
+ * @package outlet
+ */
 class OutletProxyGenerator {
 	private $config;
 

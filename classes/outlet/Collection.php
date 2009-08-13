@@ -1,5 +1,7 @@
 <?php
-
+/**
+ * @package outlet
+ */
 class Collection extends ArrayObject {
 	public function add ($obj) {
 		return $this->append($obj);	

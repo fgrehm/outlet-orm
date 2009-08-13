@@ -1,6 +1,7 @@
 <?php
 
 /**
+ * @package outlet
  * @method PDOStatement prepare (string $statement)
  */
 class OutletConnection {

@@ -1,5 +1,7 @@
 <?php
-
+/**
+ * @package outlet
+ */
 class NestedSetBrowser {
 	/**
 	 * @var Outlet

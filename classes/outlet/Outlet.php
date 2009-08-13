@@ -6,6 +6,9 @@ require 'OutletConfig.php';
 require 'Collection.php';
 require 'OutletCollection.php';
 
+/**
+ * @package outlet
+ */
 class Outlet {
 	static $instance;
 
