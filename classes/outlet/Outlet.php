@@ -7,6 +7,7 @@ require 'Collection.php';
 require 'OutletCollection.php';
 
 /**
+ * 
  * @package outlet
  */
 class Outlet {
@@ -22,7 +23,7 @@ class Outlet {
 	/**
 	 * Initialize outlet with an array configuration
 	 * 
-	 * @param array $conf
+	 * @param array $conf configuration
 	 */
 	static function init ( array $conf ) {
 		// instantiate
@@ -33,10 +34,17 @@ class Outlet {
 	 * @return Outlet instance
 	 */
 	static function getInstance () {
-		if (!self::$instance) throw new OutletException('You must first initialize Outlet by calling Outlet::init( $conf )');
+		if (!self::$instance) {
+			throw new OutletException('You must first initialize Outlet by calling Outlet::init( $conf )');
+		}
 		return self::$instance;
 	}
 
+	/**
+	 * Constructs a new instance of Outlet
+	 * @param array $conf configuration 
+	 * @return Outlet instance
+	 */
 	public function __construct (array $conf) {
 		$this->config = new OutletConfig( $conf );
 
@@ -51,7 +59,7 @@ class Outlet {
 	 * Persist the passed entity to the database by executing an INSERT or an UPDATE
 	 *
 	 * @param object $obj
-	 * @return object OutletProxy object representing the Entity
+	 * @return OutletProxy object representing the Entity
 	 */
 	public function save (&$obj) {
 		$con = $this->getConnection();
@@ -70,7 +78,7 @@ class Outlet {
 	 * 
 	 * @param string $clazz Class of the entity (not the proxy) 
 	 * @param mixed $id Primary key of the entity
-	 * @return mixed
+	 * @return bool true if delete succeeded, false otherwise
 	 */
 	public function delete ($clazz, $id) {
 		if (!is_array($id)) $id = array($id);
@@ -96,6 +104,12 @@ class Outlet {
 		return $res;
 	}
 
+	/**
+	 * Quotes a value to protect against SQL injection attackes
+	 * @see OutletConnection::quote($v)
+	 * @param mixed $val value to quote
+	 * @return mixed quoted value
+	 */
 	public function quote ($val) {
 		return $this->getConnection()->quote($val);
 	}
@@ -118,7 +132,7 @@ class Outlet {
 		$stmt = $this->query($q, $params);
 
 		// get the pk column in order to check the map
-		// TODO: It's not being used, maybe we could remove it
+		/** @todo It's not being used, maybe we could remove it */
 		//		$pk = $this->getConfig()->getEntity($clazz)->getPkColumns();
 
 		while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
@@ -155,15 +169,17 @@ class Outlet {
 	/**
 	 * Select ONE entity from the database using it's primary key
 	 * 
-	 * @param $clazz
-	 * @param $pk
-	 * @return unknown_type
+	 * @param string $cls Class to load
+	 * @param mixed $pk primary key value
+	 * @return object entity of class $cls
 	 */
 	public function load ($cls, $pk) {
 		return $this->mapper->load($cls, $pk);
 	}
 
 	/**
+	 * Retrieve the connection
+	 * @see OutletConfig::getConnection()
 	 * @return OutletConnection
 	 */
 	function getConnection () {
@@ -171,6 +187,7 @@ class Outlet {
 	}
 
 	/**
+	 * Retrieve the configuration
 	 * @return OutletConfig
 	 */
 	function getConfig () {
@@ -181,6 +198,9 @@ class Outlet {
 	 * Returns last generated ID
 	 *
 	 * If using PostgreSQL the $sequenceName needs to be specified
+	 * 
+	 * @param string $sequenceName sequence name to look for the last insert id in, required for PostgreSQL
+	 * @return int the last insert id
 	 */
 	function getLastInsertId ($sequenceName = '') {
 		return $this->con->lastInsertId($sequenceName);
@@ -190,8 +210,9 @@ class Outlet {
 	 * Return the entity for a database row
 	 * This method checks the identity map
 	 *
-	 * @param string $clazz
-	 * @param array $row
+	 * @param string $clazz Class to populate
+	 * @param array $row database row
+	 * @return object populated entity
 	 */
 	public function getEntityForRow ($clazz, array $row) {
 		$this->mapper->castRow($clazz, $row);
@@ -226,9 +247,10 @@ class Outlet {
 	/**
 	 * Execute a full select but only return the first result
 	 * 
-	 * @param $clazz
-	 * @param $query
-	 * @param $params
+	 * @param string $clazz entity class
+	 * @param string $query query to filter by
+	 * @param array $params values to replace parameterized values in $query
+	 * @return mixed first result row, null if no results are returned
 	 */
 	public function selectOne ($clazz, $query='', $params=array()) {
 		$res = $this->select($clazz, $query, $params);
@@ -238,43 +260,75 @@ class Outlet {
 			return null;
 		}
 	}
-
+	
+	/**
+	 * Retrieves the table for an entity class
+	 * @param string $clazz entity class
+	 * @return string table name
+	 */
 	private function getTable($clazz) {
 		return $this->conf['classes'][$clazz]['table'];
 	}
 
+	/**
+	 * Retrieve the fields for an entity class
+	 * @param string $clazz entity class
+	 * @return array properties array
+	 */
 	private function getFields ($clazz) {
 		return $this->conf['classes'][$clazz]['props'];
 	}
 
+	/**
+	 * Retrieve the primary key fields
+	 * @see OutletEntityConfig::getPkFields()
+	 * @see OutletEntityConfig::getPkColumns()
+	 * @param string $clazz entity class
+	 * @return array primary key field
+	 */
 	private function getPkFields( $clazz ) {
 		$fields = $this->conf['classes'][$clazz]['props'];
 
 		$pks = array();
 		foreach ($fields as $key => $f) {
-			if (isset($f[2]) && isset($f[2]['pk']) && $f[2]['pk']) $pks[$key] = $f;
+			if (isset($f[2]) && isset($f[2]['pk']) && $f[2]['pk']) {
+				$pks[$key] = $f;
+			}
 		}
 
 		return $pks;
 	}
 
+	/**
+	 * Filters any auto incremented fields out of the fields array
+	 * @param array $fields array of fields
+	 * @return array field array with auto incremented fields filtered out
+	 */
 	private function removeAutoIncrement ( $fields ) {
 		$newArr = array();
 		foreach ($fields as $key=>$f) {
-			if (isset($f[2]) && isset($f[2]['autoIncrement']) && $f[2]['autoIncrement']) continue;
+			if (isset($f[2]) && isset($f[2]['autoIncrement']) && $f[2]['autoIncrement']) {
+				// auto incremented fields should be skipped 
+				continue;
+			}
 			$newArr[$key] = $f;
 		}
 		return $newArr;
 	}
 
+	/**
+	 * Clears the mappers cache
+	 * @see OutletMapper::clearCache()
+	 */
 	public function clearCache () {
 		$this->mapper->clearCache();
 	}
 
 	/**
-	 * @param string $query
-	 * @param array $params
-	 * @return PDOStatement
+	 * Executes a query
+	 * @param string $query query to execute
+	 * @param array $params values to replace parameterized placeholders with
+	 * @return PDOStatement statement that was executed
 	 */
 	public function query ( $query='', array $params=array()) {
 		// process the query
@@ -300,8 +354,9 @@ class Outlet {
 	}
 
 	/**
-	 * @param string $from
-	 * @return OutletQuery
+	 * Create an OutletQuery selecting from an entity table
+	 * @param string $from entity table to select from
+	 * @return OutletQuery unexecuted
 	 */
 	public function from ($from) {
 		require_once 'OutletQuery.php';
@@ -312,5 +367,8 @@ class Outlet {
 	}
 }
 
+/**
+ * Exception to be thrown by Outlet
+ */
 class OutletException extends Exception {}
 
