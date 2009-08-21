@@ -1,21 +1,36 @@
 <?php
 /**
+ * Generator for all proxy classes
  * @package outlet
  */
 class OutletProxyGenerator {
 	private $config;
 
+	/**
+	 * Constructs a new instance of OutletProxyGenerator
+	 * @param OutletConfig $config configuration
+	 * @return OutletProxyGenerator instance
+	 */
 	function __construct (OutletConfig $config) {
 		$this->config = $config;
 	}
 
+
+	/**
+	 * Extracts primary key information from a configuration for a given class
+	 * @param array $conf configuration array
+	 * @param string $clazz entity class 
+	 * @return array primary key properties
+	 */
 	function getPkProp($conf, $clazz) {
 		foreach ($conf['classes'][$clazz]['props'] as $key=>$f) {
 			if (isset($f[2]['pk']) && $f[2]['pk'] == true) {
 				$pks[] = $key;
 			}
 
-			if (!count($pks)) throw new Exception('You must specified at least one primary key');
+			if (!count($pks)) {
+				throw new Exception('You must specified at least one primary key');
+			}
 
 			if (count($pks) == 1) {
 				return $pks[0];
@@ -25,6 +40,10 @@ class OutletProxyGenerator {
 		}
 	}
 
+	/**
+	 * Generates the source code for the proxy classes
+	 * @return string class source
+	 */
 	function generate () {
 		$c = '';
 		foreach ($this->config->getEntities() as $entity) {
@@ -48,6 +67,11 @@ class OutletProxyGenerator {
 		return $c;
 	}
 
+	/**
+	 * Generates the code to support one to one associations
+	 * @param OutletAssociationConfig $config configuration
+	 * @return string one to one function code
+	 */
 	function createOneToOneFunctions (OutletAssociationConfig $config) {
 		$foreign	= $config->getForeign();
 		$key 		= $config->getKey();
@@ -68,6 +92,11 @@ class OutletProxyGenerator {
 		return $c;
 	}
 
+	/**
+	 * Generates the code to support one to many associations
+	 * @param OutletAssociationConfig $config configuration
+	 * @return string one to many functions code
+	 */
 	function createOneToManyFunctions (OutletAssociationConfig $config) {
 		$foreign	= $config->getForeign();
 		$key 		= $config->getKey();
@@ -113,6 +142,11 @@ class OutletProxyGenerator {
 		return $c;
 	}
 
+	/**
+	 * Generates the code to support many to many associations
+	 * @param OutletManyToManyConfig $config configuration
+	 * @return string many to many function code
+	 */
 	function createManyToManyFunctions (OutletManyToManyConfig $config) {
 		$foreign	= $config->getForeign();
 
@@ -141,20 +175,28 @@ class OutletProxyGenerator {
 		return $c;
 	}
 
+	/**
+	 * Generates the code to support many to one associations
+	 * @param OutletAssociationConfig $config configuration
+	 * @return string many to one function code
+	 */
 	function createManyToOneFunctions (OutletAssociationConfig $config) {
 		$local		= $config->getLocal();
 		$foreign	= $config->getForeign();
-		$key			= $config->getKey();
+		$key		= $config->getKey();
 		$refKey		= $config->getRefKey();
 		$getter 	= $config->getGetter();
 		$setter		= $config->getSetter();
 
-		if ($config->getLocalUseGettersAndSetters())
+		if ($config->getLocalUseGettersAndSetters()) {
 			$keyGetter = 'get'.$key.'()';
-		else
+		} else {
 			$keyGetter = $key;
-		if ($config->getForeignUseGettersAndSetters())
+		}
+		
+		if ($config->getForeignUseGettersAndSetters()) {
 			$refKey = 'get'.$refKey.'()';
+		}
 
 		$c = '';
 		$c .= "  function $getter() { \n";
