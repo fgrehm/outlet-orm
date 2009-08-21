@@ -7,7 +7,7 @@ require 'Collection.php';
 require 'OutletCollection.php';
 
 /**
- * 
+ * Main entry point for client interaction with Outlet
  * @package outlet
  */
 class Outlet {
