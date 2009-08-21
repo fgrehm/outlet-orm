@@ -19,13 +19,19 @@ class OutletQuery {
 	private $groupBy;
 	private $having;
 	
+	/**
+	 * Constructs a new instance of OutletQuery
+	 * @param Outlet $outlet 
+	 * @return OutletQuery instance
+	 */
 	public function __construct (Outlet $outlet) {
 		$this->outlet = $outlet;
 	}
 	
 	/**
+	 * Entity table to select from
 	 * @param string $from
-	 * @return OutletQuery
+	 * @return OutletQuery for fluid interface
 	 */
 	function from ($from) {
 		$this->from = $from;
@@ -34,9 +40,10 @@ class OutletQuery {
 	}
 	
 	/**
-	 * @param string $q
-	 * @param array $params
-	 * @return OutletQuery
+	 * Where clause to filter results by
+	 * @param string $q where clause
+	 * @param array $params parameters
+	 * @return OutletQuery for fluid interface
 	 */
 	function where ($q, array $params=array()) {
 		$this->query = $q;
@@ -46,8 +53,9 @@ class OutletQuery {
 	}
 	
 	/**
-	 * @param string $join
-	 * @return OutletQuery
+	 * Declare an inner join
+	 * @param string $join entity table to join on
+	 * @return OutletQuery for fluid interface
 	 */
 	function innerJoin ($join) {
 		$this->joins[] = 'INNER JOIN ' . $join . "\n";
@@ -56,8 +64,9 @@ class OutletQuery {
 	}
 
 	/**
-	 * @param string $join
-	 * @return OutletQuery
+	 * Declare a left join
+	 * @param string $join entity table to join on
+	 * @return OutletQuery for fluid interface
 	 */
 	function leftJoin ($join) {
 		$this->joins[] = 'LEFT JOIN ' . $join . "\n";
@@ -66,17 +75,46 @@ class OutletQuery {
 	}
 	
 	/**
-	 * @return OutletQuery
+	 * Include associated entity tables
+	 * @todo review code with respect to comment
+	 * @param string... variadiac entity tables to include
+	 * @return OutletQuery for fluid interface
 	 */
 	function with () {
+		/*
+		 * Because this overwrites the with variable this function behaves in a slightly unexpected way
+		 * Take for instance this case:
+		 * 
+		 * $bugs = $outlet->from("Bug")
+		 * 				  ->with("Project")
+		 * 				  ->with("User")
+		 * 				  ->where("{Bug.StatusID} = ? AND {User.ID} = ?", array(1, $currentUser));
+		 * 				  ->limit(10)
+		 * 				  ->offset(20)
+		 * 				  ->find();
+		 * 
+		 * There won't be any project information because the second with() overrides the first
+		 * 
+		 * The code that would work is
+		 * 
+		 * $bugs = $outlet->from("Bug")
+		 * 				  ->with("Project", "User")->....
+		 * 
+		 * It seems like both should work, we can replace the code below with
+		 * 
+		 * $this->with = array_merge($this->with, func_get_args());
+		 * 
+		 * And it will allow both calls to function properly
+		 */
 		$this->with = func_get_args();
 		
 		return $this;
 	}
 	
 	/**
+	 * Declare an ordering
 	 * @param string $v Order clause 
-	 * @return OutletQuery
+	 * @return OutletQuery for fluid interface
 	 */
 	function orderBy ($v) {
 		$this->orderby = $v;
@@ -85,8 +123,9 @@ class OutletQuery {
 	}
 	
 	/**
-	 * @param $num
-	 * @return OutletQuery
+	 * Declare a limit to the result set
+	 * @param int $num Number of results to return 
+	 * @return OutletQuery for fluid interface
 	 */
 	function limit ($num) {
 		$this->limit = $num;
@@ -95,8 +134,9 @@ class OutletQuery {
 	}
 	
 	/**
-	 * @param string $s
-	 * @return OutletQuery
+	 * Declare an extra column to select
+	 * @param string $s column
+	 * @return OutletQuery for fluid interface
 	 */
 	function select ($s) {
 		$this->select = $s;
@@ -105,8 +145,9 @@ class OutletQuery {
 	}
 	
 	/**
-	 * @param $num
-	 * @return OutletQuery
+	 * Declare an offset for the result set
+	 * @param int $num Offset to begin returning result set at 
+	 * @return OutletQuery for fluid interface
 	 */
 	function offset ($num) {
 		$this->offset = $num;
@@ -115,8 +156,9 @@ class OutletQuery {
 	}
 	
 	/**
-	 * @param $s
-	 * @return OutletQuery
+	 * Declare a grouping
+	 * @param string $s column to group by
+	 * @return OutletQuery for fluid interface
 	 */
 	function groupBy($s) {
 		$this->groupBy = $s;
@@ -124,6 +166,11 @@ class OutletQuery {
 		return $this;
 	}
 	
+	/**
+	 * Declare a having clause
+	 * @param string $s having condition
+	 * @return OutletQuery for fluid interface
+	 */
 	function having($s) {
 		$this->having = $s;
 		
@@ -131,7 +178,8 @@ class OutletQuery {
 	}
 	
 	/**
-	 * @return array
+	 * Execute the query
+	 * @return array result set
 	 */
 	function find () {
 		$outlet = $this->outlet;
@@ -273,7 +321,18 @@ class OutletQuery {
 		return $res;
 	}
 	
+	/**
+	 * Executes query returning the first result out of the result set
+	 * @todo review code suggestion below
+	 * @return object first result out of the result set
+	 */
 	public function findOne () {
+		/*
+		 * It would improve performance to replace the code below with
+		 * $res = $this->limit(1)->find();
+		 * 
+		 * There is no need to do an unbound search if we only want one result
+		 */
 		$res = $this->find();
 		
 		if (count($res)) return $res[0];
