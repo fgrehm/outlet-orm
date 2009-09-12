@@ -779,7 +779,7 @@ class OutletMapper {
 	 * @param string $q query to process
 	 * @return string processed query
 	 */
-	function processQuery ( $q ) {
+	public function processQuery ( $q ) {
 		preg_match_all(self::IDENTIFIER_PATTERN, $q, $matches, PREG_SET_ORDER);
 
 		// check if it's an update statement

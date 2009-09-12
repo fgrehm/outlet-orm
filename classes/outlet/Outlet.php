@@ -352,7 +352,7 @@ class Outlet {
 	 * @return PDOStatement
 	 */
 	public function prepare ($query) {
-		$q = OutletMapper::processQuery($query);
+		$q = $this->mapper->processQuery($query);
 		
 		$stmt = $this->con->prepare($q);
 		return $stmt;
