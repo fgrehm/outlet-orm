@@ -19,6 +19,11 @@ class Outlet {
 	 * @var OutletConnection
 	 */
 	private $con;
+	
+	/**
+	 * @var OutletMapper
+	 */
+	private $mapper;
 
 	/**
 	 * Initialize outlet with an array configuration
@@ -364,6 +369,14 @@ class Outlet {
 		$q->from($from);
 
 		return $q;
+	}
+	
+	/**
+	 * @param $obj
+	 * @return array
+	 */
+	public function toArray ($obj) {
+		return $this->mapper->toArray($obj);
 	}
 }
 
