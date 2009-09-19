@@ -17,6 +17,10 @@ class OutletMapper {
 	 * @var OutletConfig
 	 */
 	private $config;
+	
+
+	
+	public $onHydrate;
 
 	/**
 	 * Constructs a new instance of OutletMapper
@@ -223,6 +227,11 @@ class OutletMapper {
 			}
 
 			$this->setProp($obj, $key, $values[$f[0]]);
+		}
+		
+		// trigger onHydrate callback
+		if ($this->onHydrate) {
+			call_user_func($this->onHydrate, $obj);
 		}
 
 		return $obj;

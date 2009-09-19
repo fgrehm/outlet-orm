@@ -378,6 +378,10 @@ class Outlet {
 	public function toArray ($obj) {
 		return $this->mapper->toArray($obj);
 	}
+	
+	public function onHydrate($callback) {
+		$this->mapper->onHydrate = $callback;
+	}
 }
 
 /**
