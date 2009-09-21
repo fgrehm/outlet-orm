@@ -1,0 +1,43 @@
+- Fluent interface API -> The repository need to support other parameters /
+  methods like orderBy, limit, groupBy... and eager fetching
+
+- Abstract repository and create classes for MySQL, Postgres and SQLServer
+
+- DB transaction for UoW
+
+- Backwards compatibility (?) -> modifying Outlet::getInstance() to return a
+  session that automatically flushes after executing an operation might do the job
+
+- UoW#attach and UoW#getOriginalValues need to check PHP version and use another
+  approach for object hashing, spl_object_hash does not work for PHP < 5.2
+
+- Hydrator and ProxyGenerator needs to handle associations
+
+- "Cascade" changes to identity map and entitiy original values cache (UoW)
+  This includes propagating PK changes
+
+- Remove duplication from integration tests, the Bug entity config is coded in
+  more than one place
+
+- Make composite primary keys work in any order on identity map.
+  Currently it only works if the values are on the same order as config
+  EX:
+	// ... class mapping
+	    'Entity' =>
+		'props' =>
+		    'pk1' => array('pk', 'int', array('pk' => true)),
+		    'pk2' => array('pk', 'int', array('pk' => true))
+	// ....
+
+	$obj = new Entity(1, 'other pk');
+	IndentityMap#register($obj);
+	IndentityMap#get(array('other pk', 1)) // returns null
+	// solution?
+	IndentityMap#get(array('pk2' => 'other pk', 'pk1' => 1))
+
+ - OutletProxyAutoloader
+
+ - Tests needed for:
+    * Session#setAutoFlush
+    * Cleaning UoW orders after commiting
+    * AutoDetect parameter of Session#flush
