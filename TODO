@@ -35,8 +35,6 @@
 	// solution?
 	IndentityMap#get(array('pk2' => 'other pk', 'pk1' => 1))
 
- - OutletProxyAutoloader
-
  - Tests needed for:
     * Session#setAutoFlush
     * Cleaning UoW orders after commiting

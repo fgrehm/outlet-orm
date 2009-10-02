@@ -132,7 +132,7 @@ class Integration_SessionTest extends OutletTestCase {
 				'useGettersAndSetters' => true
 			)
 		);
-		$this->session = $this->openSession($classes);
+		$this->session = $this->openSession($classes, true);
 		$this->connection = $this->session->getConnection();
 		$this->connection->execute('CREATE TABLE bugs (id NUMERIC, name TEXT)');
 	}

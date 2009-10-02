@@ -10,6 +10,8 @@ class OutletSession {
 	public function __construct(OutletConfig $config) {
 		$this->config = $config;
 		$this->autoFlush = true;
+		if ($config->autoloadProxies)
+			$this->autoloader = new OutletProxyAutoloader($config);
 	}
 
 	public function setAutoFlush($autoFlush) {

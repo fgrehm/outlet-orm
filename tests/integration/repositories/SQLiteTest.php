@@ -121,7 +121,7 @@ class Integration_Repositories_SQLiteTest extends OutletTestCase {
 					'useGettersAndSetters' => true
 				),
 		);
-		$this->session = $this->openSession($classes);
+		$this->session = $this->openSession($classes, true);
 		$this->repository = new OutletRepositorySQLite($this->session);
 		$this->session->getConnection()->execute('CREATE TABLE bugs (id NUMERIC, name TEXT)');
 		$this->session->getConnection()->execute('CREATE TABLE projects (id NUMERIC, description TEXT, project_name TEXT)');
