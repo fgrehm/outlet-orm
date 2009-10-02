@@ -31,6 +31,11 @@ class OutletUnitOfWork {
 		$this->identityMap = $session->getIdentityMap();
 	}
 
+	public function clear() {
+		$this->values = array();
+		return $this;
+	}
+
 	public function setRepository(OutletRepository $repository) {
 		$this->repository = $repository;
 	}
@@ -71,8 +76,10 @@ class OutletUnitOfWork {
 			$this->repository->update($obj);
 		}
 
-		foreach ($this->deleteOrders as $obj)
+		foreach ($this->deleteOrders as $obj){
+			unset($this->values[spl_object_hash($obj)]);
 			$this->repository->remove($obj);
+		}
 		// TODO: add a test for this
 		$this->insertOrders =
 		$this->updateOrders =
@@ -91,13 +98,12 @@ class OutletUnitOfWork {
 			$class .= '_OutletProxy';
 			$entity = new $class();
 			$mapper->set($entity, $data);
-			$this->attach($entity);
+			$this->session->attach($entity);
 		}
 		return $entity;
 	}
 
 	public function attach($obj) {
-		$this->identityMap->register($obj);
 		$this->values[spl_object_hash($obj)] = array(
 			'object' => $obj,
 			'original' => $this->session->getMapperFor($obj)->getValues($obj)

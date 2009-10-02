@@ -28,6 +28,7 @@ class OutletSession {
 
 	public function clear() {
 		$this->identityMap->clear();
+		$this->getUnitOfWork()->clear();
 		return $this;
 	}
 
@@ -81,6 +82,7 @@ class OutletSession {
 
 	public function attach($obj) {
 		$this->getUnitOfWork()->attach($obj);
+		$this->identityMap->register($obj);
 		return $this;
 	}
 
@@ -97,6 +99,7 @@ class OutletSession {
 	}
 
 	public function delete($obj){
+		$this->identityMap->remove($obj);
 		$this->getUnitOfWork()->delete($obj);
 		// TODO: need to test this
 		if ($this->autoFlush) $this->flush(false);
