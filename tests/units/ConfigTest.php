@@ -91,7 +91,30 @@ class Unit_ConfigTest extends OutletTestCase {
 		$this->assertThat($config->getEntity(new ConfigEntity_OutletProxy()), $this->isInstanceOf('OutletEntityConfig'));
 	}
 
-	protected function _createConfig($globalUseGettersAndSetters = null, $entityUseGettersAndSetters = null) {
+	public function testProxyAutoloadingDefaultsToDisabled() {
+		$config = $this->_createConfig();
+
+		$this->assertFalse($config->autoloadProxies);
+		$this->assertFalse($config->proxiesCache);
+	}
+
+	public function testProxyAutoloadingEnabled() {
+		$config = $this->_createConfig(null, null, true);
+
+		$this->assertTrue($config->autoloadProxies);
+		$this->assertFalse($config->proxiesCache);
+	}
+
+	public function testProxyAutoloadingAndCachingEnabled() {
+		$config = $this->_createConfig(null, null, true, 'directory');
+
+		$this->assertEquals('directory', $config->proxiesCache);
+	}
+
+	protected function _createConfig($globalGettersAndSetters = null,
+					$entityGettersAndSetters = null,
+					$proxyAutoloading = null,
+					$proxiesCache = null) {
 		$config = array(
 			'connection' => array(
 				'pdo' => $this->getSQLiteInMemoryPDOConnection(),
@@ -104,10 +127,17 @@ class Unit_ConfigTest extends OutletTestCase {
 				)
 			)
 		);
-		if ($globalUseGettersAndSetters !== null)
-			$config['useGettersAndSetters'] = $globalUseGettersAndSetters;
-		if ($entityUseGettersAndSetters !== null)
-			$config['classes']['ConfigEntity']['useGettersAndSetters'] = $entityUseGettersAndSetters;
+		if ($globalGettersAndSetters !== null)
+			$config['useGettersAndSetters'] = $globalGettersAndSetters;
+		if ($entityGettersAndSetters !== null)
+			$config['classes']['ConfigEntity']['useGettersAndSetters'] = $entityGettersAndSetters;
+
+		if ($proxyAutoloading !== null) {
+			$config['proxies'] = array();
+			$config['proxies']['autoload'] = true;
+			$config['proxies']['cache'] = $proxiesCache;
+		}
+
 		return new OutletConfig($config);
 	}
 }
