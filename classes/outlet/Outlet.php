@@ -1,26 +1,43 @@
 <?php
-require 'Connection.php';
-require 'Mapper.php';
-require 'Proxy.php';
-require 'ProxyAutoloader.php';
-require 'ProxyGenerator.php';
-require 'Config.php';
-require 'IdentityMap.php';
-require 'QueryParser.php';
-require 'Session.php';
-require 'UnitOfWork.php';
-require 'Query.php';
-require 'Hydrator.php';
-require 'repositories/SQLite.php';
+$root = dirname(__FILE__).'/';
+require_once $root.'Connection.php';
+require_once $root.'Mapper.php';
+require_once $root.'Proxy.php';
+require_once $root.'ProxyAutoloader.php';
+require_once $root.'ProxyGenerator.php';
+require_once $root.'Config.php';
+require_once $root.'IdentityMap.php';
+require_once $root.'QueryParser.php';
+require_once $root.'Session.php';
+require_once $root.'UnitOfWork.php';
+require_once $root.'Query.php';
+require_once $root.'Hydrator.php';
+require_once $root.'repositories/SQLite.php';
 
 class Outlet {
+	public static $configs = array();
+
 	public static function createProxies(OutletConfig $config) {
 		$gen = new OutletProxyGenerator($config);
 		eval($gen->generate());
 	}
 
-	public static function openSession(OutletConfig $config) {
-		return new OutletSession($config);
+	public static function addConfig($config, $name = 'default') {
+		if (is_array($config))
+			$config = new OutletConfig($config);
+		self::$configs[$name] = $config;
+	}
+
+	/**
+	 *
+	 * @param mixed $config
+	 * @return OutletSession
+	 */
+	public static function openSession($config = 'default') {
+		if ($config instanceof OutletConfig)
+			return new OutletSession($config);
+		else
+			return new OutletSession(self::$configs[$config]);
 	}
 }
 
