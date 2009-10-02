@@ -1,9 +1,15 @@
 <?php
 
 class Unit_ProxyGeneratorTest extends OutletTestCase {
-	public function testGenerateProxyForSimpleClass() {
-		$expected = "class ProxyTest_OutletProxy extends ProxyTest implements OutletProxy {}";
+	public function testGenerateProxyForSimpleEntity() {
+		$expected = "class ProxyTest_OutletProxy extends ProxyTest implements OutletProxy {}\n";
+		$expected .= "class ProxyTest2_OutletProxy extends ProxyTest2 implements OutletProxy {}\n";
 		$this->assertEquals($expected, $this->generator->generate());
+	}
+
+	public function testGenerateProxyForSingleClass() {
+		$expected = "class ProxyTest_OutletProxy extends ProxyTest implements OutletProxy {}";
+		$this->assertEquals($expected, $this->generator->generate('ProxyTest'));
 	}
 
 	public function setUp () {
@@ -14,6 +20,12 @@ class Unit_ProxyGeneratorTest extends OutletTestCase {
 			),
 			'classes' => array (
 				'ProxyTest' => array (
+					'table' => 'proxy',
+					'props' => array (
+					    'id' => array('id', 'varchar', array('pk' => true))
+					)
+				),
+				'ProxyTest2' => array (
 					'table' => 'proxy',
 					'props' => array (
 					    'id' => array('id', 'varchar', array('pk' => true))

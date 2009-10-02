@@ -1,6 +1,6 @@
 <?php
-//error_reporting(E_STRICT);
-require_once 'PHPUnit/Framework.php';
+error_reporting(E_STRICT);
+date_default_timezone_set("America/Sao_Paulo");
 
 abstract class OutletTestCase extends PHPUnit_Framework_TestCase {
 	protected function getSQLiteInMemoryDSN() {
@@ -12,15 +12,18 @@ abstract class OutletTestCase extends PHPUnit_Framework_TestCase {
 		return new PDO($this->getSQLiteInMemoryDSN());
 	}
 
-	protected function createConfig($classesArray) {
-		$config = array(
+	protected function createConfigArray($classesArray) {
+		return array(
 			'connection' => array(
 				'pdo' => $this->getSQLiteInMemoryPDOConnection(),
 				'dialect' => 'sqlite'
 			),
 			'classes' => $classesArray
 		);
-		return new OutletConfig($config);
+	}
+
+	protected function createConfig($classesArray) {
+		return new OutletConfig($this->createConfigArray($classesArray));
 	}
 
 	protected function openSession($configClassesArray) {

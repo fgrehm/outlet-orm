@@ -3,16 +3,20 @@
 class OutletProxyGenerator {
 	private $config;
 
-	function __construct (OutletConfig $config) {
+	function __construct(OutletConfig $config) {
 		$this->config = $config;
 	}
 
-	function generate () {
+	function generate($clazz = '') {
 		$c = '';
-		foreach ($this->config->getEntities() as $entity) {
-			$clazz = $entity->getClass();
+		if ($clazz == '') {
+			foreach ($this->config->getEntities() as $entity) {
+				$clazz = $entity->getClass();
 
-			$c .= "class {$clazz}_OutletProxy extends $clazz implements OutletProxy {}";
+				$c .= $this->generate($clazz)."\n";
+			}
+		} else {
+			$c = "class {$clazz}_OutletProxy extends $clazz implements OutletProxy {}";
 		}
 
 		return $c;
