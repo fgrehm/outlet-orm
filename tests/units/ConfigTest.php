@@ -4,34 +4,35 @@ class Unit_ConfigTest extends OutletTestCase {
 	public function testRequireConnectionConfig() {
 		try {
 			$config = new OutletConfig(array());
-			$this->fail("should've raised an exception");
-		} catch (OutletConfigException $ex) { $this->assertTrue(true);}
+		} catch (OutletConfigException $ex) { $this->assertTrue(true); return; }
+		$this->fail("should've raised an exception");
 	}
 
 	public function testRequireConnectionDsnOrPdo() {
 		try {
 			$config = new OutletConfig(array('connection' => 1));
-			$this->fail("should've raised an exception");
-		} catch (OutletConfigException $ex) { $this->assertTrue(true);}
+		} catch (OutletConfigException $ex) { $this->assertTrue(true); return; }
+		$this->fail("should've raised an exception");
 	}
 
 	public function testRequireDialect() {
+		// TODO: this test looks ugly
 		try {
 			$config = new OutletConfig(array('connection' => array('dsn' => $this->getSQLiteInMemoryDSN())));
-			$this->fail("should've raised an exception");
-		} catch (OutletException $ex) { $this->assertTrue(true);}
-
-		try {
-			$config = new OutletConfig(array('connection' => array('pdo' => 1)));
-			$this->fail("should've raised an exception");
-		} catch (OutletConfigException $ex) { $this->assertTrue(true);}
+		} catch (OutletException $ex) {
+			$this->assertTrue(true);
+			try {
+				$config = new OutletConfig(array('connection' => array('pdo' => 1)));
+			} catch (OutletConfigException $ex) { $this->assertTrue(true); return; }
+		}
+		$this->fail("should've raised an exception");
 	}
 
 	public function testRequireClassesMapping() {
 		try {
 			$config = new OutletConfig(array('connection' => array('dsn' => $this->getSQLiteInMemoryDSN(), 'dialect' => 'mysql')));
-			$this->fail("should've raised an exception");
-		} catch (OutletConfigException $ex) { $this->assertTrue(true);}
+		} catch (OutletConfigException $ex) { $this->assertTrue(true); return;}
+		$this->fail("should've raised an exception");
 	}
 
 	public function testCanGetConnection() {
@@ -46,8 +47,8 @@ class Unit_ConfigTest extends OutletTestCase {
 		$config = new OutletConfig(array('connection' => array('pdo' => $this->getSQLiteInMemoryPDOConnection(), 'dialect' => 'sqlite'), 'classes' => array('Testing' => array('table' => 'testing', 'props' => array('id' => array('id', 'int', array('pk' => true)))))));
 		try {
 			$this->assertThat($config->getEntity('Testing2'), $this->isInstanceOf('OutletEntityConfig'));
-			$this->fail("should've raised an exception");
-		} catch (OutletException $ex) { $this->assertTrue(true); }
+		} catch (OutletException $ex) { $this->assertTrue(true); return; }
+		$this->fail("should've raised an exception");
 	}
 
 	public function testAllowToSuppresExceptionIfEntityNotFound() {
