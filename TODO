@@ -1,3 +1,5 @@
+- Autoincrement PKs
+
 - Fluent interface API -> The repository need to support other parameters /
   methods like orderBy, limit, groupBy... and eager fetching
 
@@ -25,8 +27,8 @@
 	// ... class mapping
 	    'Entity' =>
 		'props' =>
-		    'pk1' => array('pk', 'int', array('pk' => true)),
-		    'pk2' => array('pk', 'int', array('pk' => true))
+		    'pk1' => array('pk1', 'int', array('pk' => true)),
+		    'pk2' => array('pk2', 'int', array('pk' => true))
 	// ....
 
 	$obj = new Entity(1, 'other pk');
