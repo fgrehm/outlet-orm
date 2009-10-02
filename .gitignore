@@ -4,5 +4,6 @@
 .ssh
 .bash_history
 .gitk
+.gitconfig
 nbproject
 autotestforphp

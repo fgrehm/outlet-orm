@@ -56,22 +56,22 @@ class Unit_ConfigTest extends OutletTestCase {
 	}
 
 	public function testGettersAndSettersAreDisabledByDefault() {
-		$config = $this->createConfig();
+		$config = $this->_createConfig();
 		$this->assertFalse($config->useGettersAndSetters());
 		$this->assertFalse($config->getEntity('ConfigEntity')->useGettersAndSetters());
 	}
 
 	public function testSetGettersAndSettersUsageGlobal() {
-		$config = $this->createConfig(true);
+		$config = $this->_createConfig(true);
 		$this->assertTrue($config->useGettersAndSetters());
 		$this->assertTrue($config->getEntity('ConfigEntity')->useGettersAndSetters());
 	}
 
 	public function testSetGettersAndSettersUsagePerEntity() {
-		$config = $this->createConfig(true, false);
+		$config = $this->_createConfig(true, false);
 		$this->assertFalse($config->getEntity('ConfigEntity')->useGettersAndSetters());
 
-		$config = $this->createConfig(false, true);
+		$config = $this->_createConfig(false, true);
 		$this->assertTrue($config->getEntity('ConfigEntity')->useGettersAndSetters());
 	}
 
@@ -81,16 +81,16 @@ class Unit_ConfigTest extends OutletTestCase {
 	}
 
 	public function testGettingEntityConfigByObject() {
-		$config = $this->createConfig();
+		$config = $this->_createConfig();
 		$this->assertThat($config->getEntity(new ConfigEntity()), $this->isInstanceOf('OutletEntityConfig'));
 	}
 
 	public function testGettingEntityConfigByProxy() {
-		$config = $this->createConfig();
+		$config = $this->_createConfig();
 		$this->assertThat($config->getEntity(new ConfigEntity_OutletProxy()), $this->isInstanceOf('OutletEntityConfig'));
 	}
 
-	protected function createConfig($globalUseGettersAndSetters = null, $entityUseGettersAndSetters = null) {
+	protected function _createConfig($globalUseGettersAndSetters = null, $entityUseGettersAndSetters = null) {
 		$config = array(
 			'connection' => array(
 				'pdo' => $this->getSQLiteInMemoryPDOConnection(),
