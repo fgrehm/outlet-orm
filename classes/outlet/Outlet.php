@@ -2,6 +2,7 @@
 require 'Connection.php';
 require 'Mapper.php';
 require 'Proxy.php';
+require 'ProxyAutoloader.php';
 require 'ProxyGenerator.php';
 require 'Config.php';
 require 'IdentityMap.php';

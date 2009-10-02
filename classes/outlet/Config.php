@@ -7,6 +7,9 @@ class OutletConfig {
 
 	private $entities;
 
+	public $autoloadProxies = false;
+	public $proxiesCache = false;
+
 	function __construct (array $conf) {
 		// validate config
 		if (!isset($conf['connection'])) throw new OutletConfigException('Element [connection] not found in configuration');
@@ -18,8 +21,20 @@ class OutletConfig {
 		if (!isset($conf['connection']['dialect'])) throw new OutletConfigException('Element [connection][dialect] not found in configuration');
 		if (!isset($conf['classes'])) throw new OutletConfigException('Element [classes] missing in configuration');
 
+		// proxies section is not required
+		if (isset($conf['proxies'])) {
+			if (isset($conf['proxies']['autoload']))
+				$this->autoloadProxies = $conf['proxies']['autoload'];
+			if ($this->autoloadProxies
+					&& isset($conf['proxies']['cache'])
+					&& $conf['proxies']['cache'] !== false){
+				$this->proxiesCache = $conf['proxies']['cache'];
+				$this->proxiesCache = rtrim($this->proxiesCache, '/');
+			}
+		}
+
 		$this->conf = $conf;
-	}	
+	}
 
 	function getDialect() {
 		return $this->conf['connection']['dialect'];
@@ -40,7 +55,7 @@ class OutletConfig {
 			}
 
 			$this->con = new OutletConnection($pdo, $conn['dialect']);
-		} 
+		}
 		return $this->con;
 	}
 
@@ -80,7 +95,7 @@ class OutletConfig {
 
 		return $this->entities[$cls];
 	}
-	
+
 	function useGettersAndSetters () {
 		return isset($this->conf['useGettersAndSetters']) ? $this->conf['useGettersAndSetters'] : false;
 	}
@@ -91,9 +106,9 @@ class OutletEntityConfig {
 
 	private $clazz;
 	private $props;
-	
+
 	private $sequenceName = '';
-	
+
 	private $useGettersAndSetters;
 
 	function __construct (OutletConfig $config, $entity, array $conf) {
@@ -122,7 +137,7 @@ class OutletEntityConfig {
 		$this->clazz = $entity;
 //		$this->props = $conf['props'];
 		$this->sequenceName = isset($conf['sequenceName']) ? $conf['sequenceName'] : '';
-		
+
 		$this->useGettersAndSetters = isset($conf['useGettersAndSetters']) ? $conf['useGettersAndSetters'] : $config->useGettersAndSetters();
 	}
 
@@ -151,7 +166,7 @@ class OutletEntityConfig {
 	function getPkProperties () {
 		return $this->pks;
 	}
-	
+
 	function useGettersAndSetters () {
 		return $this->useGettersAndSetters;
 	}
