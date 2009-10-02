@@ -16,8 +16,8 @@
 - "Cascade" changes to identity map and entitiy original values cache (UoW)
   This includes propagating PK changes
 
-- Remove duplication from integration tests, the Bug entity config is coded in
-  more than one place
+- Remove duplication from integration tests, for example, the Bug entity config
+  is coded in more than one place
 
 - Make composite primary keys work in any order on identity map.
   Currently it only works if the values are on the same order as config
@@ -41,3 +41,9 @@
     * Session#setAutoFlush
     * Cleaning UoW orders after commiting
     * AutoDetect parameter of Session#flush
+
+ - Some way to handle entities life cycle
+
+ - Embedded values
+
+ - Schema creation based on config running from command line
