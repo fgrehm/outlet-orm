@@ -56,8 +56,6 @@ class Outlet {
 		$this->con = $this->config->getConnection();
 		
 		$this->mapper = new OutletMapper( $this->config );
-		
-		//OutletMapper::$conf = &$conf['classes'];
 	}
 
 	/**
@@ -72,7 +70,7 @@ class Outlet {
 		$con->beginTransaction();
 
 		$return = $this->mapper->save( $obj );
-
+		
 		$con->commit();
 
 		return $return;

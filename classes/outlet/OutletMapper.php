@@ -556,6 +556,11 @@ class OutletMapper {
 
 		$this->saveOneToMany($obj);
 		$this->saveManyToMany($obj);
+			
+		// trigger onHydrate callback
+		if ($this->onHydrate) {
+			call_user_func($this->onHydrate, $obj);
+		}
 
 		// add it to the cache
 		self::set(self::getEntityClass($obj), self::getPkValues($obj), array(
