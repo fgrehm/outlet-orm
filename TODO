@@ -3,7 +3,7 @@
 - Fluent interface API -> The repository need to support other parameters /
   methods like orderBy, limit, groupBy... and eager fetching
 
-- Abstract repository and create classes for MySQL, Postgres and SQLServer
+- Add support for Postgres and SQLServer
 
 - DB transaction for UoW
 
