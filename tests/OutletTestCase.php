@@ -12,10 +12,12 @@ abstract class OutletTestCase extends PHPUnit_Framework_TestCase {
 		return new PDO($this->getSQLiteInMemoryDSN());
 	}
 
-	protected function createConfigArray($classesArray) {
+	protected function createConfigArray($classesArray, $pdo = null) {
+		if ($pdo == null)
+			$pdo = $this->getSQLiteInMemoryPDOConnection();
 		return array(
 			'connection' => array(
-				'pdo' => $this->getSQLiteInMemoryPDOConnection(),
+				'pdo' => $pdo,
 				'dialect' => 'sqlite'
 			),
 			'classes' => $classesArray

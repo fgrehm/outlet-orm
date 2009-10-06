@@ -12,7 +12,7 @@ require_once $root.'Session.php';
 require_once $root.'UnitOfWork.php';
 require_once $root.'Query.php';
 require_once $root.'Hydrator.php';
-require_once $root.'repositories/SQLite.php';
+require_once $root.'repositories/Repository.php';
 
 class Outlet {
 	public static $configs = array();
