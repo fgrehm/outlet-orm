@@ -73,8 +73,8 @@ class Unit_EntityConfigTest extends OutletTestCase {
 		$this->assertThat($pks, $this->isType('array'));
 		$this->assertEquals(1, count($pks));
 	}
-
-	protected function _createConfig($tableName = null, $properties = null) {
+	
+	protected function _createConfig($tableName = null, $properties = null, $subclasses = null, $discriminator = null, $discriminatorValue) {
 		$config = array(
 			'connection' => array(
 				'pdo' => $this->getSQLiteInMemoryPDOConnection(),
@@ -88,7 +88,12 @@ class Unit_EntityConfigTest extends OutletTestCase {
 			$config['classes'][$this->entityName]['table'] = $tableName;
 		if ($properties !== null)
 			$config['classes'][$this->entityName]['props'] = $properties;
-
+		if ($subclasses !== null)
+			$config['classes'][$this->entityName]['subclasses'] = $subclasses;
+		if ($discriminator !== null)
+			$config['classes'][$this->entityName]['discriminator'] = $discriminator;
+		if ($discriminatorValue !== null)
+			$config['classes'][$this->entityName]['discriminator-value'] = $discriminatorValue;
 		$config = new OutletConfig($config);
 		return $config->getEntity($this->entityName);
 	}

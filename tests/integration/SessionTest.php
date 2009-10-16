@@ -49,11 +49,10 @@ class Integration_SessionTest extends OutletTestCase {
 		$this->assertSame($entity, $this->session->load('Bug', 1));
 	}
 
-	public function testCRUD() {
-		$bug = new Bug('name', 1);
-		$bug = $this->session->save($bug)->clear()->load('Bug', 1);
-		$this->assertNotNull($bug);
-
+	public function testCRUD() {		
+		$bug = new Bug('name', 1);		
+		$bug = $this->session->save($bug)->clear()->load('Bug', 1);		
+		$this->assertNotNull($bug);		
 		$bug->setName('new name');
 		$bug = $this->session->save($bug)->clear()->load('Bug', 1);
 		$this->assertEquals('new name', $bug->getName());
@@ -113,7 +112,60 @@ class Integration_SessionTest extends OutletTestCase {
 
 		$this->assertEquals('new name', $this->session->load('Bug', 1)->getName());
 	}
-
+	
+	public function testSaveSubclass() {
+		$bug = new FunctionalBug();
+		$bug->setID(1);
+		$bug->setName("Error while saving subclass :P");
+		$bug->setSteps("Executed unit tests... this doesn't make any sense! lol");		
+		$this->session->save($bug);
+		$this->session->flush();
+		$this->session->clear();
+		$newbug = $this->session->load("FunctionalBug", 1);
+		$this->assertNotNull($newbug);
+	} 
+	
+	public function testLoadSubclassFromSuperclass() {
+		$bug = new FunctionalBug();
+		$bug->setID(1);
+		$bug->setName("Error while saving subclass :P");
+		$bug->setSteps("Executed unit tests... this doesn't make any sense! lol");		
+		$this->session->save($bug);
+		$this->session->flush();
+		$this->session->clear();
+		$newbug = $this->session->load("Bug", 1);
+		$this->assertNotNull($newbug);
+		$this->assertThat($newbug, $this->isInstanceOf("FunctionalBug"));
+	}
+	
+	public function testQueryManySubclasses() {
+		$b = new Bug();
+		$b->setID(1);
+		$b->setName("bug");
+		
+		$fb = new FunctionalBug();
+		$fb->setID(2);
+		$fb->setName("functional bug");
+		$fb->setSteps("some steps");
+		
+		$tb = new TechnicalBug();
+		$tb->setID(3);
+		$tb->setName("technical bug");
+		$tb->setErrorCode(124);
+		
+		$this->session->save($b);
+		$this->session->save($fb);
+		$this->session->save($tb);
+		$this->session->flush();		
+		$this->session->clear();
+		
+		$bugs = $this->session->from("Bug")->find();
+		
+		$this->assertThat($bugs[0], $this->isInstanceOf("Bug_OutletProxy"));
+		$this->assertThat($bugs[1], $this->isInstanceOf("FunctionalBug_OutletProxy"));
+		$this->assertThat($bugs[2], $this->isInstanceOf("TechnicalBug_OutletProxy"));
+	}
+	
 	public function setUp() {
 		$classes = array(
 			'Project' => array(
@@ -129,11 +181,29 @@ class Integration_SessionTest extends OutletTestCase {
 					'ID' => array('id', 'int', array('pk' => true)),
 					'Name' => array('name', 'varchar')
 				),
+				'discriminator' => array('type', 'varchar'),
+				'discriminator-value' => 'unknown',
+				'subclasses' => array(
+					'TechnicalBug' => array(
+						'discriminator-value' => 'technical',
+						'props' => array(
+							'errorcode' => array('errorcode', 'int')
+						),
+						'useGettersAndSetters' => true
+					),
+					'FunctionalBug' => array(
+						'discriminator-value' => 'functional',
+						'props' => array(
+							'steps' => array('steps', 'varchar')
+						),
+						'useGettersAndSetters' => true
+					)
+				),
 				'useGettersAndSetters' => true
 			)
 		);
 		$this->session = $this->openSession($classes, true);
 		$this->connection = $this->session->getConnection();
-		$this->connection->execute('CREATE TABLE bugs (id NUMERIC, name TEXT)');
+		$this->connection->execute('CREATE TABLE bugs (id NUMERIC, name TEXT, type TEXT, errorcode NUMERIC, steps TEXT)');
 	}
 }

@@ -81,6 +81,11 @@ class Unit_ConfigTest extends OutletTestCase {
 		$this->assertThat($config->getEntity('Testing'), $this->isInstanceOf('OutletEntityConfig'));
 	}
 
+	public function testCanGetSubclassEntityConfig() {
+		$config = new OutletConfig(array('connection' => array('pdo' => $this->getSQLiteInMemoryPDOConnection(), 'dialect' => 'sqlite'), 'classes' => array('Testing' => array('table' => 'testing', 'subclasses'=>array('Subtesting'=>array('discriminator-value'=>'subtesting','props'=>array())),'discriminator'=>'type', 'discriminator-value'=>'superclass', 'props' => array('id' => array('id', 'int', array('pk' => true)))))));
+		$this->assertThat($config->getEntity('Subtesting'), $this->isInstanceOf('OutletEntityConfig'));
+	}
+	
 	public function testGettingEntityConfigByObject() {
 		$config = $this->_createConfig();
 		$this->assertThat($config->getEntity(new ConfigEntity()), $this->isInstanceOf('OutletEntityConfig'));

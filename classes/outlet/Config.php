@@ -66,10 +66,18 @@ class OutletConfig {
 		if (is_null($this->entities)) {
 			$this->entities = array();
 			foreach ($this->conf['classes'] as $key=>$cls) {
-				$this->entities[$key] = new OutletEntityConfig($this, $key, $cls);
+				$this->addEntity(new OutletEntityConfig($this, $key, $cls));
 			}
 		}
 		return $this->entities;
+	}
+	
+	/**
+	 * Adds an entity config
+	 * @param OutletEntityConfig $entityConfig
+	 */
+	function addEntity(OutletEntityConfig $entityConfig) {
+		$this->entities[$entityConfig->getClass()] = $entityConfig;
 	}
 
 	/**
@@ -110,11 +118,23 @@ class OutletEntityConfig {
 	private $sequenceName = '';
 
 	private $useGettersAndSetters;
+	private $discriminator=null;
+	private $discriminatorValue='';
+	/**
+	 * @var OutletEntityConfig
+	 */
+	private $superConfig = null;
+	private $isSubclass=false;
+	private $allprops;
+	private $subclasses;
 
-	function __construct (OutletConfig $config, $entity, array $conf) {
+	function __construct (OutletConfig $config, $entity, array $conf, OutletEntityConfig $superConfig = null) {
 //		$this->config = $config;
-
-		if (!isset($conf['table']))
+		if($superConfig !== null) {
+			$this->superConfig = $superConfig;
+			$this->isSubclass = true;
+		}
+		if (!$this->isSubclass && !isset($conf['table']))
 			throw new OutletConfigException('Mapping for entity ['.$entity.'] is missing element [table]');
 		if (!isset($conf['props']))
 			throw new OutletConfigException('Mapping for entity ['.$entity.'] is missing element [props]');
@@ -124,21 +144,79 @@ class OutletEntityConfig {
 
 		// validate that there's a pk
 		$this->props = array();
+		$this->allprops = array();
+		$this->subclasses = array();
 		$this->pks = array();
 		foreach ($conf['props'] as $propName => $propConf) {
 			$propConf = new OutletPropertyConfig($propName, $propConf);
 			$this->props[$propName] = $propConf;
-			if ($propConf->isPK()) $this->pks[$propName] = $propConf;
+			$this->allprops[$propName] = $propConf;
+			if($superConfig!==null) {
+				$superConfig->allprops[$propName] = $propConf;
+			}
+			if (!$this->isSubclass && $propConf->isPK()) $this->pks[$propName] = $propConf;
 		}
-		if (count($this->pks) == 0) throw new OutletConfigException("Entity [$entity] must have at least one column defined as a primary key in the configuration");
-
+		if (!$this->isSubclass && count($this->pks) == 0) throw new OutletConfigException("Entity [$entity] must have at least one column defined as a primary key in the configuration");
+		if($this->isSubclass) {
+			foreach($this->superConfig->getProperties() as $prop) {
+				$this->props[$prop->getName()] = $prop;
+				$this->allprops[$prop->getName()] = $prop;
+			}
+		}
+		
+		if($this->isSubclass) {
+			$this->pks =  $this->superConfig->getPkProperties();
+			$this->table = $this->superConfig->getTable();
+			$this->discriminator = $this->superConfig->getDiscriminator();
+			$this->discriminatorValue = $conf['discriminator-value'];
+		} else {
+			$this->table = $conf['table'];
+		}
 		// save basic data
-		$this->table = $conf['table'];
 		$this->clazz = $entity;
 //		$this->props = $conf['props'];
 		$this->sequenceName = isset($conf['sequenceName']) ? $conf['sequenceName'] : '';
-
 		$this->useGettersAndSetters = isset($conf['useGettersAndSetters']) ? $conf['useGettersAndSetters'] : $config->useGettersAndSetters();
+		
+		if(isset($conf['subclasses'])) {
+			if(!isset($conf['discriminator'])) {
+				throw new OutletConfigException('Mapping for entity ['.$key.'] is specifying subclasses but it is missing element [discriminator]');
+			}
+			if(!isset($conf['discriminator-value'])) {
+				throw new OutletConfigException('Mapping for entity ['.$key.'] is specifying subclasses but it is missing element [discriminator-value]');
+			}
+			$this->discriminator = new OutletPropertyConfig('discriminator',$conf['discriminator']);
+			$this->discriminatorValue = $conf['discriminator-value'];
+			$this->allprops[$this->discriminator->getName()]=$this->discriminator;
+			
+			foreach($conf['subclasses'] as $className => $classConf) {
+				if(!isset($classConf['discriminator-value'])) {
+					throw new OutletConfigException('Mapping for entity ['.$className.'] is specifying subclasses but it is missing element [discriminator-value]');
+				}
+				$subentity = new OutletEntityConfig($config, $className, $classConf, $this);
+				$this->subclasses[$subentity->getDiscriminatorValue()]=$subentity;
+				$config->addEntity($subentity);
+			}
+		}
+	}
+	
+	function getAllProperties() {
+		return $this->allprops;
+	}
+	
+	function getSubclassConfByDiscriminator($discriminator) {
+		if($discriminator==$this->discriminatorValue) {
+			return $this;
+		}
+		return $this->subclasses[$discriminator];
+	}
+	
+	function getDiscriminatorValue() {
+		return $this->discriminatorValue;
+	}
+	
+	function getDiscriminator() {
+		return $this->discriminator;
 	}
 
 	function getClass () {
@@ -154,13 +232,13 @@ class OutletEntityConfig {
 	}
 
 	function getProperty($prop, $throwsException = true) {
-		if (!isset($this->props[$prop])) {
+		if (!isset($this->allprops[$prop])) {
 			if ($throwsException)
 				throw new OutletConfigException("Property [{$this->clazz}.{$prop}] not found in configuration");
 			else
 				return null;
 		}
-		return $this->props[$prop];
+		return $this->allprops[$prop];
 	}
 
 	function getPkProperties () {

@@ -40,7 +40,7 @@ class OutletHydrator {
 
 		// get properties aliases
 		$this->propertiesAliases = array();
-		foreach (array_keys($this->config->getEntity($this->from)->getProperties()) as $prop) {
+		foreach (array_keys($this->config->getEntity($this->from)->getAllProperties()) as $prop) {
 			// by default all properties should be converted to lower case when querying on repository
 			// since postgresql does it as well
 			$this->propertiesAliases[strtolower($prop)] = $prop;
