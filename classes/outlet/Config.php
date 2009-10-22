@@ -199,7 +199,18 @@ class OutletEntityConfig {
 			}
 		}
 	}
-	
+
+	/**
+	 * Gets the upper most class name
+	 * @return string
+	 */
+	function getSuperClass() {
+		if($this->isSubclass) {
+			return $this->superConfig->getClass();
+		}
+		return $this->getClass();
+	}
+
 	function getAllProperties() {
 		return $this->allprops;
 	}

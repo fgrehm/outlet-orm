@@ -76,6 +76,12 @@ class Unit_SubclassEntityConfigTest extends OutletTestCase {
 	public function testGetPropertyShouldIncludeSubclassesProperties() {
 		$superClass = $this->_createConfig('table', array('test' => array('test_col', 'int', array('pk'=>true))), array('Subclass'=>array('discriminator-value'=>'subclass', 'props'=>array('subclassProp'=>array('subclassProp_col', 'int')))), array('type','varchar'), 'superclass');
 		$this->assertNotNull($superClass->getProperty("subclassProp"));
+  	}
+
+	public function testGetUpperMostClassName() {
+		$superClass = $this->_createConfig('table', array('test' => array('test_col', 'int', array('pk'=>true))), array('Subclass'=>array('discriminator-value'=>'subclass', 'props'=>array('subclassProp'=>array('subclassProp_col', 'int')))), array('type','varchar'), 'superclass');
+		$en = $this->config->getEntity("Subclass");
+		$this->assertEquals($superClass->getClass(), $en->getSuperClass());
 	}
 	
 	protected function _createConfig($tableName = null, $properties = null, $subclasses = null, $discriminator = null, $discriminatorValue) {
