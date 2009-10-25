@@ -1,12 +1,27 @@
 <?php
-
+/**
+ * @package outlet
+ */
 class NestedSetBrowser {
+	/**
+	 * @var Outlet
+	 */
+	protected $outlet;
+	
 	protected $cls;
 	protected $left;
 	protected $right;
 	protected $qualifiers;
 	
-	public function __construct ($cls, $qualifiers = array(), $left='Left', $right='Right') {
+	/**
+	 * @param Outlet $outlet Instance of outlet
+	 * @param string $cls Entity class in which the hierarchy is stored
+	 * @param array $qualifiers Properties of the entity that determine which tree to look for children
+	 * @param string $left Name of class property that represents the left value
+	 * @param string $right Name of class property that represents the right value
+	 */
+	public function __construct (Outlet $outlet, $cls, $qualifiers = array(), $left='Left', $right='Right') {
+		$this->outlet = $outlet;
 		$this->cls = $cls;
 		$this->qualifiers = $qualifiers;
 		$this->left = $left;
@@ -15,7 +30,7 @@ class NestedSetBrowser {
 	
 	public function appendChild ($parent, $node) {
 		// begin transaction
-		$outlet = Outlet::getInstance();
+		$outlet = $this->outlet;
 		$con = $outlet->getConnection();
 		$con->beginTransaction();
 		
@@ -62,7 +77,7 @@ class NestedSetBrowser {
 	}
 	
 	public function getChildren ($obj) {
-		$outlet = Outlet::getInstance();
+		$outlet = $this->outlet;
 		
 		$cls = $this->cls;
 		$left = $this->left;
