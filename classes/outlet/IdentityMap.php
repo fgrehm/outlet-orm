@@ -24,7 +24,7 @@ class OutletIdentityMap {
 		$key = $this->getKey($obj);
 
 		if (!isset($this->map[$key])) $this->map[$key] = array();
-		
+
 		$pks = $mapper->getPKs($obj);
 
 		$this->map[$key][join(';', $pks)] = $obj;
@@ -34,18 +34,18 @@ class OutletIdentityMap {
 		if (is_array($pk)) {
 			// TODO: create a hash method for reusing
 			$pk = join(';', $pk);
-    	}
-    	$key = $this->getKey($class);
+		}
+		$key = $this->getKey($class);
 		return $this->map[$key][$pk];
 	}
 
 	public function remove($obj) {
 		$class = $this->config->getEntity($obj)->getClass();
 		$mapper = $this->session->getMapperFor($class);
-    
-    	$key = $this->getKey($class);
 
-    	if (!isset($this->map[$key])) $this->map[$key] = array();
+		$key = $this->getKey($class);
+
+		if (!isset($this->map[$key])) $this->map[$key] = array();
 
 		unset($this->map[$key][join(';', $mapper->getPKs($obj))]);
 	}
