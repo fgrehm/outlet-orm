@@ -35,6 +35,27 @@ class Bug {
 	}
 }
 
+class TechnicalBug extends Bug {
+	private $errorcode;
+	
+	public function getErrorCode() {
+		return $this->errorcode;
+	}
+	public function setErrorCode($errorcode) {
+		$this->errorcode = $errorcode;
+	}
+}
+
+class FunctionalBug extends Bug {
+	private $steps;
+	
+	public function getSteps() {
+		return $this->steps;
+	}
+	public function setSteps($steps) {
+		$this->steps = $steps;
+	}	
+}
 class Composite {
 	private $pk;
 	private $otherPK;

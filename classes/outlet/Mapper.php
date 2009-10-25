@@ -31,8 +31,8 @@ abstract class OutletMapper {
 
 	public function set($entity, $property, $value = null) {
 		if (is_array($property)) {
-			foreach ($property as $key => $value) {
-				$this->set($entity, $key, $value);
+			foreach ($this->entityConfig->getProperties() as $prop) {
+				$this->set($entity, $prop->getName(), $property[$prop->getName()]);
 			}
 		} else {
 			$value = $this->toPhpValue($value, $this->entityConfig->getProperty($property)->getType());

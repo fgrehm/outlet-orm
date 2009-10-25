@@ -31,6 +31,24 @@ class Unit_IdentityMapTest extends OutletTestCase {
 		$this->assertNull($this->identityMap->get('IdentityEntity1', 1));
 	}
 
+	public function testSubclassIsRegisteredAsSuper() {
+		$sub = new SubEntity_OutletProxy();
+		$sub->id = 2;
+		$this->identityMap->register($sub);
+		$this->assertSame($sub, $this->identityMap->get('SuperEntity', 2));
+		$this->assertSame($sub, $this->identityMap->get('SubEntity', 2));
+	}
+
+	public function testRegisteresSuclassCanBeRemoved() {
+		$sub = new SubEntity_OutletProxy();
+		$sub->id = 2;
+
+		$this->identityMap->register($sub);
+		$this->identityMap->remove($sub);
+
+		$this->assertNull($this->identityMap->get('SubEntity', 2));
+	}
+
 	public function setUp() {
 		$config = array(
 			'IdentityEntity1' => array(
@@ -40,9 +58,23 @@ class Unit_IdentityMapTest extends OutletTestCase {
 			'IdentityEntity2' => array(
 				'table' => 'testing',
 				'props' => array('id' => array('id', 'int', array('pk' => true)))
+			),
+      		'SuperEntity' => array(
+        		'table' => 'testing',
+        		'props' => array('id' => array('id', 'int', array('pk' => true))),
+        		'discriminator' => array('type', 'int'),
+        		'discriminator-value' => 'super',
+        		'subclasses' => array(
+          			'SubEntity' => array(
+            			'discriminator-value' => 'sub',
+            			'props' => array(
+              				'foo' => array('bar', 'int')
+						)
+					)
+				)
 			)
 		);
-		
+
 		$this->identityMap = $this->openSession($config)->getIdentityMap();
 	}
 }
@@ -52,5 +84,13 @@ class IdentityEntity1_OutletProxy implements OutletProxy {
 }
 
 class IdentityEntity2_OutletProxy implements OutletProxy {
+	public $id;
+}
+
+class SuperEntity_OutletProxy implements OutletProxy {
+	public $id;
+}
+
+class SubEntity_OutletProxy implements OutletProxy {
 	public $id;
 }
