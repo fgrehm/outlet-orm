@@ -66,7 +66,7 @@ class OutletUnitOfWork {
 		}
 	}
 
-	public function commit() {				
+	public function commit() {
 		// FIXME: Database transaction
 		foreach ($this->insertOrders as &$obj) {			
 			$this->repository->add($obj);
@@ -88,9 +88,10 @@ class OutletUnitOfWork {
 
 	public function createEntity($class, $data) {		
 		$config = $this->config->getEntity($class);
-		if($config->getDiscriminator()!==null) {
-			$discriminatorValue = $data[$config->getDiscriminator()->getName()];
-			if($discriminatorValue!==null) {
+		if ($config->getDiscriminator() !== null) {
+			$discriminatorName = $config->getDiscriminator()->getName();
+			$discriminatorValue = isset($data[$discriminatorName]) ? $data[$discriminatorName] : null;
+			if ($discriminatorValue !== null) {
 				$class = $config->getSubclassConfByDiscriminator($discriminatorValue)->getClass();				
 			}
 		}

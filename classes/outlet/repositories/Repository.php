@@ -1,6 +1,8 @@
 <?php
 
 abstract class OutletRepository {
+	protected $uow;
+
 	protected function toSqlValue($value, $type) {
 		if (is_null($value)) return NULL;
 

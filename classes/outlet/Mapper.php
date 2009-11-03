@@ -25,14 +25,19 @@ abstract class OutletMapper {
 		}
 	}
 
+	protected function getPropertiesNames() {
+		return array_keys($this->entityConfig->getProperties());
+	}
+
 	public function __construct(OutletEntityConfig $config) {
 		$this->entityConfig = $config;
 	}
 
 	public function set($entity, $property, $value = null) {
 		if (is_array($property)) {
-			foreach ($property as $propName => $propValue) {
-				$this->set($entity, $propName, $propValue);
+			foreach ($this->getPropertiesNames() as $propName) {
+				if (!isset($property[$propName])) continue;
+				$this->set($entity, $propName, $property[$propName]);
 			}
 		} else {
 			$value = $this->toPhpValue($value, $this->entityConfig->getProperty($property)->getType());
