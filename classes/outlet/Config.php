@@ -180,10 +180,10 @@ class OutletEntityConfig {
 		
 		if(isset($conf['subclasses'])) {
 			if(!isset($conf['discriminator'])) {
-				throw new OutletConfigException('Mapping for entity ['.$key.'] is specifying subclasses but it is missing element [discriminator]');
+				throw new OutletConfigException('Mapping for entity ['.$entity.'] is specifying subclasses but it is missing element [discriminator]');
 			}
 			if(!isset($conf['discriminator-value'])) {
-				throw new OutletConfigException('Mapping for entity ['.$key.'] is specifying subclasses but it is missing element [discriminator-value]');
+				throw new OutletConfigException('Mapping for entity ['.$entity.'] is specifying subclasses but it is missing element [discriminator-value]');
 			}
 			$this->discriminator = new OutletPropertyConfig('discriminator',$conf['discriminator']);
 			$this->discriminatorValue = $conf['discriminator-value'];

@@ -50,7 +50,7 @@ class Unit_EntityConfigTest extends OutletTestCase {
 		$config = $this->_createConfig('table', array('test' => array('test', 'int', array('pk' => true))));
 
 		try {
-			$this->assertEquals($propConf1, $config->getProperty('test2'));
+			$config->getProperty('test2');
 			$this->fail("should've raised an exception");
 		} catch (OutletConfigException $ex) {$this->assertTrue(true);}
 	}
@@ -74,7 +74,7 @@ class Unit_EntityConfigTest extends OutletTestCase {
 		$this->assertEquals(1, count($pks));
 	}
 	
-	protected function _createConfig($tableName = null, $properties = null, $subclasses = null, $discriminator = null, $discriminatorValue) {
+	protected function _createConfig($tableName = null, $properties = null, $subclasses = null, $discriminator = null, $discriminatorValue = null) {
 		$config = array(
 			'connection' => array(
 				'pdo' => $this->getSQLiteInMemoryPDOConnection(),

@@ -4,12 +4,13 @@ class OutletSession {
 	private $identityMap;
 	private $config;
 	private $mappersCache = array();
-	private $uow;
-	private $autoFlush;
+	private $uow = null;
+	private $autoFlush = true;
+        private $repository = null;
+        private $queryParser = null;
 
 	public function __construct(OutletConfig $config) {
 		$this->config = $config;
-		$this->autoFlush = true;
 		if ($config->autoloadProxies)
 			$this->autoloader = new OutletProxyAutoloader($config);
 	}

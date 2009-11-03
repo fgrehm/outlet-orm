@@ -27,8 +27,7 @@ class Unit_HydratorTest extends OutletTestCase {
 				'props' => array(
 					'id' => array('id', 'int', array('pk' => true)),
 					'property' => array('prop', 'varchar')
-				),
-				'useGettersAndSetters' => $this->useGettersAndSetters
+				)
 			)
 		);
 		$this->hydrator = new OutletHydrator($this->openSession($classes));

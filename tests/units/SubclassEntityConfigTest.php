@@ -84,7 +84,7 @@ class Unit_SubclassEntityConfigTest extends OutletTestCase {
 		$this->assertEquals($superClass->getClass(), $en->getSuperClass());
 	}
 	
-	protected function _createConfig($tableName = null, $properties = null, $subclasses = null, $discriminator = null, $discriminatorValue) {
+	protected function _createConfig($tableName = null, $properties = null, $subclasses = null, $discriminator = null, $discriminatorValue = null) {
 		$config = array(
 			'connection' => array(
 				'pdo' => $this->getSQLiteInMemoryPDOConnection(),

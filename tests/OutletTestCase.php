@@ -1,10 +1,7 @@
 <?php
-error_reporting(E_STRICT);
-date_default_timezone_set("America/Sao_Paulo");
 
 abstract class OutletTestCase extends PHPUnit_Framework_TestCase {
 	protected function getSQLiteInMemoryDSN() {
-//		return 'sqlite:'.realpath(dirname(__FILE__)).'/test-db.sqlite';
 		return 'sqlite::memory:';
 	}
 

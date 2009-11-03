@@ -36,7 +36,9 @@ class OutletIdentityMap {
 			$pk = join(';', $pk);
 		}
 		$key = $this->getKey($class);
-		return $this->map[$key][$pk];
+                if (!isset($this->map[$key])) $this->map[$key] = array();
+
+                return isset($this->map[$key][$pk]) ? $this->map[$key][$pk] : null;
 	}
 
 	public function remove($obj) {
