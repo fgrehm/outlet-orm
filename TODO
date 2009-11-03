@@ -7,12 +7,6 @@
 
 - DB transaction for UoW
 
-- Backwards compatibility (?) -> modifying Outlet::getInstance() to return a
-  session that automatically flushes after executing an operation might do the job
-
-- UoW#attach and UoW#getOriginalValues need to check PHP version and use another
-  approach for object hashing, spl_object_hash does not work for PHP < 5.2
-
 - Hydrator and ProxyGenerator needs to handle associations
 
 - "Cascade" changes to identity map and entitiy original values cache (UoW)
@@ -47,3 +41,5 @@
  - Embedded values
 
  - Schema creation based on config running from command line
+
+ - Support for private properties (php5.3 allows for that)
