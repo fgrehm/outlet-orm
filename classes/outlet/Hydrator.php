@@ -5,7 +5,7 @@ namespace outlet;
 use \OutletSession as OutletSession;
 
 class Hydrator {
-	public function  __construct(OutletSession $session) {
+	public function  __construct(Session $session) {
 		$this->session = $session;
 		$this->config = $session->getConfig();
 		$this->uow = $session->getUnitOfWork();

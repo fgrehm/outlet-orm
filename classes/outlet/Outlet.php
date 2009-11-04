@@ -18,8 +18,8 @@ require_once $root.'repositories/Repository.php';
 class Outlet {
 	public static $configs = array();
 
-	public static function createProxies(OutletConfig $config) {
-		$gen = new outlet\ProxyGenerator($config);
+	public static function createProxies(\OutletConfig $config) {
+		$gen = new ProxyGenerator($config);
 		eval($gen->generate());
 	}
 
@@ -32,13 +32,13 @@ class Outlet {
 	/**
 	 *
 	 * @param mixed $config
-	 * @return OutletSession
+	 * @return outlet\Session
 	 */
 	public static function openSession($config = 'default') {
 		if ($config instanceof \OutletConfig)
-			return new \OutletSession($config);
+			return new Session($config);
 		else
-			return new \OutletSession(self::$configs[$config]);
+			return new Session(self::$configs[$config]);
 	}
 }
 

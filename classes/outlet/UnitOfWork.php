@@ -1,7 +1,6 @@
 <?php
 
 namespace outlet;
-use \OutletSession as Session;
 use \OutletRepository as Repository;
 
 class UnitOfWork {

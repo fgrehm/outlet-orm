@@ -1,16 +1,19 @@
 <?php
 
-use outlet\Hydrator;
-use outlet\IdentityMap;
-use outlet\ProxyAutoloader;
-use outlet\QueryParser;
-use outlet\Query;
-use outlet\UnitOfWork;
-use outlet\GettersAndSettersMapper;
-use outlet\Mapper;
-use outlet\PropertiesMapper;
+namespace outlet;
+//use outlet\Hydrator;
+//use outlet\IdentityMap;
+//use outlet\ProxyAutoloader;
+//use outlet\QueryParser;
+//use outlet\Query;
+//use outlet\UnitOfWork;
+//use outlet\GettersAndSettersMapper;
+//use outlet\Mapper;
+//use outlet\PropertiesMapper;
+use \OutletConfig as OutletConfig;
+use \OutletRepository as OutletRepository;
 
-class OutletSession {
+class Session {
 	private $identityMap;
 	private $config;
 	private $mappersCache = array();

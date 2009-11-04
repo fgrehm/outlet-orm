@@ -1,6 +1,7 @@
 <?php
 
 use outlet\Query;
+use outlet\Session;
 
 abstract class OutletRepository {
 	protected $uow;
@@ -41,7 +42,7 @@ abstract class OutletRepository {
 		return $this->uow;
 	}
 
-	public function  __construct(OutletSession $session) {
+	public function  __construct(Session $session) {
 		$this->session = $session;
 		$this->connection = $session->getConnection();
 		$this->config = $session->getConfig();
