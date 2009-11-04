@@ -3,20 +3,27 @@
 use outlet\QueryParser;
 
 class Unit_QueryParserTest extends OutletTestCase {
-	public function testParsingPlainSql() {
+	public function testParsingDoesNotAffectPlainSql() {
 		$sql = 'SELECT testing.name FROM testing WHERE id = 1';
 
 		$this->assertEquals($sql, $this->parser->parse($sql));
 	}
 
-	public function testParsingSelectOneTable() {
-		$outletQuery = 'SELECT {QueryParserEntity.id}, {QueryParserEntity.name}, entity.colname3 FROM {QueryParserEntity} WHERE {QueryParserEntity.id} = ?';
+	public function testParsingEntityClass() {
+		$outletQuery = 'SELECT entity.colname1, entity.colname2, entity.colname3 FROM {QueryParserEntity} WHERE {QueryParserEntity.id} = ?';
 		$expectedSql = 'SELECT entity.colname1, entity.colname2, entity.colname3 FROM entity WHERE entity.colname1 = ?';
 
 		$this->assertEquals($expectedSql, $this->parser->parse($outletQuery));
 	}
 
-	public function testParsingSelectOneTableAliased() {
+	public function testParsingProperties() {
+		$outletQuery = 'SELECT {QueryParserEntity.id}, {QueryParserEntity.name}, entity.colname3 FROM entity WHERE {QueryParserEntity.id} = ?';
+		$expectedSql = 'SELECT entity.colname1, entity.colname2, entity.colname3 FROM entity WHERE entity.colname1 = ?';
+
+		$this->assertEquals($expectedSql, $this->parser->parse($outletQuery));
+	}
+
+	public function testParsingPropertiesAndEntityClassAliased() {
 		$outletQuery = 'SELECT {E.id}, {E.name}, entity.colname3 FROM {QueryParserEntity E} WHERE {E.id} = ?';
 		$expectedSql = 'SELECT E.colname1, E.colname2, entity.colname3 FROM entity E WHERE E.colname1 = ?';
 
@@ -37,9 +44,31 @@ class Unit_QueryParserTest extends OutletTestCase {
 		$this->assertEquals($expectedSql, $this->parser->parse($outletQuery));
 	}
 
-	public function setUp() {
+	public function testParsingEntityAlias() {
+		$parser = new QueryParser($this->_createConfig('application\model', 'EntityAlias'));
+
+		$outletQuery = 'SELECT {EntityAlias.id}, {EntityAlias.name}, entity.colname3 FROM {EntityAlias} WHERE {EntityAlias.id} = ?';
+		$expectedSql = 'SELECT entity.colname1, entity.colname2, entity.colname3 FROM entity WHERE entity.colname1 = ?';
+
+		$this->assertEquals($expectedSql, $parser->parse($outletQuery));
+	}
+
+	public function testParsingEntityAliasAliased() {
+		$parser = new QueryParser($this->_createConfig('application\model', 'EntityAlias'));
+
+		$outletQuery = 'SELECT {A.id}, {A.name}, entity.colname3 FROM {EntityAlias A} WHERE {A.id} = ?';
+		$expectedSql = 'SELECT A.colname1, A.colname2, entity.colname3 FROM entity A WHERE A.colname1 = ?';
+
+		$this->assertEquals($expectedSql, $parser->parse($outletQuery));
+	}
+
+	protected function _createConfig($namespace = '', $alias = null){
+		if ($namespace != '')
+			$namespace .= '\\';
+
 		$classes = array(
-			'QueryParserEntity' => array(
+			$namespace.'QueryParserEntity' => array(
+				'alias' => $alias,
 				'table' => 'entity',
 				'props' => array(
 					'id' => array('colname1', 'int', array('pk' => true)),
@@ -48,6 +77,10 @@ class Unit_QueryParserTest extends OutletTestCase {
 				)
 			)
 		);
-		$this->parser = new QueryParser($this->createConfig($classes));
+		return $this->createConfig($classes);
+	}
+
+	public function setUp() {
+		$this->parser = new QueryParser($this->_createConfig());
 	}
 }

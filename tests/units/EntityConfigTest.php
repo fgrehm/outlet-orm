@@ -78,8 +78,21 @@ class Unit_EntityConfigTest extends OutletTestCase {
 		$this->assertThat($pks, $this->isType('array'));
 		$this->assertEquals(1, count($pks));
 	}
+
+	public function testCanGetAlias() {
+		$alias = 'EntityAlias';
+		$config = $this->_createConfig('table', array('test' => array('test', 'int', array('pk' => true))), null, null, null, $alias);
+		$this->assertEquals('EntityAlias', $config->getAlias());
+	}
+
+	public function testAliasDefaultsToClassName() {
+		$config = $this->_createConfig('table', array('test' => array('test', 'int', array('pk' => true))));
+		$this->assertEquals($this->entityName, $config->getAlias());
+	}
 	
-	protected function _createConfig($tableName = null, $properties = null, $subclasses = null, $discriminator = null, $discriminatorValue = null) {
+	protected function _createConfig($tableName = null, $properties = null,
+				$subclasses = null, $discriminator = null,
+				$discriminatorValue = null, $alias = null) {
 		$config = array(
 			'connection' => array(
 				'pdo' => $this->getSQLiteInMemoryPDOConnection(),
@@ -99,6 +112,8 @@ class Unit_EntityConfigTest extends OutletTestCase {
 			$config['classes'][$this->entityName]['discriminator'] = $discriminator;
 		if ($discriminatorValue !== null)
 			$config['classes'][$this->entityName]['discriminator-value'] = $discriminatorValue;
+		if ($alias !== null)
+			$config['classes'][$this->entityName]['alias'] = $alias;
 		$config = new Config($config);
 		return $config->getEntity($this->entityName);
 	}

@@ -101,6 +101,11 @@ class Unit_ConfigTest extends OutletTestCase {
 		$this->assertThat($config->getEntity(new ConfigEntity_OutletProxy()), $this->isInstanceOf('outlet\EntityConfig'));
 	}
 
+	public function testGettingEntityConfigByAlias() {
+		$config = $this->_createConfig(null, null, null, null, 'EntityAlias');
+		$this->assertThat($config->getEntity('EntityAlias'), $this->isInstanceOf('outlet\EntityConfig'));
+	}
+
 	public function testProxyAutoloadingDefaultsToDisabled() {
 		$config = $this->_createConfig();
 
@@ -124,7 +129,8 @@ class Unit_ConfigTest extends OutletTestCase {
 	protected function _createConfig($globalGettersAndSetters = null,
 					$entityGettersAndSetters = null,
 					$proxyAutoloading = null,
-					$proxiesCache = null) {
+					$proxiesCache = null,
+					$alias = null) {
 		$config = array(
 			'connection' => array(
 				'pdo' => $this->getSQLiteInMemoryPDOConnection(),
@@ -133,6 +139,7 @@ class Unit_ConfigTest extends OutletTestCase {
 			'classes' => array(
 				'ConfigEntity' => array(
 					'table' => 'testing',
+					'alias' => $alias,
 					'props' => array('id' => array('id', 'int', array('pk' => true)))
 				)
 			)

@@ -86,8 +86,16 @@ class Unit_SubclassEntityConfigTest extends OutletTestCase {
 		$en = $this->config->getEntity("Subclass");
 		$this->assertEquals($superClass->getClass(), $en->getSuperClass());
 	}
+
+	public function testGetSubclassAlias() {
+		$superClass = $this->_createConfig('table', array('test' => array('test_col', 'int', array('pk'=>true))), array('Subclass'=>array('alias' => 'SubclassAlias','discriminator-value'=>'subclass', 'props'=>array('subclassProp'=>array('subclassProp_col', 'int')))), array('type','varchar'), 'superclass');
+		$en = $this->config->getEntity("SubclassAlias");
+		$this->assertEquals($superClass->getClass(), $en->getSuperClass());
+	}
 	
-	protected function _createConfig($tableName = null, $properties = null, $subclasses = null, $discriminator = null, $discriminatorValue = null) {
+	protected function _createConfig($tableName = null, $properties = null,
+				$subclasses = null, $discriminator = null,
+				$discriminatorValue = null) {
 		$config = array(
 			'connection' => array(
 				'pdo' => $this->getSQLiteInMemoryPDOConnection(),
