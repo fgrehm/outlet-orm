@@ -153,7 +153,7 @@ class Unit_UnitOfWorkTest extends OutletTestCase {
 		);
 		$session = $this->openSession($classes);
 		$this->uow = $session->getUnitOfWork();
-		$this->repositoryMock = $this->getMock('OutletRepository', array(), array($session));
+		$this->repositoryMock = $this->getMock('outlet\Repository', array(), array($session));
 		$this->uow->setRepository($this->repositoryMock);
 	}
 }

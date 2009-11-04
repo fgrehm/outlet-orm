@@ -11,7 +11,6 @@ namespace outlet;
 //use outlet\Mapper;
 //use outlet\PropertiesMapper;
 use \OutletConfig as OutletConfig;
-use \OutletRepository as OutletRepository;
 
 class Session {
 	private $identityMap;
@@ -80,7 +79,7 @@ class Session {
 
 	public function getRepository() {
 		if ($this->repository == null) 
-			$this->repository = OutletRepository::getRepository($this);
+			$this->repository = Repository::getRepository($this);
 		return $this->repository;
 	}
 

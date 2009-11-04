@@ -2,8 +2,6 @@
 
 namespace outlet;
 
-use \OutletSession as OutletSession;
-
 class Hydrator {
 	public function  __construct(Session $session) {
 		$this->session = $session;

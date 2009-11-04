@@ -1,7 +1,6 @@
 <?php
 
 namespace outlet;
-use \OutletRepository as Repository;
 
 class UnitOfWork {
 	private $insertOrders = array();

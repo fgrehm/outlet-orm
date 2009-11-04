@@ -1,5 +1,7 @@
 <?php
 
-class OutletRepositorySQLite extends OutletRepository {
+namespace outlet;
+
+class RepositorySQLite extends Repository {
 	
 }

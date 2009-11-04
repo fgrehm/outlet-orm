@@ -1,5 +1,7 @@
 <?php
 
-class OutletRepositoryMySQL extends OutletRepository {
+namespace outlet;
+
+class RepositoryMySQL extends Repository {
 	
 }

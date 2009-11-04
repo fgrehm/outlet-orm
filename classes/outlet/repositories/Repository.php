@@ -1,9 +1,8 @@
 <?php
 
-use outlet\Query;
-use outlet\Session;
+namespace outlet;
 
-abstract class OutletRepository {
+abstract class Repository {
 	protected $uow;
 
 	protected function toSqlValue($value, $type) {
@@ -155,9 +154,9 @@ abstract class OutletRepository {
 	public static function getRepository($session) {
 		$dialect = $session->getConfig()->getDialect();
 		if ($dialect == 'sqlite') {
-			return new OutletRepositorySQLite($session);
+			return new RepositorySQLite($session);
 		} elseif ($dialect == 'mysql'){
-			return new OutletRepositoryMySQL($session);
+			return new RepositoryMySQL($session);
 		} else {
 			throw new OutletException("Dialect [$dialect] not supported");
 		}
