@@ -1,6 +1,7 @@
 <?php
 
 use outlet\Proxy;
+use outlet\ProxyAutoloader;
 
 class Integration_ProxyAutoloaderTest extends OutletTestCase {
 	protected $entityToCacheProxyPath;
@@ -26,7 +27,7 @@ class Integration_ProxyAutoloaderTest extends OutletTestCase {
 	}
 
 	public function testGenerateProxiesOnDemand() {
-		$this->autoloader = new OutletProxyAutoloader($this->_createConfig());
+		$this->autoloader = new ProxyAutoloader($this->_createConfig());
 
 		$proxy = 'OnDemandEntity_OutletProxy';
 		$this->assertTrue(class_exists($proxy));
@@ -37,21 +38,21 @@ class Integration_ProxyAutoloaderTest extends OutletTestCase {
 	}
 
 	public function testDisabled() {
-		$this->autoloader = new OutletProxyAutoloader($this->_createConfig(false));
+		$this->autoloader = new ProxyAutoloader($this->_createConfig(false));
 
 		$proxy = 'DisabledEntity_OutletProxy';
 		$this->assertFalse(class_exists($proxy));
 	}
 
 	public function testGeneratesProxyOnlyForMappedEntities() {
-		$this->autoloader = new OutletProxyAutoloader($this->_createConfig());
+		$this->autoloader = new ProxyAutoloader($this->_createConfig());
 
 		$proxy = 'UnmappedEntity_OutletProxy';
 		$this->assertFalse(class_exists($proxy), 'Generated proxy for unmapped entity');
 	}
 
 	public function testLoadsProxyFromCache() {
-		$this->autoloader = new OutletProxyAutoloader($this->_createConfig(true, $this->root));
+		$this->autoloader = new ProxyAutoloader($this->_createConfig(true, $this->root));
 
 		$proxy = 'CachedEntity_OutletProxy';
 		$this->assertTrue(class_exists($proxy));
@@ -64,7 +65,7 @@ class Integration_ProxyAutoloaderTest extends OutletTestCase {
 	}
 
 	public function testCreatesProxyCache() {
-		$this->autoloader = new OutletProxyAutoloader($this->_createConfig(true, $this->root));
+		$this->autoloader = new ProxyAutoloader($this->_createConfig(true, $this->root));
 
 		$proxy = 'EntityToCache_OutletProxy';
 		$this->assertTrue(class_exists($proxy));

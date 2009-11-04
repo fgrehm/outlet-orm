@@ -1,14 +1,14 @@
 <?php
 
-use outlet\OutletException;
-use outlet\ProxyGenerator;
-use outlet\Proxy;
+namespace outlet;
 
-class OutletProxyAutoloader {
+use \OutletConfig as Config;
+
+class ProxyAutoloader {
         protected $config;
 	protected $proxyGenerator;
 
-        public function __construct(OutletConfig $config) {
+        public function __construct(Config $config) {
                 if ($config == null) throw new OutletException('Config cannot be null');
 
                 if (!$config->autoloadProxies) return;

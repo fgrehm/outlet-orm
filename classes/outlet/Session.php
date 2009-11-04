@@ -1,5 +1,6 @@
 <?php
 
+use outlet\ProxyAutoloader;
 use outlet\QueryParser;
 use outlet\Query;
 use outlet\UnitOfWork;
@@ -16,7 +17,7 @@ class OutletSession {
 	public function __construct(OutletConfig $config) {
 		$this->config = $config;
 		if ($config->autoloadProxies)
-			$this->autoloader = new OutletProxyAutoloader($config);
+			$this->autoloader = new ProxyAutoloader($config);
 	}
 
 	public function setAutoFlush($autoFlush) {
