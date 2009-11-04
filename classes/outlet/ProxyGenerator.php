@@ -1,9 +1,11 @@
 <?php
 
-class OutletProxyGenerator {
+namespace outlet;
+
+class ProxyGenerator {
 	private $config;
 
-	function __construct(OutletConfig $config) {
+	function __construct(\OutletConfig $config) {
 		$this->config = $config;
 	}
 

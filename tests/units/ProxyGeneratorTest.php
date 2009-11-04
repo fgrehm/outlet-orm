@@ -1,5 +1,7 @@
 <?php
 
+use outlet\ProxyGenerator;
+
 class Unit_ProxyGeneratorTest extends OutletTestCase {
 	public function testGenerateProxyForSimpleEntity() {
 		$expected = "class ProxyTest_OutletProxy extends ProxyTest implements OutletProxy {}\n";
@@ -35,6 +37,6 @@ class Unit_ProxyGeneratorTest extends OutletTestCase {
 		);
 
 		$this->config = new OutletConfig($config);
-		$this->generator = new OutletProxyGenerator($this->config);
+		$this->generator = new ProxyGenerator($this->config);
 	}
 }

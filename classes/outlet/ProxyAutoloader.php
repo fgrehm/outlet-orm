@@ -1,5 +1,7 @@
 <?php
 
+use outlet\ProxyGenerator;
+
 class OutletProxyAutoloader {
         protected $config;
 	protected $proxyGenerator;
@@ -10,7 +12,7 @@ class OutletProxyAutoloader {
                 if (!$config->autoloadProxies) return;
 	
 		$this->config = $config;
-		$this->proxyGenerator = new OutletProxyGenerator($config);
+		$this->proxyGenerator = new ProxyGenerator($config);
 		$this->register();
         }
 
