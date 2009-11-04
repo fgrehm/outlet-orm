@@ -6,6 +6,9 @@ use outlet\ProxyAutoloader;
 use outlet\QueryParser;
 use outlet\Query;
 use outlet\UnitOfWork;
+use outlet\GettersAndSettersMapper;
+use outlet\Mapper;
+use outlet\PropertiesMapper;
 
 class OutletSession {
 	private $identityMap;
@@ -46,9 +49,9 @@ class OutletSession {
 		if (isset($this->mappersCache[$class])) return $this->mappersCache[$class];
 
 		if ($config->useGettersAndSetters())
-			$mapper = new OutletGettersAndSettersMapper($config);
+			$mapper = new GettersAndSettersMapper($config);
 		else
-			$mapper = new OutletPropertiesMapper($config);
+			$mapper = new PropertiesMapper($config);
 		$this->mappersCache[$class] = $mapper;
 		return $mapper;
 	}

@@ -1,6 +1,10 @@
 <?php
 
-abstract class OutletMapper {	
+namespace outlet;
+
+use \OutletEntityConfig as OutletEntityConfig;
+
+abstract class Mapper {	
 	/**
 	 *
 	 * @var OutletEntityConfig
@@ -13,8 +17,8 @@ abstract class OutletMapper {
 		switch ($type) {
 			case 'date':
 			case 'datetime':
-				if ($value instanceof DateTime) return $value;
-				return new DateTime($value);
+				if ($value instanceof \DateTime) return $value;
+				return new \DateTime($value);
 
 			case 'int': return (int) $value;
 
@@ -86,7 +90,7 @@ abstract class OutletMapper {
 	protected abstract function _get($entity, $property);
 }
 
-class OutletPropertiesMapper extends OutletMapper {
+class PropertiesMapper extends Mapper {
 	protected function _set($entity, $property, $value) {
 		$entity->$property = $value;
 	}
@@ -95,7 +99,7 @@ class OutletPropertiesMapper extends OutletMapper {
 	}
 }
 
-class OutletGettersAndSettersMapper extends OutletMapper {
+class GettersAndSettersMapper extends Mapper {
 	protected function _set($entity, $property, $value) {
 		$entity->{"set$property"}($value);
 	}

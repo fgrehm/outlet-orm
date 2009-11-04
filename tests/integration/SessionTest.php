@@ -9,12 +9,12 @@ class Integration_SessionTest extends OutletTestCase {
 
 	public function testCanGetOutletPropertiesMapper() {
 		$mapper = $this->session->getMapperFor('Project');
-		$this->assertThat($mapper, $this->isInstanceOf('OutletPropertiesMapper'));
+		$this->assertThat($mapper, $this->isInstanceOf('outlet\PropertiesMapper'));
 	}
 
 	public function testCanGetOutletGettersAndSettersMapper() {
 		$mapper = $this->session->getMapperFor('Bug');
-		$this->assertThat($mapper, $this->isInstanceOf('OutletGettersAndSettersMapper'));
+		$this->assertThat($mapper, $this->isInstanceOf('outlet\GettersAndSettersMapper'));
 	}
 
 	public function testCacheMappers() {
