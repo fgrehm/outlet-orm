@@ -1,5 +1,7 @@
 <?php
 
+use outlet\Query;
+
 class OutletHydrator {
 	public function  __construct(OutletSession $session) {
 		$this->session = $session;
@@ -29,7 +31,7 @@ class OutletHydrator {
 		return $this->getEntity($this->fromAliased, $this->gatherRowData($rowData));
 	}
 
-	public function hydrateResult($result, OutletQuery $query) {
+	public function hydrateResult($result, Query $query) {
 		$this->query = $query;
 
 		// get the 'from'

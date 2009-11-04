@@ -1,8 +1,10 @@
 <?php
 
+use outlet\Query;
+
 class Unit_QueryTest extends OutletTestCase {
 	public function testFluentInterface() {
-		$query = new OutletQuery();
+		$query = new Query();
 
 		$result = $query->from('Entity')
 			->where('where')
@@ -16,6 +18,6 @@ class Unit_QueryTest extends OutletTestCase {
 			->having('having')
 			->select('select');
 
-		$this->assertThat($result, $this->isInstanceOf('OutletQuery'));
+		$this->assertThat($result, $this->isInstanceOf('outlet\Query'));
 	}
 }

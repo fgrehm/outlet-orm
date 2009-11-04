@@ -1,5 +1,7 @@
 <?php
 
+use outlet\Query;
+
 abstract class Integration_Repositories_RepositoryTestCase extends OutletTestCase {
 	protected $classes = array(
 			'Project' =>
@@ -104,7 +106,7 @@ abstract class Integration_Repositories_RepositoryTestCase extends OutletTestCas
 			new $class('other value', 1),
 			new $class('some other value', 4)
 		));
-		$query = new OutletQuery($class);
+		$query = new Query($class);
 		$proxy = $class.'_OutletProxy';
 		$expected = array(
 			new $proxy('value', 10),

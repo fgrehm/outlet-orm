@@ -1,6 +1,7 @@
 <?php
 
 use outlet\QueryParser;
+use outlet\Query;
 
 class OutletSession {
 	private $identityMap;
@@ -80,7 +81,7 @@ class OutletSession {
 	}
 
 	public function from($class) {
-		return new OutletQuery($class, $this);
+		return new Query($class, $this);
 	}
 
 	public function attach($obj) {

@@ -1,6 +1,8 @@
 <?php
 
-class OutletQuery {
+namespace outlet;
+
+class Query {
 	public $from;
 	private $with = array();
 	private $joins = array();

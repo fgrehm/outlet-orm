@@ -1,5 +1,7 @@
 <?php
 
+use outlet\Query;
+
 abstract class OutletRepository {
 	protected $uow;
 
@@ -48,7 +50,7 @@ abstract class OutletRepository {
 
 	public function get($class, $pk) {
 		$pkProps = array_keys($this->config->getEntity($class)->getPkProperties());
-		$query = new OutletQuery($class, $this->session);
+		$query = new Query($class, $this->session);
 
 		return $query->where("{{$class}.".join("} = ? AND {{$class}.", $pkProps).'} = ?', $pk)
 			->findOne();
@@ -125,7 +127,7 @@ abstract class OutletRepository {
 		return $this->execute($q, $values);
 	}
 
-	public function query(OutletQuery $query) {
+	public function query(Query $query) {
 		// get the 'from'
 		$tmp = explode(' ', $query->from);
 		$from = $tmp[0];

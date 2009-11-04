@@ -1,5 +1,7 @@
 <?php
 
+use outlet\Query;
+
 class Unit_HydratorTest extends OutletTestCase {
 	private $entityPrefix = 'hydratorentity_';
 	
@@ -44,7 +46,7 @@ class HydratorEntity_OutletProxy implements OutletProxy {
 	}
 }
 
-class HydratorQuery extends OutletQuery {
+class HydratorQuery extends Query {
 	public function  __construct() {
 //		parent::__construct();
 		$this->from('HydratorEntity');
