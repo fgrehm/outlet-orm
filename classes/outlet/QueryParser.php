@@ -1,18 +1,20 @@
 <?php
 
-class OutletQueryParser {
+namespace outlet;
+
+class QueryParser {
 	/**
 	 *
 	 * @var OutletConfig
 	 */
 	private $conf;
 
-	public function  __construct(OutletConfig $config) {
+	public function  __construct(\OutletConfig $config) {
 		$this->conf = $config;
 	}
 
 	public function parse($query) {
-		preg_match_all('/\{[a-zA-Z0-9_]+(( |\.)[a-zA-Z0-9_]+)*\}/', $query, $matches, PREG_SET_ORDER);
+		preg_match_all('/\{[a-zA-Z0-9_]+(( |\.)[a-zA-Z0-9_]+)*\}/', $query, $matches, \PREG_SET_ORDER);
 
 		// check if it's an update statement
 		$update = (stripos(trim($query), 'UPDATE')===0);
@@ -59,7 +61,7 @@ class OutletQueryParser {
 				$entity = $en;
 
 				$entityConfig = $this->conf->getEntity($entity, false);
-				if ($entityConfig === null) throw new OutletException('String ['.$entity.'] is not a valid entity or alias, check your query');
+				if ($entityConfig === null) throw new \OutletException('String ['.$entity.'] is not a valid entity or alias, check your query');
 
 				// if it's an update statement,
 				// we must not include the table

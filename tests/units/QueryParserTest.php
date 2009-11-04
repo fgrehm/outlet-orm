@@ -1,5 +1,6 @@
 <?php
 
+use outlet\QueryParser;
 
 class Unit_QueryParserTest extends OutletTestCase {
 	public function testParsingPlainSql() {
@@ -47,6 +48,6 @@ class Unit_QueryParserTest extends OutletTestCase {
 				)
 			)
 		);
-		$this->parser = new OutletQueryParser($this->createConfig($classes));
+		$this->parser = new QueryParser($this->createConfig($classes));
 	}
 }

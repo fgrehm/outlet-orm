@@ -1,5 +1,7 @@
 <?php
 
+use outlet\QueryParser;
+
 class OutletSession {
 	private $identityMap;
 	private $config;
@@ -73,7 +75,7 @@ class OutletSession {
 
 	public function getQueryParser() {
 		if ($this->queryParser == null)
-			$this->queryParser = new OutletQueryParser($this->config);
+			$this->queryParser = new QueryParser($this->config);
 		return $this->queryParser;
 	}
 
