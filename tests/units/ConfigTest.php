@@ -1,5 +1,8 @@
 <?php
 
+use outlet\Proxy;
+use outlet\OutletException;
+
 class Unit_ConfigTest extends OutletTestCase {
 	public function testRequireConnectionConfig() {
 		try {
@@ -151,4 +154,4 @@ class ConfigEntity {
 	public $id;
 }
 
-class ConfigEntity_OutletProxy extends ConfigEntity implements OutletProxy {}
+class ConfigEntity_OutletProxy extends ConfigEntity implements Proxy {}

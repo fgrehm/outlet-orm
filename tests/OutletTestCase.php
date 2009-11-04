@@ -1,5 +1,7 @@
 <?php
 
+use outlet\Outlet;
+
 abstract class OutletTestCase extends PHPUnit_Framework_TestCase {
 	protected function getSQLiteInMemoryDSN() {
 		return 'sqlite::memory:';

@@ -1,5 +1,7 @@
 <?php
 
+use outlet\Proxy;
+
 class Integration_ProxyAutoloaderTest extends OutletTestCase {
 	protected $entityToCacheProxyPath;
 	protected $root;
@@ -31,7 +33,7 @@ class Integration_ProxyAutoloaderTest extends OutletTestCase {
 
 		// Will raise an exception if the proxy is not generated automatically
 		$proxy = new $proxy();
-		$this->assertTrue($proxy instanceof OutletProxy);
+		$this->assertTrue($proxy instanceof Proxy);
 	}
 
 	public function testDisabled() {
@@ -55,7 +57,7 @@ class Integration_ProxyAutoloaderTest extends OutletTestCase {
 		$this->assertTrue(class_exists($proxy));
 
 		$proxy = new $proxy();
-		$this->assertTrue($proxy instanceof OutletProxy);
+		$this->assertTrue($proxy instanceof Proxy);
 		
 		// checks if the file was loaded
 		$this->assertTrue(defined('PROXY_CACHE_TEST'));

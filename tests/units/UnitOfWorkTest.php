@@ -1,5 +1,7 @@
 <?php
 
+use outlet\Proxy;
+
 class Unit_UnitOfWorkTest extends OutletTestCase {
 	/**
 	 *
@@ -126,7 +128,7 @@ class Unit_UnitOfWorkTest extends OutletTestCase {
 
 		$this->assertEquals(3, $entity->id);
 		$this->assertEquals('value', $entity->property);
-		$this->assertThat($entity, $this->isInstanceOf('OutletProxy'));
+		$this->assertThat($entity, $this->isInstanceOf('outlet\Proxy'));
 		$this->assertThat($entity, $this->isInstanceOf('UowEntity'));
 	}
 
@@ -166,6 +168,6 @@ class UowEntity {
 	}
 }
 
-class UowEntity_OutletProxy extends UowEntity implements OutletProxy {
+class UowEntity_OutletProxy extends UowEntity implements Proxy {
 
 }

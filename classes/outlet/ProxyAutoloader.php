@@ -1,6 +1,8 @@
 <?php
 
+use outlet\OutletException;
 use outlet\ProxyGenerator;
+use outlet\Proxy;
 
 class OutletProxyAutoloader {
         protected $config;

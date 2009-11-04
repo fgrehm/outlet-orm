@@ -1,6 +1,7 @@
 <?php
 
 use outlet\Query;
+use outlet\Proxy;
 
 class OutletHydrator {
 	public function  __construct(OutletSession $session) {

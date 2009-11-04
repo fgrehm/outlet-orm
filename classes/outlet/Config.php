@@ -1,5 +1,8 @@
 <?php
 
+use outlet\OutletException;
+use outlet\Proxy;
+
 class OutletConfig {
 	public $conf;
 
@@ -88,7 +91,7 @@ class OutletConfig {
 		if (is_null($this->entities)) $this->getEntities();
 
 		if (is_object($cls)) {
-			if ($cls instanceof OutletProxy)
+			if ($cls instanceof Proxy)
 				$cls = substr(get_class($cls), 0, -(strlen('_OutletProxy')));
 			else
 				$cls = get_class($cls);

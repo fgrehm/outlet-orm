@@ -18,7 +18,7 @@ class ProxyGenerator {
 				$c .= $this->generate($clazz)."\n";
 			}
 		} else {
-			$c = "class {$clazz}_OutletProxy extends $clazz implements OutletProxy {}";
+			$c = "class {$clazz}_OutletProxy extends $clazz implements \outlet\Proxy {}";
 		}
 
 		return $c;

@@ -1,5 +1,7 @@
 <?php
 
+use outlet\Proxy;
+
 class Unit_IdentityMapTest extends OutletTestCase {
 	public function testCanRegisterAndRetrieveEntity() {
 		$entity1 = new IdentityEntity1_OutletProxy();
@@ -79,18 +81,18 @@ class Unit_IdentityMapTest extends OutletTestCase {
 	}
 }
 
-class IdentityEntity1_OutletProxy implements OutletProxy {
+class IdentityEntity1_OutletProxy implements Proxy {
 	public $id;
 }
 
-class IdentityEntity2_OutletProxy implements OutletProxy {
+class IdentityEntity2_OutletProxy implements Proxy {
 	public $id;
 }
 
-class SuperEntity_OutletProxy implements OutletProxy {
+class SuperEntity_OutletProxy implements Proxy {
 	public $id;
 }
 
-class SubEntity_OutletProxy implements OutletProxy {
+class SubEntity_OutletProxy implements Proxy {
 	public $id;
 }
