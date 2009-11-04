@@ -42,4 +42,7 @@
 
  - Schema creation based on config running from command line
 
- - Support for private properties (php5.3 allows for that)
+ - Support for private properties
+
+ - Something similar to:
+     http://wiki.fluentnhibernate.org/Persistence_specification_testing
