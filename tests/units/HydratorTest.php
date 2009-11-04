@@ -2,6 +2,7 @@
 
 use outlet\Query;
 use outlet\Proxy;
+use outlet\Hydrator;
 
 class Unit_HydratorTest extends OutletTestCase {
 	private $entityPrefix = 'hydratorentity_';
@@ -20,7 +21,7 @@ class Unit_HydratorTest extends OutletTestCase {
 			new HydratorEntity_OutletProxy(14, 'edcba')
 		);
 
-		$this->assertEquals($expected, $this->hydrator->hydrateResult($result, new HydratorQuery()));
+		$this->assertEquals($expected, $this->hydrator->hydrateResult($result, new HydratorQuery));
 	}
 
 	public function setUp() {
@@ -33,7 +34,7 @@ class Unit_HydratorTest extends OutletTestCase {
 				)
 			)
 		);
-		$this->hydrator = new OutletHydrator($this->openSession($classes));
+		$this->hydrator = new Hydrator($this->openSession($classes));
 	}
 }
 

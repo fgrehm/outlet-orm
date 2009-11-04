@@ -1,9 +1,10 @@
 <?php
 
-use outlet\Query;
-use outlet\Proxy;
+namespace outlet;
 
-class OutletHydrator {
+use \OutletSession as OutletSession;
+
+class Hydrator {
 	public function  __construct(OutletSession $session) {
 		$this->session = $session;
 		$this->config = $session->getConfig();
@@ -55,7 +56,7 @@ class OutletHydrator {
 				$return[] = $this->hydrateRow($rowData);
 			}
 		} else { // PDO statement
-			while ($rowData = $result->fetch(PDO::FETCH_ASSOC)) {
+			while ($rowData = $result->fetch(\PDO::FETCH_ASSOC)) {
 				$return[] = $this->hydrateRow($rowData);
 			}
 		}

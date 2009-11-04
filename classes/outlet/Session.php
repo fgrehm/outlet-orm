@@ -1,5 +1,6 @@
 <?php
 
+use outlet\Hydrator;
 use outlet\IdentityMap;
 use outlet\ProxyAutoloader;
 use outlet\QueryParser;
@@ -68,7 +69,7 @@ class OutletSession {
 	}
 
 	public function getHydrator() {
-		return new OutletHydrator($this);
+		return new Hydrator($this);
 	}
 
 	public function getRepository() {
