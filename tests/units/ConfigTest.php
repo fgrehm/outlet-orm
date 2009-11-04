@@ -40,10 +40,10 @@ class Unit_ConfigTest extends OutletTestCase {
 
 	public function testCanGetConnection() {
 		$config = new OutletConfig(array('connection' => array('dsn' => $this->getSQLiteInMemoryDSN(), 'dialect' => 'sqlite'), 'classes' => array()));
-		$this->assertThat($config->getConnection(), $this->isInstanceOf('OutletConnection'));
+		$this->assertThat($config->getConnection(), $this->isInstanceOf('outlet\Connection'));
 
 		$config = new OutletConfig(array('connection' => array('pdo' => $this->getSQLiteInMemoryPDOConnection(), 'dialect' => 'sqlite'), 'classes' => array()));
-		$this->assertThat($config->getConnection(), $this->isInstanceOf('OutletConnection'));
+		$this->assertThat($config->getConnection(), $this->isInstanceOf('outlet\Connection'));
 	}
 
 	public function testRaisesExceptionIfEntityNotFound() {

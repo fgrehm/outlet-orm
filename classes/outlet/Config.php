@@ -1,5 +1,6 @@
 <?php
 
+use outlet\Connection;
 use outlet\OutletException;
 use outlet\Proxy;
 
@@ -53,11 +54,11 @@ class OutletConfig {
 			if (isset($conn['pdo'])) {
 				$pdo = $conn['pdo'];
 			} else {
-				$pdo = new PDO($conn['dsn'], @$conn['username'], @$conn['password']);
-				$pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+				$pdo = new \PDO($conn['dsn'], @$conn['username'], @$conn['password']);
+				$pdo->setAttribute(\PDO::ATTR_ERRMODE, \PDO::ERRMODE_EXCEPTION);
 			}
 
-			$this->con = new OutletConnection($pdo, $conn['dialect']);
+			$this->con = new Connection($pdo, $conn['dialect']);
 		}
 		return $this->con;
 	}

@@ -1,9 +1,11 @@
 <?php
 
+namespace outlet;
+
 /**
  * @method PDOStatement prepare (string $statement)
  */
-class OutletConnection {
+class Connection {
 	private $dialect;
 	private $pdo;
 
@@ -15,7 +17,7 @@ class OutletConnection {
 	 */
 	protected $driverSupportsTransactions = true;
 
-	function __construct (PDO $pdo, $dialect) {
+	function __construct (\PDO $pdo, $dialect) {
 		$this->pdo = $pdo;
 		$this->dialect = $dialect;
 	}
