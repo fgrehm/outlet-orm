@@ -1,5 +1,8 @@
 <?php
 
+use outlet\Config;
+use outlet\ConfigException;
+
 class Unit_SubclassEntityConfigTest extends OutletTestCase {
 	private $entityName = 'Testing';
 	/**
@@ -11,7 +14,7 @@ class Unit_SubclassEntityConfigTest extends OutletTestCase {
 		try {
 			$config = $this->_createConfig('table', array('test' => array('test_col', 'int', array('pk'=>true))), array('Subclass'=>array()));
 			$this->fail("should've raised an exception");
-		} catch (OutletConfigException $ex) { $this->assertTrue(true);}
+		} catch (ConfigException $ex) { $this->assertTrue(true);}
 	}
 
 	public function testCanGetDiscriminatorColumn() {
@@ -23,7 +26,7 @@ class Unit_SubclassEntityConfigTest extends OutletTestCase {
 		try {
 			$config = $this->_createConfig('table', array('test' => array('test_col', 'int', array('pk'=>true))), array('Subclass'=>array()), array('type','varchar'));
 			$this->fail("should've raised an exception");
-		} catch (OutletConfigException $ex) { $this->assertTrue(true);}
+		} catch (ConfigException $ex) { $this->assertTrue(true);}
 	}
 	
 	public function testCanGetDiscriminatorValue() {
@@ -41,7 +44,7 @@ class Unit_SubclassEntityConfigTest extends OutletTestCase {
 		try {
 			$config = $this->_createConfig('table', array('test' => array('test_col', 'int', array('pk'=>true))), array('Subclass'=>array()), array('type','varchar'), 'superclass');
 			$this->fail("should've raised an exception");
-		} catch (OutletConfigException $ex) { $this->assertTrue(true);}
+		} catch (ConfigException $ex) { $this->assertTrue(true);}
 	}
 	
 	public function testDontRequireTableNameAndPKIfSubclass() {
@@ -104,7 +107,7 @@ class Unit_SubclassEntityConfigTest extends OutletTestCase {
 			$config['classes'][$this->entityName]['discriminator'] = $discriminator;
 		if ($discriminatorValue !== null)
 			$config['classes'][$this->entityName]['discriminator-value'] = $discriminatorValue;
-		$this->config = new OutletConfig($config);
+		$this->config = new Config($config);
 		return $this->config->getEntity($this->entityName);
 	}
 }

@@ -2,8 +2,6 @@
 
 namespace outlet;
 
-use \OutletEntityConfig as OutletEntityConfig;
-
 abstract class Mapper {	
 	/**
 	 *
@@ -33,7 +31,7 @@ abstract class Mapper {
 		return array_keys($this->entityConfig->getProperties());
 	}
 
-	public function __construct(OutletEntityConfig $config) {
+	public function __construct(EntityConfig $config) {
 		$this->entityConfig = $config;
 	}
 

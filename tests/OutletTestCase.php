@@ -1,14 +1,15 @@
 <?php
 
 use outlet\Outlet;
+use outlet\Config;
 
-abstract class OutletTestCase extends PHPUnit_Framework_TestCase {
+abstract class OutletTestCase extends \PHPUnit_Framework_TestCase {
 	protected function getSQLiteInMemoryDSN() {
 		return 'sqlite::memory:';
 	}
 
 	protected function getSQLiteInMemoryPDOConnection() {
-		return new PDO($this->getSQLiteInMemoryDSN());
+		return new \PDO($this->getSQLiteInMemoryDSN());
 	}
 
 	protected function createConfigArray($classesArray, $pdo = null) {
@@ -24,7 +25,7 @@ abstract class OutletTestCase extends PHPUnit_Framework_TestCase {
 	}
 
 	protected function createConfig($classesArray) {
-		return new OutletConfig($this->createConfigArray($classesArray));
+		return new Config($this->createConfigArray($classesArray));
 	}
 
 	protected function openSession($configClassesArray, $enableAutoload = false) {
@@ -36,7 +37,7 @@ abstract class OutletTestCase extends PHPUnit_Framework_TestCase {
 				'autoload' => true
 			);
 
-			return Outlet::openSession(new OutletConfig($config));
+			return Outlet::openSession(new Config($config));
 		}
 	}
 }

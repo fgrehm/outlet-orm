@@ -2,8 +2,6 @@
 
 namespace outlet;
 
-use \OutletConfig as Config;
-
 class ProxyAutoloader {
         protected $config;
 	protected $proxyGenerator;

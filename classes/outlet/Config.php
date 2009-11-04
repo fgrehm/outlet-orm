@@ -1,10 +1,8 @@
 <?php
 
-use outlet\Connection;
-use outlet\OutletException;
-use outlet\Proxy;
+namespace outlet;
 
-class OutletConfig {
+class Config {
 	public $conf;
 
 	private $con;
@@ -16,14 +14,14 @@ class OutletConfig {
 
 	function __construct (array $conf) {
 		// validate config
-		if (!isset($conf['connection'])) throw new OutletConfigException('Element [connection] not found in configuration');
+		if (!isset($conf['connection'])) throw new ConfigException('Element [connection] not found in configuration');
 
 		if (!isset($conf['connection']['dsn']) && !isset($conf['connection']['pdo'])) {
-			throw new OutletConfigException('You must set either [connection][pdo] or [connection][dsn] in configuration');
+			throw new ConfigException('You must set either [connection][pdo] or [connection][dsn] in configuration');
 		}
 
-		if (!isset($conf['connection']['dialect'])) throw new OutletConfigException('Element [connection][dialect] not found in configuration');
-		if (!isset($conf['classes'])) throw new OutletConfigException('Element [classes] missing in configuration');
+		if (!isset($conf['connection']['dialect'])) throw new ConfigException('Element [connection][dialect] not found in configuration');
+		if (!isset($conf['classes'])) throw new ConfigException('Element [classes] missing in configuration');
 
 		// proxies section is not required
 		if (isset($conf['proxies'])) {
@@ -70,7 +68,7 @@ class OutletConfig {
 		if (is_null($this->entities)) {
 			$this->entities = array();
 			foreach ($this->conf['classes'] as $key=>$cls) {
-				$this->addEntity(new OutletEntityConfig($this, $key, $cls));
+				$this->addEntity(new EntityConfig($this, $key, $cls));
 			}
 		}
 		return $this->entities;
@@ -80,7 +78,7 @@ class OutletConfig {
 	 * Adds an entity config
 	 * @param OutletEntityConfig $entityConfig
 	 */
-	function addEntity(OutletEntityConfig $entityConfig) {
+	function addEntity(EntityConfig $entityConfig) {
 		$this->entities[$entityConfig->getClass()] = $entityConfig;
 	}
 
@@ -113,7 +111,7 @@ class OutletConfig {
 	}
 }
 
-class OutletEntityConfig {
+class EntityConfig {
 //	private $config;
 
 	private $clazz;
@@ -132,16 +130,16 @@ class OutletEntityConfig {
 	private $allprops;
 	private $subclasses;
 
-	function __construct (OutletConfig $config, $entity, array $conf, OutletEntityConfig $superConfig = null) {
+	function __construct (Config $config, $entity, array $conf, EntityConfig $superConfig = null) {
 //		$this->config = $config;
 		if($superConfig !== null) {
 			$this->superConfig = $superConfig;
 			$this->isSubclass = true;
 		}
 		if (!$this->isSubclass && !isset($conf['table']))
-			throw new OutletConfigException('Mapping for entity ['.$entity.'] is missing element [table]');
+			throw new ConfigException('Mapping for entity ['.$entity.'] is missing element [table]');
 		if (!isset($conf['props']))
-			throw new OutletConfigException('Mapping for entity ['.$entity.'] is missing element [props]');
+			throw new ConfigException('Mapping for entity ['.$entity.'] is missing element [props]');
 
 		// i need to leave this for for the outletgen script
 		//if (!class_exists($entity)) throw new OutletConfigException('Class does not exist for mapped entity ['.$entity.']');
@@ -152,7 +150,7 @@ class OutletEntityConfig {
 		$this->subclasses = array();
 		$this->pks = array();
 		foreach ($conf['props'] as $propName => $propConf) {
-			$propConf = new OutletPropertyConfig($propName, $propConf);
+			$propConf = new PropertyConfig($propName, $propConf);
 			$this->props[$propName] = $propConf;
 			$this->allprops[$propName] = $propConf;
 			if($superConfig!==null) {
@@ -160,7 +158,7 @@ class OutletEntityConfig {
 			}
 			if (!$this->isSubclass && $propConf->isPK()) $this->pks[$propName] = $propConf;
 		}
-		if (!$this->isSubclass && count($this->pks) == 0) throw new OutletConfigException("Entity [$entity] must have at least one column defined as a primary key in the configuration");
+		if (!$this->isSubclass && count($this->pks) == 0) throw new ConfigException("Entity [$entity] must have at least one column defined as a primary key in the configuration");
 		if($this->isSubclass) {
 			foreach($this->superConfig->getProperties() as $prop) {
 				$this->props[$prop->getName()] = $prop;
@@ -184,20 +182,20 @@ class OutletEntityConfig {
 		
 		if(isset($conf['subclasses'])) {
 			if(!isset($conf['discriminator'])) {
-				throw new OutletConfigException('Mapping for entity ['.$entity.'] is specifying subclasses but it is missing element [discriminator]');
+				throw new ConfigException('Mapping for entity ['.$entity.'] is specifying subclasses but it is missing element [discriminator]');
 			}
 			if(!isset($conf['discriminator-value'])) {
-				throw new OutletConfigException('Mapping for entity ['.$entity.'] is specifying subclasses but it is missing element [discriminator-value]');
+				throw new ConfigException('Mapping for entity ['.$entity.'] is specifying subclasses but it is missing element [discriminator-value]');
 			}
-			$this->discriminator = new OutletPropertyConfig('discriminator',$conf['discriminator']);
+			$this->discriminator = new PropertyConfig('discriminator',$conf['discriminator']);
 			$this->discriminatorValue = $conf['discriminator-value'];
 			$this->allprops[$this->discriminator->getName()]=$this->discriminator;
 			
 			foreach($conf['subclasses'] as $className => $classConf) {
 				if(!isset($classConf['discriminator-value'])) {
-					throw new OutletConfigException('Mapping for entity ['.$className.'] is specifying subclasses but it is missing element [discriminator-value]');
+					throw new ConfigException('Mapping for entity ['.$className.'] is specifying subclasses but it is missing element [discriminator-value]');
 				}
-				$subentity = new OutletEntityConfig($config, $className, $classConf, $this);
+				$subentity = new EntityConfig($config, $className, $classConf, $this);
 				$this->subclasses[$subentity->getDiscriminatorValue()]=$subentity;
 				$config->addEntity($subentity);
 			}
@@ -249,7 +247,7 @@ class OutletEntityConfig {
 	function getProperty($prop, $throwsException = true) {
 		if (!isset($this->allprops[$prop])) {
 			if ($throwsException)
-				throw new OutletConfigException("Property [{$this->clazz}.{$prop}] not found in configuration");
+				throw new ConfigException("Property [{$this->clazz}.{$prop}] not found in configuration");
 			else
 				return null;
 		}
@@ -265,7 +263,7 @@ class OutletEntityConfig {
 	}
 }
 
-class OutletPropertyConfig {
+class PropertyConfig {
 	private $name;
 	private $config;
 	public function __construct($name, $config) {
@@ -290,4 +288,4 @@ class OutletPropertyConfig {
 	}
 }
 
-class OutletConfigException extends OutletException {}
+class ConfigException extends OutletException {}

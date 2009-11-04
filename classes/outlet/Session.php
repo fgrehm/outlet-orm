@@ -1,16 +1,6 @@
 <?php
 
 namespace outlet;
-//use outlet\Hydrator;
-//use outlet\IdentityMap;
-//use outlet\ProxyAutoloader;
-//use outlet\QueryParser;
-//use outlet\Query;
-//use outlet\UnitOfWork;
-//use outlet\GettersAndSettersMapper;
-//use outlet\Mapper;
-//use outlet\PropertiesMapper;
-use \OutletConfig as OutletConfig;
 
 class Session {
 	private $identityMap;
@@ -21,7 +11,7 @@ class Session {
         private $repository = null;
         private $queryParser = null;
 
-	public function __construct(OutletConfig $config) {
+	public function __construct(Config $config) {
 		$this->config = $config;
 		if ($config->autoloadProxies)
 			$this->autoloader = new ProxyAutoloader($config);

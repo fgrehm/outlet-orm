@@ -9,7 +9,7 @@ class QueryParser {
 	 */
 	private $conf;
 
-	public function  __construct(\OutletConfig $config) {
+	public function  __construct(Config $config) {
 		$this->conf = $config;
 	}
 

@@ -1,5 +1,10 @@
 <?php
 
+use outlet\Config;
+use outlet\ConfigException;
+use outlet\EntityConfig;
+use outlet\PropertyConfig;
+
 class Unit_EntityConfigTest extends OutletTestCase {
 	private $entityName = 'Testing';
 
@@ -7,21 +12,21 @@ class Unit_EntityConfigTest extends OutletTestCase {
 		try {
 			$config = $this->_createConfig();
 			$this->fail("should've raised an exception");
-		} catch (OutletConfigException $ex) { $this->assertTrue(true);}
+		} catch (ConfigException $ex) { $this->assertTrue(true);}
 	}
 
 	public function testRequireProperties() {
 		try {
 			$config = $this->_createConfig('table');
 			$this->fail("should've raised an exception");
-		} catch (OutletConfigException $ex) { $this->assertTrue(true);}
+		} catch (ConfigException $ex) { $this->assertTrue(true);}
 	}
 
 	public function testRequireAtLeastOnePrimaryKey() {
 		try {
 			$config = $this->_createConfig('table', array('test' => array('test', 'int', array())));
 			$this->fail("should've raised an exception");
-		} catch (OutletConfigException $ex) { $this->assertTrue(true);}
+		} catch (ConfigException $ex) { $this->assertTrue(true);}
 	}
 
 	public function testCanGetTableName() {
@@ -42,8 +47,8 @@ class Unit_EntityConfigTest extends OutletTestCase {
 		$props = array('test' => $propConf1, 'test2' => $propConf2);
 		$config = $this->_createConfig('table', $props);
 
-		$this->assertThat($config->getProperty('test'), $this->isInstanceOf('OutletPropertyConfig'));
-		$this->assertThat($config->getProperty('test2'), $this->isInstanceOf('OutletPropertyConfig'));
+		$this->assertThat($config->getProperty('test'), $this->isInstanceOf('outlet\PropertyConfig'));
+		$this->assertThat($config->getProperty('test2'), $this->isInstanceOf('outlet\PropertyConfig'));
 	}
 
 	public function testRaisesExceptionIfPropertyNotFound() {
@@ -52,7 +57,7 @@ class Unit_EntityConfigTest extends OutletTestCase {
 		try {
 			$config->getProperty('test2');
 			$this->fail("should've raised an exception");
-		} catch (OutletConfigException $ex) {$this->assertTrue(true);}
+		} catch (ConfigException $ex) {$this->assertTrue(true);}
 	}
 
 	public function testAllowToSuppresExceptionIfPropertyNotFound() {
@@ -94,7 +99,7 @@ class Unit_EntityConfigTest extends OutletTestCase {
 			$config['classes'][$this->entityName]['discriminator'] = $discriminator;
 		if ($discriminatorValue !== null)
 			$config['classes'][$this->entityName]['discriminator-value'] = $discriminatorValue;
-		$config = new OutletConfig($config);
+		$config = new Config($config);
 		return $config->getEntity($this->entityName);
 	}
 }

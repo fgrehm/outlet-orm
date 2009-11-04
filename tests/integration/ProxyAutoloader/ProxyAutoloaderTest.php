@@ -1,5 +1,6 @@
 <?php
 
+use outlet\Config;
 use outlet\Proxy;
 use outlet\ProxyAutoloader;
 
@@ -92,7 +93,7 @@ class Integration_ProxyAutoloaderTest extends OutletTestCase {
 			'cache' => $cachePath
 		);
 
-		return new OutletConfig($config);
+		return new Config($config);
 	}
 }
 
