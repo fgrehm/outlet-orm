@@ -1,6 +1,8 @@
 <?php
 
-class OutletUnitOfWork {
+namespace outlet;
+
+class UnitOfWork {
 	private $insertOrders = array();
 	private $updateOrders = array();
 	private $deleteOrders = array();
@@ -24,7 +26,7 @@ class OutletUnitOfWork {
 		return array_diff_assoc($new, $original);
 	}
 
-	public function  __construct(OutletSession $session) {
+	public function  __construct(\OutletSession $session) {
 		$this->session = $session;
 		$this->config = $session->getConfig();
 		$this->repository = $session->getRepository();
@@ -36,19 +38,19 @@ class OutletUnitOfWork {
 		return $this;
 	}
 
-	public function setRepository(OutletRepository $repository) {
+	public function setRepository(\OutletRepository $repository) {
 		$this->repository = $repository;
 	}
 
 	public function save(&$obj){
-		$orderType = ($obj instanceof OutletProxy) ? 'update' : 'insert';
+		$orderType = ($obj instanceof \OutletProxy) ? 'update' : 'insert';
 		$orders =& $this->{$orderType.'Orders'};
 		if (!in_array($obj, $orders))
 			$orders[] = $obj;
 	}
 
 	public function delete($obj){
-		if ($obj instanceof OutletProxy && !in_array($obj, $this->deleteOrders)) {
+		if ($obj instanceof \OutletProxy && !in_array($obj, $this->deleteOrders)) {
 			if (($key = array_search($obj, $this->updateOrders)) !== false)
 				unset($this->updateOrders[$key]);
 			$this->deleteOrders[] = $obj;

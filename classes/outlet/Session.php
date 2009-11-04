@@ -2,6 +2,7 @@
 
 use outlet\QueryParser;
 use outlet\Query;
+use outlet\UnitOfWork;
 
 class OutletSession {
 	private $identityMap;
@@ -51,7 +52,7 @@ class OutletSession {
 
 	public function getUnitOfWork() {
 		if ($this->uow == null) {
-			$this->uow = new OutletUnitOfWork($this);
+			$this->uow = new UnitOfWork($this);
 		}
 		return $this->uow;
 	}

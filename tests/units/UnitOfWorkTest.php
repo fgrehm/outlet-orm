@@ -3,7 +3,7 @@
 class Unit_UnitOfWorkTest extends OutletTestCase {
 	/**
 	 *
-	 * @var OutletUnitOfWork
+	 * @var outlet\UnitOfWork
 	*/
 	protected $uow;
 
