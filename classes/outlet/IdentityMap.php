@@ -1,6 +1,9 @@
 <?php
 
-class OutletIdentityMap {
+namespace outlet;
+use \OutletSession as OutletSession;
+
+class IdentityMap {
 	private $map = array();
 	private $session;
 

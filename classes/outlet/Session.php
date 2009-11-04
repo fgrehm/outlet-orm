@@ -1,5 +1,6 @@
 <?php
 
+use outlet\IdentityMap;
 use outlet\ProxyAutoloader;
 use outlet\QueryParser;
 use outlet\Query;
@@ -27,7 +28,7 @@ class OutletSession {
 
 	public function getIdentityMap() {
 		if ($this->identityMap == null) {
-			$this->identityMap = new OutletIdentityMap($this);
+			$this->identityMap = new IdentityMap($this);
 		}
 		return $this->identityMap;
 	}
