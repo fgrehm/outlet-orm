@@ -1,13 +1,13 @@
 <?php
 require_once 'config.php';
 
-require '../classes/User.php';
+require __DIR__.'/../classes/User.php';
 
-$session = Outlet::openSession();
+$session = outlet\Outlet::openSession();
 
 // Create
 echo "Creating...\n";
-$user = new User;
+$user = new outlet\samples\model\User;
 $user->ID = 1;
 $user->Username = 'Test user';
 $session->save($user)
@@ -16,7 +16,7 @@ echo "Created\n";
 
 // Load
 echo "Loading...\n";
-$user = $session->load('User', 1);
+$user = $session->load('User', 1); // No need to specify namespaces
 echo "Loaded\n";
 
 // Update
