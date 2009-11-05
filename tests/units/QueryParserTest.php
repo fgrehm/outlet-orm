@@ -62,6 +62,17 @@ class Unit_QueryParserTest extends OutletTestCase {
 		$this->assertEquals($expectedSql, $parser->parse($outletQuery));
 	}
 
+// TODO: do we need to support this?
+//
+//	public function testParsingQualifiedEntity() {
+//		$parser = new QueryParser($this->_createConfig('application\model'));
+//
+//		$outletQuery = 'SELECT {application\model\QueryParserEntity.id}, {application\model\QueryParserEntity.name}, entity.colname3 FROM {application\model\QueryParserEntity} WHERE {application\model\QueryParserEntity.id} = ?';
+//		$expectedSql = 'SELECT entity.colname1, entity.colname2, entity.colname3 FROM entity WHERE entity.colname1 = ?';
+//
+//		$this->assertEquals($expectedSql, $parser->parse($outletQuery));
+//	}
+
 	protected function _createConfig($namespace = '', $alias = null){
 		if ($namespace != '')
 			$namespace .= '\\';

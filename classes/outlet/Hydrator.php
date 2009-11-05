@@ -33,16 +33,17 @@ class Hydrator {
 
 	public function hydrateResult($result, Query $query) {
 		$this->query = $query;
-
-		// get the 'from'
 		$this->from = $query->from;
+
+		$configEntity = $this->config->getEntity($this->from);
+		
 		$tmp = explode(' ', $this->from);
 		$from = $tmp[0];
-		$this->fromAliased = strtolower(count($tmp)>1 ? $tmp[1] : $tmp[0]);
+		$this->fromAliased = strtolower(count($tmp)>1 ? $tmp[1] : $configEntity->getAlias());
 
 		// get properties aliases
 		$this->propertiesAliases = array();
-		foreach (array_keys($this->config->getEntity($this->from)->getAllProperties()) as $prop) {
+		foreach (array_keys($configEntity->getAllProperties()) as $prop) {
 			// by default all properties should be converted to lower case when querying on repository
 			// since postgresql does it as well
 			$this->propertiesAliases[strtolower($prop)] = $prop;

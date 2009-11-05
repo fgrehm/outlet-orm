@@ -1,5 +1,7 @@
 <?php
 
+namespace outlet\tests\model;
+
 class Project {
 	public $id;
 	public $name;

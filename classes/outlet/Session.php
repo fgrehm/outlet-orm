@@ -37,8 +37,10 @@ class Session {
 
 	public function getMapperFor($class) {
 		$config = $this->config->getEntity($class);
-		if (is_object($class)) $class = $config->getClass();
-		if (isset($this->mappersCache[$class])) return $this->mappersCache[$class];
+		$class = $config->getEntityClass();
+	
+		if (isset($this->mappersCache[$class]))
+			return $this->mappersCache[$class];
 
 		if ($config->useGettersAndSetters())
 			$mapper = new GettersAndSettersMapper($config);

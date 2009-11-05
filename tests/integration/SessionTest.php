@@ -1,5 +1,14 @@
 <?php
 
+use outlet\tests\model\Bug,
+    outlet\tests\model\Composite,
+    outlet\tests\model\FunctionalBug,
+    outlet\tests\model\TechnicalBug,
+    outlet\tests\model\Bug_OutletProxy,
+    outlet\tests\model\Composite_OutletProxy,
+    outlet\tests\model\FunctionalBug_OutletProxy,
+    outlet\tests\model\TechnicalBug_OutletProxy;
+
 class Integration_SessionTest extends OutletTestCase {
 	/**
 	 *
@@ -81,27 +90,27 @@ class Integration_SessionTest extends OutletTestCase {
 		$this->assertNotNull($this->session->getIdentityMap()->get('Bug', 1));
 	}
 
-// TODO: move tests to unit of work
-//	public function testGettingModifiedValues() {
-//		$this->connection->execute('INSERT INTO bugs (id, name) VALUES (1, "test")');
-//		$bug = $this->session->load('Bug', 1);
+//// TODO: move tests to unit of work
+////	public function testGettingModifiedValues() {
+////		$this->connection->execute('INSERT INTO bugs (id, name) VALUES (1, "test")');
+////		$bug = $this->session->load('Bug', 1);
+////
+////		$bug->setName('new value');
+////
+////		$this->assertEquals(array('Name' => 'new value'), $this->session->getModifiedValues($bug));
+////	}
+////
+////	public function testCheckingIsDirty() {
+////		$this->connection->execute('INSERT INTO bugs (id, name) VALUES (1, "test")');
+////		$bug = $this->session->load('Bug', 1);
+////
+////		$this->assertFalse($this->session->isDirty($bug));
+////
+////		$bug->setName('new value');
+////
+////		$this->assertTrue($this->session->isDirty($bug));
+////	}
 //
-//		$bug->setName('new value');
-//
-//		$this->assertEquals(array('Name' => 'new value'), $this->session->getModifiedValues($bug));
-//	}
-//
-//	public function testCheckingIsDirty() {
-//		$this->connection->execute('INSERT INTO bugs (id, name) VALUES (1, "test")');
-//		$bug = $this->session->load('Bug', 1);
-//
-//		$this->assertFalse($this->session->isDirty($bug));
-//
-//		$bug->setName('new value');
-//
-//		$this->assertTrue($this->session->isDirty($bug));
-//	}
-
 	public function testAutoUpdate() {
 		$this->connection->execute('INSERT INTO bugs (id, name) VALUES (1, "test")');
 
@@ -135,7 +144,7 @@ class Integration_SessionTest extends OutletTestCase {
 		$this->session->clear();
 		$newbug = $this->session->load("Bug", 1);
 		$this->assertNotNull($newbug);
-		$this->assertThat($newbug, $this->isInstanceOf("FunctionalBug"));
+		$this->assertThat($newbug, $this->isInstanceOf('outlet\tests\model\FunctionalBug_OutletProxy'));
 	}
 
 	public function testQueryManySubclasses() {
@@ -153,29 +162,26 @@ class Integration_SessionTest extends OutletTestCase {
 		$tb->setName("technical bug");
 		$tb->setErrorCode(124);
 
-		$this->session->save($b);
-		$this->session->save($fb);
-		$this->session->save($tb);
-		$this->session->flush();
-		$this->session->clear();
+		$this->session->save($b)->save($fb)->save($tb)->flush()->clear();
 
 		$bugs = $this->session->from("Bug")->find();
 
-		$this->assertThat($bugs[0], $this->isInstanceOf("Bug_OutletProxy"));
-		$this->assertThat($bugs[1], $this->isInstanceOf("FunctionalBug_OutletProxy"));
-		$this->assertThat($bugs[2], $this->isInstanceOf("TechnicalBug_OutletProxy"));
+		$this->assertThat($bugs[0], $this->isInstanceOf('outlet\tests\model\Bug_OutletProxy'));
+		$this->assertThat($bugs[1], $this->isInstanceOf('outlet\tests\model\FunctionalBug_OutletProxy'));
+		$this->assertThat($bugs[2], $this->isInstanceOf('outlet\tests\model\TechnicalBug_OutletProxy'));
 	}
 
 	public function setUp() {
 		$classes = array(
-			'Project' => array(
+			'outlet\tests\model\Project' => array(
+				'alias' => 'Project',
 				'table' => 'projects',
 				'props' => array(
 					'id' => array('id', 'int', array('pk' => true)),
 					'name' => array('name', 'varchar')
 				)
 			),
-			'Bug' => array(
+			'outlet\tests\model\Bug' => array(
 				'table' => 'bugs',
 				'props' => array(
 					'ID' => array('id', 'int', array('pk' => true)),
@@ -184,14 +190,14 @@ class Integration_SessionTest extends OutletTestCase {
 				'discriminator' => array('type', 'varchar'),
 				'discriminator-value' => 'unknown',
 				'subclasses' => array(
-					'TechnicalBug' => array(
+					'outlet\tests\model\TechnicalBug' => array(
 						'discriminator-value' => 'technical',
 						'props' => array(
 							'errorcode' => array('errorcode', 'int')
 						),
 						'useGettersAndSetters' => true
 					),
-					'FunctionalBug' => array(
+					'outlet\tests\model\FunctionalBug' => array(
 						'discriminator-value' => 'functional',
 						'props' => array(
 							'steps' => array('steps', 'varchar')

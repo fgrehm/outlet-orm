@@ -33,18 +33,19 @@ class ProxyAutoloader {
 	}
 
         public function autoload($proxyClass) {
-                if (strpos($proxyClass, '_OutletProxy') == false) return;
+                if (strpos($proxyClass, '_OutletProxy') === false) return;
 	
 		$class = substr($proxyClass, 0, -12);
+		$entityConfig = $this->config->getEntity($class, false);
+		if ($entityConfig === null) return;
 
-		if ($this->config->getEntity($class, false) === null) return;
-
+		$alias = $entityConfig->getAlias();
 		if (!$this->useCache())
-			eval($this->proxyGenerator->generate($class));
+			eval($this->proxyGenerator->generate($alias));
 		else {
-			$proxyCachePath = $this->config->proxiesCache.'/'.$proxyClass.'.php';
+			$proxyCachePath = $this->config->proxiesCache.'/'.$alias.'.php';
 			if (!file_exists($proxyCachePath))
-				file_put_contents($proxyCachePath, "<?php \n".$this->proxyGenerator->generate($class));
+				file_put_contents($proxyCachePath, "<?php \n".$this->proxyGenerator->generate($alias));
 		
 			require_once $proxyCachePath;
 		}

@@ -1,4 +1,5 @@
 <?php
+
 require_once 'RepositoryTestCase.php';
 
 if (strstr(REPOSITORIES_TO_TEST, 'sqlite') !== false) {

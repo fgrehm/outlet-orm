@@ -65,9 +65,15 @@ class Unit_EntityConfigTest extends OutletTestCase {
 		$this->assertNull($config->getProperty('test2', false));
 	}
 
-	public function testCanGetClassName() {
+	public function testCanGetEntityClass() {
 		$config = $this->_createConfig('table', array('test' => array('test', 'int', array('pk' => true))));
-		$this->assertEquals($this->entityName, $config->getClass());
+		$this->assertEquals($this->entityName, $config->getEntityClass());
+	}
+
+	public function testCanGetQualifiedEntityClass() {
+		$className = 'namespace\SomeEntity';
+		$config = $this->_createConfig('table', array('test' => array('test', 'int', array('pk' => true))), null, null, null, null, $className);
+		$this->assertEquals($className, $config->getQualifiedEntityClass());
 	}
 
 	public function testCanGetSinglePKPropety() {
@@ -86,35 +92,57 @@ class Unit_EntityConfigTest extends OutletTestCase {
 	}
 
 	public function testAliasDefaultsToClassName() {
-		$config = $this->_createConfig('table', array('test' => array('test', 'int', array('pk' => true))));
-		$this->assertEquals($this->entityName, $config->getAlias());
+		$qualifiedClassName = 'namespace\otherNamespace\SomeEntity';
+		$config = $this->_createConfig('table', array('test' => array('test', 'int', array('pk' => true))), null, null, null, null, $qualifiedClassName);
+		$this->assertEquals('SomeEntity', $config->getAlias());
+	}
+
+	public function testCanGetProxyClass() {
+		$className = 'namespace\SomeEntity';
+		$config = $this->_createConfig('table', array('test' => array('test', 'int', array('pk' => true))), null, null, null, null, $className);
+		$this->assertEquals('SomeEntity_OutletProxy', $config->getProxyClass());
+	}
+
+	public function testCanGetQualifiedProxyClass() {
+		$className = 'namespace\SomeEntity';
+		$config = $this->_createConfig('table', array('test' => array('test', 'int', array('pk' => true))), null, null, null, null, $className);
+		$this->assertEquals($className.'_OutletProxy', $config->getQualifiedProxyClass());
+	}
+
+	public function testCanGetNamespace() {
+		$className = 'namespace\test\SomeEntity';
+		$config = $this->_createConfig('table', array('test' => array('test', 'int', array('pk' => true))), null, null, null, null, $className);
+		$this->assertEquals('namespace\test\\', $config->getNamespace());
 	}
 	
 	protected function _createConfig($tableName = null, $properties = null,
 				$subclasses = null, $discriminator = null,
-				$discriminatorValue = null, $alias = null) {
+				$discriminatorValue = null, $alias = null,
+				$entityClass = null) {
+		$entityClass = ($entityClass === null) ? $this->entityName : $entityClass;
+
 		$config = array(
 			'connection' => array(
 				'pdo' => $this->getSQLiteInMemoryPDOConnection(),
 				'dialect' => 'sqlite'
 			),
 			'classes' => array(
-				$this->entityName => array()
+				$entityClass => array()
 			)
 		);
 		if ($tableName !== null)
-			$config['classes'][$this->entityName]['table'] = $tableName;
+			$config['classes'][$entityClass]['table'] = $tableName;
 		if ($properties !== null)
-			$config['classes'][$this->entityName]['props'] = $properties;
+			$config['classes'][$entityClass]['props'] = $properties;
 		if ($subclasses !== null)
-			$config['classes'][$this->entityName]['subclasses'] = $subclasses;
+			$config['classes'][$entityClass]['subclasses'] = $subclasses;
 		if ($discriminator !== null)
-			$config['classes'][$this->entityName]['discriminator'] = $discriminator;
+			$config['classes'][$entityClass]['discriminator'] = $discriminator;
 		if ($discriminatorValue !== null)
-			$config['classes'][$this->entityName]['discriminator-value'] = $discriminatorValue;
+			$config['classes'][$entityClass]['discriminator-value'] = $discriminatorValue;
 		if ($alias !== null)
-			$config['classes'][$this->entityName]['alias'] = $alias;
+			$config['classes'][$entityClass]['alias'] = $alias;
 		$config = new Config($config);
-		return $config->getEntity($this->entityName);
+		return $config->getEntity($entityClass);
 	}
 }

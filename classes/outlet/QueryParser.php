@@ -14,7 +14,7 @@ class QueryParser {
 	}
 
 	public function parse($query) {
-		preg_match_all('/\{[a-zA-Z0-9_]+(( |\.)[a-zA-Z0-9_]+)*\}/', $query, $matches, \PREG_SET_ORDER);
+		preg_match_all('/\{[\\a-zA-Z0-9_]+(( |\.)[a-zA-Z0-9_]+)*\}/', $query, $matches, \PREG_SET_ORDER);
 
 		// check if it's an update statement
 		$update = (stripos(trim($query), 'UPDATE')===0);

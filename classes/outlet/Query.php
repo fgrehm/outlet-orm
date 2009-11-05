@@ -14,11 +14,12 @@ class Query {
 	private $select;
 	private $groupBy;
 	private $having;
+	public $aliases;
+
 	function  __construct($from = null, $session = null) {
 		$this->session = $session;
 		$this->from = $from;
 	}
-
 
 	/**
 	 * @param string $from

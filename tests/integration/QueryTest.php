@@ -12,14 +12,8 @@ class Integration_QueryTest extends OutletTestCase {
 
 	public function setUp() {
 		$classes = array(
-//			'Project' => array(
-//				'table' => 'projects',
-//				'props' => array(
-//					'id' => array('id', 'int', array('pk' => true)),
-//					'name' => array('name', 'varchar')
-//				)
-//			),
-			'Bug' => array(
+			'outlet\tests\model\Bug' => array(
+				'alias' => 'Bug',
 				'table' => 'bugs',
 				'props' => array(
 					'id' => array('id', 'int', array('pk' => true)),

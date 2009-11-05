@@ -94,7 +94,8 @@ class UnitOfWork {
 			$discriminatorName = $config->getDiscriminator()->getName();
 			$discriminatorValue = isset($data[$discriminatorName]) ? $data[$discriminatorName] : null;
 			if ($discriminatorValue !== null) {
-				$class = $config->getSubclassConfByDiscriminator($discriminatorValue)->getClass();				
+				$class = $config->getSubclassConfByDiscriminator($discriminatorValue)->getEntityClass();
+				$config = $this->config->getEntity($class);
 			}
 		}
 		$mapper = $this->session->getMapperFor($class);
@@ -104,8 +105,8 @@ class UnitOfWork {
 			$pks[] = $data[$prop->getName()];
 		}
 		if (!($entity = $this->identityMap->get($class, $pks))) {
-			$class .= '_OutletProxy';
-			$entity = new $class();
+			$proxyClass = $config->getQualifiedProxyClass();
+			$entity = new $proxyClass();
 			$mapper->set($entity, $data);
 			$this->session->attach($entity);
 		}

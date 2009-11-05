@@ -126,11 +126,31 @@ class Unit_ConfigTest extends OutletTestCase {
 		$this->assertEquals('directory', $config->proxiesCache);
 	}
 
+	public function testDetectsEntityAliasCollision() {
+		try {
+			$config = $this->_createConfig(null, null, null, null, null, 'app\model\ConfigEntity');
+			$config->getEntities();
+		} catch (ConfigException $ex) { $this->assertTrue(true); return; }
+		$this->fail("should've raised an exception");
+	}
+
+	protected function _createConfigArray($globalGettersAndSetters = null,
+					$entityGettersAndSetters = null,
+					$proxyAutoloading = null,
+					$proxiesCache = null,
+					$alias = null,
+					$duplicatedEntityClass = null) {
+		
+
+		return $config;
+	}
+
 	protected function _createConfig($globalGettersAndSetters = null,
 					$entityGettersAndSetters = null,
 					$proxyAutoloading = null,
 					$proxiesCache = null,
-					$alias = null) {
+					$alias = null,
+					$duplicatedEntityClass = null) {
 		$config = array(
 			'connection' => array(
 				'pdo' => $this->getSQLiteInMemoryPDOConnection(),
@@ -144,17 +164,21 @@ class Unit_ConfigTest extends OutletTestCase {
 				)
 			)
 		);
+
 		if ($globalGettersAndSetters !== null)
 			$config['useGettersAndSetters'] = $globalGettersAndSetters;
+
 		if ($entityGettersAndSetters !== null)
 			$config['classes']['ConfigEntity']['useGettersAndSetters'] = $entityGettersAndSetters;
+		if ($duplicatedEntityClass !== null)
+			$config['classes'][$duplicatedEntityClass] = $config['classes']['ConfigEntity'];
 
 		if ($proxyAutoloading !== null) {
 			$config['proxies'] = array();
 			$config['proxies']['autoload'] = true;
 			$config['proxies']['cache'] = $proxiesCache;
 		}
-
+		
 		return new Config($config);
 	}
 }

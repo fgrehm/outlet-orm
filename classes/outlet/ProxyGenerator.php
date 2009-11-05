@@ -9,17 +9,16 @@ class ProxyGenerator {
 		$this->config = $config;
 	}
 
-	function generate($clazz = '') {
-		$c = '';
-		if ($clazz == '') {
-			foreach ($this->config->getEntities() as $entity) {
-				$clazz = $entity->getClass();
+	function generate($clazz) {
+		$config = $this->config->getEntity($clazz);
+		$proxyClazz = $config->getProxyClass();
+		$clazz = $config->getEntityClass();
+		$namespace = trim($config->getNamespace(), '\\');
 
-				$c .= $this->generate($clazz)."\n";
-			}
-		} else {
-			$c = "class {$clazz}_OutletProxy extends $clazz implements \outlet\Proxy {}";
-		}
+		$c = '';
+		if ($config->getNamespace() != null)
+			$c .= "namespace {$namespace};\n";
+		$c .= "class {$proxyClazz} extends $clazz implements \outlet\Proxy {}";
 
 		return $c;
 	}

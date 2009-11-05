@@ -1,4 +1,5 @@
 <?php
+
 require_once 'RepositoryTestCase.php';
 
 if (strstr(REPOSITORIES_TO_TEST, 'mysql') !== false) {
@@ -11,7 +12,7 @@ class Integration_Repositories_MySQLTest extends Integration_Repositories_Reposi
 			'autoload' => true
 		);
 
-		return Outlet::openSession(new OutletConfig($config));
+		return outlet\Outlet::openSession(new outlet\Config($config));
 	}
 
 	protected function createTables() {

@@ -48,17 +48,17 @@ abstract class Repository {
 		$this->queryParser = $session->getQueryParser();
 	}
 
-	public function get($class, $pk) {
-		$pkProps = array_keys($this->config->getEntity($class)->getPkProperties());
-		$query = new Query($class, $this->session);
+	public function get($alias, $pk) {
+		$pkProps = array_keys($this->config->getEntity($alias)->getPkProperties());
+		$query = new Query($alias, $this->session);
 
-		return $query->where("{{$class}.".join("} = ? AND {{$class}.", $pkProps).'} = ?', $pk)
+		return $query->where("{{$alias}.".join("} = ? AND {{$alias}.", $pkProps).'} = ?', $pk)
 			->findOne();
 	}
 
 	public function add(&$obj) {	
 		$config = $this->config->getEntity($obj);
-		$class = $config->getClass();
+		$class = $config->getEntityClass();
 		$table = $config->getTable();
 		$properties = $config->getProperties();
 		$mapper = $this->session->getMapperFor($class);
@@ -87,7 +87,7 @@ abstract class Repository {
 
 	public function update($obj) {		
 		$config = $this->config->getEntity($obj);
-		$class = $config->getClass();
+		$class = $config->getEntityClass();
 		$table = $config->getTable();
 		$properties = $config->getProperties();
 		$mapper = $this->session->getMapperFor($class);
@@ -112,7 +112,7 @@ abstract class Repository {
 
 	public function remove($obj) {
 		$config = $this->config->getEntity($obj);
-		$class = $config->getClass();
+		$class = $config->getEntityClass();
 		$table = $config->getTable();
 		$mapper = $this->session->getMapperFor($class);
 		$where = array();
@@ -144,7 +144,7 @@ abstract class Repository {
 
 		if ($query->where)
 			$q .= 'WHERE ' . $query->where."\n";
-		
+//echo $q, $this->queryParser->parse($q);
 		$stmt = $this->prepare($this->queryParser->parse($q));
 		$stmt->execute($query->params);
 		

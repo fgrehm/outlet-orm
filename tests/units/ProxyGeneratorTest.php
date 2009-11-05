@@ -4,15 +4,14 @@ use outlet\ProxyGenerator;
 use outlet\Config;
 
 class Unit_ProxyGeneratorTest extends OutletTestCase {
-	public function testGenerateProxyForSimpleEntity() {
-		$expected = "class ProxyTest_OutletProxy extends ProxyTest implements \outlet\Proxy {}\n";
-		$expected .= "class ProxyTest2_OutletProxy extends ProxyTest2 implements \outlet\Proxy {}\n";
-		$this->assertEquals($expected, $this->generator->generate());
+	public function testGenerateProxyForSingleClass() {
+		$expected = "class ProxyTest_OutletProxy extends ProxyTest implements \\outlet\\Proxy {}";
+		$this->assertEquals($expected, $this->generator->generate('ProxyTest'));
 	}
 
-	public function testGenerateProxyForSingleClass() {
-		$expected = "class ProxyTest_OutletProxy extends ProxyTest implements \outlet\Proxy {}";
-		$this->assertEquals($expected, $this->generator->generate('ProxyTest'));
+	public function testSupportForNamespaces() {
+		$expected = "namespace testing;\nclass ProxyTest3_OutletProxy extends ProxyTest3 implements \\outlet\\Proxy {}";
+		$this->assertEquals($expected, $this->generator->generate('ProxyTest3'));
 	}
 
 	public function setUp () {
@@ -29,6 +28,13 @@ class Unit_ProxyGeneratorTest extends OutletTestCase {
 					)
 				),
 				'ProxyTest2' => array (
+					'table' => 'proxy',
+					'props' => array (
+					    'id' => array('id', 'varchar', array('pk' => true))
+					)
+				),
+				'testing\ProxyTest3' => array (
+					'alias' => 'ProxyTest3',
 					'table' => 'proxy',
 					'props' => array (
 					    'id' => array('id', 'varchar', array('pk' => true))

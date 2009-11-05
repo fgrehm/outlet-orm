@@ -21,8 +21,7 @@ class IdentityMap {
 	}
 
 	public function register($obj) {
-		$class = $this->config->getEntity($obj)->getClass();
-		$mapper = $this->session->getMapperFor($class);
+		$mapper = $this->session->getMapperFor($obj);
 		$key = $this->getKey($obj);
 
 		if (!isset($this->map[$key])) $this->map[$key] = array();
@@ -44,10 +43,9 @@ class IdentityMap {
 	}
 
 	public function remove($obj) {
-		$class = $this->config->getEntity($obj)->getClass();
-		$mapper = $this->session->getMapperFor($class);
+		$mapper = $this->session->getMapperFor($obj);
 
-		$key = $this->getKey($class);
+		$key = $this->getKey($obj);
 
 		if (!isset($this->map[$key])) $this->map[$key] = array();
 
