@@ -1,5 +1,4 @@
 <?php
-//error_reporting(E_STRICT);
 require_once dirname(__FILE__).'/init.php';
 require_once 'PHPUnit/Framework.php';
 
