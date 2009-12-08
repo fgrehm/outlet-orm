@@ -11,7 +11,14 @@ class OutletConfig {
 
 	private $con;
 
-	private $entities;
+	private $entities = array();
+
+	/**
+	 * @var array
+	 */
+	private $classes;
+
+	public $useGettersAndSetters = false;
 
 	/**
 	 * Constructs a new instance of OutletConfig
@@ -35,8 +42,26 @@ class OutletConfig {
 		if (!isset($conf['classes'])) {
 			throw new OutletConfigException('Element [classes] missing in configuration');
 		}
+		
+		$this->classes = array_keys($conf['classes']);
 
-		$this->conf = $conf;
+
+		$conn = $conf['connection'];
+		if (isset($conn['pdo'])) {
+			$pdo = $conn['pdo'];
+		} else {
+			$pdo = new PDO($conn['dsn'], @$conn['username'], @$conn['password']);
+			$pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+		}
+
+		$this->con = new OutletConnection($pdo, $conn['dialect']);
+
+		if (isset($conf['useGettersAndSetters'])) $this->useGettersAndSetters = $this->conf['useGettersAndSetters'];
+
+		// create the entity configs
+		foreach ($conf['classes'] as $key=>$cls) {
+			$this->entities[$key] = new OutletEntityConfig($this, $key, $cls);
+		}
 	}	
 
 	/**
@@ -44,18 +69,6 @@ class OutletConfig {
 	 * @return OutletConnection
 	 */
 	function getConnection () {
-		if (!$this->con) {
-			$conn = $this->conf['connection'];
-
-			if (isset($conn['pdo'])) {
-				$pdo = $conn['pdo'];
-			} else {
-				$pdo = new PDO($conn['dsn'], @$conn['username'], @$conn['password']);
-				$pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-			}
-
-			$this->con = new OutletConnection($pdo, $conn['dialect']);
-		} 
 		return $this->con;
 	}
 
@@ -64,13 +77,14 @@ class OutletConfig {
 	 * @return array entities array
 	 */
 	function getEntities () {
-		if (is_null($this->entities)) {
-			$this->entities = array();
-			foreach ($this->conf['classes'] as $key=>$cls) {
-				$this->entities[$key] = new OutletEntityConfig($this, $key, $cls);
-			}
-		}
 		return $this->entities;
+	}
+
+	function getEntityClass ($obj) {
+		foreach ($this->classes as $cls) {
+			if ($obj instanceof $cls) return $cls;
+		}
+		throw new OutletException('Object ['.get_class($obj).'] not configured');
 	}
 
 	/**
@@ -79,15 +93,15 @@ class OutletConfig {
 	 * @return OutletEntityConfig
 	 */
 	function getEntity ($cls) {
-		if (is_null($this->entities)) {
-			$this->getEntities();
-		}
-		
 		if (!isset($this->entities[$cls])) {
 			throw new OutletException('Entity ['.$cls.'] has not been defined in the configuration');
 		}
 		
 		return $this->entities[$cls];
+	}
+
+	public function getEntityForObject ($obj) {
+		return $this->getEntity($this->getEntityClass($obj));
 	}
 	
 	/**
@@ -108,13 +122,13 @@ class OutletEntityConfig {
 
 	private $config;
 
-	private $clazz;
+	public $clazz;
 	private $props;
-	private $associations;
+	private $associations = array();
 	
 	private $sequenceName = '';
 	
-	private $useGettersAndSetters;
+	public $useGettersAndSetters;
 
 	/**
 	 * Construct a new instance of OutletEntityConfig
@@ -154,7 +168,11 @@ class OutletEntityConfig {
 		$this->props = $conf['props'];
 		$this->sequenceName = isset($conf['sequenceName']) ? $conf['sequenceName'] : '';
 		
-		$this->useGettersAndSetters = isset($conf['useGettersAndSetters']) ? $conf['useGettersAndSetters'] : $config->useGettersAndSetters();
+		$this->useGettersAndSetters = isset($conf['useGettersAndSetters']) ? $conf['useGettersAndSetters'] : $config->useGettersAndSetters;
+
+		// if there's a plural defined at the foreign entity
+		// else use the entity plus an 's'
+		$this->plural = isset($conf['plural']) ? $conf['plural'] : $this->clazz.'s';
 		
 		// Adjusts sequence name for postgres if it is not specified
 		if (($config->getConnection()->getDialect() == 'pgsql') && ($this->sequenceName == ''))
@@ -168,22 +186,141 @@ class OutletEntityConfig {
 				}
 			}
 		}
+
+		// load associations	
+		if (isset($conf['associations'])) {
+			foreach ($conf['associations'] as $assoc) {
+				switch ($assoc[0]) {
+					case 'one-to-many': 
+						$a = new OutletOneToManyConfig($this->config, $this->clazz, $assoc[1], $assoc[2]);
+						break;
+					case 'many-to-one':
+						$a = new OutletManyToOneConfig($this->config, $this->clazz, $assoc[1], $assoc[2]);
+						break;
+					case 'many-to-many':
+						$a = new OutletManyToManyConfig($this->config, $this->clazz, $assoc[1], $assoc[2]);
+						break;
+					case 'one-to-one':
+						$a = new OutletOneToOneConfig($this->config, $this->clazz, $assoc[1], $assoc[2]);
+						break;
+					default:
+						$a = new OutletAssociationConfig($this->config, $assoc[0], $this->clazz, $assoc[1], $assoc[2]);
+				}
+				$this->associations[] = $a;
+			}
+		}
 	}
 
 	/**
-	 * Retrieves the class name
-	 * @return string class name
+	 * Get the PK values for the entity, casted to the type defined in the config
+	 * 
+	 * @param object $obj the entity to get the primary key values for
+	 * @return array the primary key values
 	 */
-	function getClass () {
-		return $this->clazz;
+	public function getPkValues ($obj) {
+		$pks = array();
+
+		foreach ($this->props as $key=>$p) {
+			if (isset($p[2]['pk']) && $p[2]['pk']) {
+				$value = $this->getProp($obj, $key);
+
+				// cast it if the property is defined to be an int
+				if ($p[1]=='int') $value = (int) $value;
+				
+				$pks[$key] = $value;
+			}
+		}
+		return $pks;
 	}
 
 	/**
-	 * Retrieves the table name
-	 * @return string table name
+	 * Get the value of an entity property using the method specified in the config: public prop or getter
+	 * 
+	 * @param object $obj entity to retrieve value from
+	 * @param string $prop property to retrieve
+	 * @return mixed the value of the property on the entity
 	 */
-	function getTable () {
-		return $this->table;
+
+	public function getProp ($obj, $prop) {
+		if ($this->useGettersAndSetters) {
+			$getter = "get$prop";
+			return $obj->$getter();
+		} else {
+			return $obj->$prop;
+		}
+	}
+
+	/**
+	 * Set the value of an entity property using the method specified in the config: public prop or setter
+	 * 
+	 * @param object $obj entity to set property on
+	 * @param string $prop property to set
+	 * @param mixed $value value to set property to 
+	 * @param bool $useSetter whether to use a setter
+	 */
+	public function setProp ($obj, $prop, $value) {
+		if ($this->useGettersAndSetters) {
+			$setter = "set$prop";
+			$obj->$setter( $value );
+		} else {
+			$obj->$prop = $value;
+		}
+	}
+
+	/**
+	 * Translates an entity into an associative array, applying OutletMapper::toSqlValue($conf, $v) on all values
+	 * 
+	 * @see OutletMapper::toSqlValue($conf, $v)
+	 * @param object $entity entity to translate into an array
+	 * @return array entity values
+	 */
+	public function toRow ($entity) {
+		if (!$entity) throw new OutletException('You must pass an entity');
+
+		$arr = array();
+		foreach ($this->props as $key=>$p) {
+			$arr[$key] = OutletMapper::toSqlValue($p[1], $this->getProp($entity, $key));
+		}
+		return $arr;
+	}
+
+	/**
+	 * Cast the values of a row coming from the database using the types defined in the config
+	 * 
+	 * @see OutletMapper::toPhpValue($conf, $v)
+	 * @param string $clazz Entity class
+	 * @param array $row Row to cast
+	 */
+	public function castRow (array &$row) {
+		foreach ($this->props as $key=>$p) {
+			$column = $p[0];
+
+			if (!array_key_exists($column, $row)) {
+				throw new OutletException('No value found for ['.$column.'] in row ['.var_export($row, true).']');
+			} 
+
+			// cast if it's anything other than a string
+			$row[$column] = OutletMapper::toPhpValue($p[1], $row[$column]);
+		}
+	}
+
+	/**
+	 * Populate an object with the values from an associative array indexed by column names
+	 * 
+	 * @param object $obj Instance of the entity (probably brand new) or a subclass
+	 * @param array $values Associative array indexed by column name, it must already be casted
+	 * @return object populated entity 
+	 */
+	public function populateObject ($obj, array $values) {
+		foreach ($this->props as $key=>$f) {
+			if (!array_key_exists($f[0], $values)) {
+				throw new OutletException("Field [$f[0]] defined in the config is not defined in table [".$this->table."]");
+			}
+
+			$this->setProp($obj, $key, OutletMapper::toPhpValue($f[1], $values[$f[0]]));
+		}
+
+		return $obj;
 	}
 
 	/**
@@ -227,31 +364,6 @@ class OutletEntityConfig {
 	 * @return array OutletAssociationConfig collection
 	 */
 	function getAssociations () {
-		if (is_null($this->associations)) {
-			$this->associations = array();
-			$conf = $this->config->conf['classes'][$this->clazz];
-			if (isset($conf['associations'])) {
-				foreach ($conf['associations'] as $assoc) {
-					switch ($assoc[0]) {
-						case 'one-to-many': 
-							$a = new OutletOneToManyConfig($this->config, $this->getClass(), $assoc[1], $assoc[2]);
-							break;
-						case 'many-to-one':
-							$a = new OutletManyToOneConfig($this->config, $this->getClass(), $assoc[1], $assoc[2]);
-							break;
-						case 'many-to-many':
-							$a = new OutletManyToManyConfig($this->config, $this->getClass(), $assoc[1], $assoc[2]);
-							break;
-						case 'one-to-one':
-							$a = new OutletOneToOneConfig($this->config, $this->getClass(), $assoc[1], $assoc[2]);
-							break;
-						default:
-							$a = new OutletAssociationConfig($this->config, $assoc[0], $this->getClass(), $assoc[1], $assoc[2]);
-					}
-					$this->associations[] = $a;
-				}
-			}
-		}
 		return $this->associations;
 	}
 	
@@ -295,13 +407,6 @@ class OutletEntityConfig {
 		return $this->sequenceName;
 	}
 	
-	/**
-	 * Retrieves the use getters and setters setting
-	 * @return bool whether or not to use getters and setters instead of properties
-	 */
-	function useGettersAndSetters () {
-		return $this->useGettersAndSetters;
-	}
 }
 
 /**
@@ -337,8 +442,6 @@ abstract class OutletAssociationConfig {
         $this->local 	= $local;
 		$this->foreign 	= $foreign;
 		$this->options	= $options;
-        $this->localUseGettersAndSetters = $this->config->getEntity($local)->useGettersAndSetters();
-        $this->foreignUseGettersAndSetters = $this->config->getEntity($foreign)->useGettersAndSetters();
 	}
 
 	/**
@@ -346,7 +449,7 @@ abstract class OutletAssociationConfig {
 	 * @return bool whether or not to use getters and setters for the foreign table instead of properties
 	 */
     function getForeignUseGettersAndSetters(){
-        return $this->foreignUseGettersAndSetters;
+        return $this->config->getEntity($this->foreign)->useGettersAndSetters;
     }
 	
 	/**
@@ -354,7 +457,7 @@ abstract class OutletAssociationConfig {
 	 * @return bool whether or not to use getters and setters for the local table instead of properties
 	 */
     function getLocalUseGettersAndSetters(){
-        return $this->localUseGettersAndSetters;
+        return $this->config->getEntity($this->local)->useGettersAndSetters;
     }
 
 	/**
@@ -452,18 +555,9 @@ abstract class OutletAssociationConfig {
 			} 
 		// else check the entity definition
 		} else {
-			if (!isset($this->config->conf['classes'][$this->foreign])) { 
-				throw new OutletConfigException("Entity [{$this->foreign}] not found in configuration");
-			}
-			
-			$foreign_def = $this->config->conf['classes'][$this->foreign];
-			// if there's a plural defined at the foreign entity
-			// else use the entity plus an 's'
-			if (isset($foreign_def['plural'])) {
-				$plural = $foreign_def['plural'];
-			} else {
-				$plural = $this->foreign.'s';
-			}
+			$foreignCfg = $this->config->getEntity($this->foreign);
+
+			$plural = $foreignCfg->plural;
 		}
 		return $plural;
 	}

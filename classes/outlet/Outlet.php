@@ -138,8 +138,9 @@ class Outlet {
 		/** @todo It's not being used, maybe we could remove it */
 		//		$pk = $this->getConfig()->getEntity($clazz)->getPkColumns();
 
+        	$config = $this->getConfig()->getEntity($clazz);
 		while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
-			$collection[] = $this->getEntityForRow($clazz, $row);
+			$collection[] = $this->getEntityForRow($config, $row);
 		}
 
 		return $collection;
@@ -163,7 +164,7 @@ class Outlet {
 		// set outlet
 		$c = '';
 		foreach ($this->config->getEntities() as $en) {
-			$cls = $en->getClass() . '_OutletProxy';
+			$cls = $en->clazz . '_OutletProxy';
 			$c .= "$cls::\$_outlet = \$this;\n";
 		}
 		eval($c);
@@ -217,30 +218,34 @@ class Outlet {
 	 * @param array $row database row
 	 * @return object populated entity
 	 */
-	public function getEntityForRow ($clazz, array $row) {
-		$this->mapper->castRow($clazz, $row);
+	public function getEntityForRow ($entityCfg, array $row) {
+//		$entityCfg = $this->getConfig()->getEntity($clazz);
+        	$clazz = $entityCfg->clazz;
+
+//		$entityCfg->castRow($row);
 
 		// get the pk column in order to check the map
-		$pks = $this->getConfig()->getEntity($clazz)->getPkColumns();
+		$pks = $entityCfg->getPkColumns();
 
-		$values = array();
+		$pkValues = array();
 		foreach ($pks as $pk) {
-			$values[] = $row[$pk];
+			$pkValues[] = $row[$pk];
 		}
 
-		$data = $this->mapper->get($clazz, $values);
+		$data = $this->mapper->get($clazz, $pkValues);
 
 		$proxyclass = "{$clazz}_OutletProxy";
 
 		if ($data) {
 			return $data['obj'];
 		} else {
-			$obj = $this->mapper->populateObject($clazz, new $proxyclass, $row);
+                        // TODO: cast values on populateObject
+			$obj = $entityCfg->populateObject(new $proxyclass, $row);
 
 			// add it to the cache
-			$this->mapper->set($clazz, $values, array(
+			$this->mapper->set($clazz, $pkValues, array(
 				'obj' => $obj,
-				'original' => $this->mapper->toArray($obj)
+				'original' => $row// TODO: why this? $entityCfg->toRow($obj)
 			));
 
 			return $obj;

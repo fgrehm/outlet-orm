@@ -47,7 +47,7 @@ class OutletProxyGenerator {
 	function generate () {
 		$c = '';
 		foreach ($this->config->getEntities() as $entity) {
-			$clazz = $entity->getClass();
+			$clazz = $entity->clazz;
 
 			$c .= "class {$clazz}_OutletProxy extends $clazz implements OutletProxy { \n";
 			$c .= "  static \$_outlet; \n";

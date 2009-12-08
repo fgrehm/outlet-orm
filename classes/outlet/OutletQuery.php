@@ -263,7 +263,7 @@ class OutletQuery {
 					$data[$p[0]] = $row[$from_aliased.'_'.$key];
 				}
 
-			$obj = $outlet->getEntityForRow($from, $data);
+			$obj = $outlet->getEntityForRow($entity_config, $data);
 		
 			foreach ($with as $with_key=>$w) {
 				$a = $entity_config->getAssociation($w);
@@ -310,7 +310,7 @@ class OutletQuery {
 						}
 						
 						// only fill object if there was data returned
-						if ($data_returned) $obj->$setter($outlet->getEntityForRow($foreign, $data));
+						if ($data_returned) $obj->$setter($outlet->getEntityForRow($with_entity, $data));
 					}
 				}
 			}
