@@ -1,6 +1,11 @@
 
 ==== Release 1.0RC1 ====
-- This is a release candidate for the 1.0 release, it is mainly the same code as v0.7 with some minor performance improvements 
+This is a release candidate for the 1.0 release, it is based on v0.7 with some performance improvements, bug fixes, and clean up
+- Switched to phpunit for unit testing
+- Fixed a lot (i think all of them) of E_STRICT notices
+- Added NesteSetBrowser as a utility to help implementations of nested sets (modified preorder tree traversal)
+- Added a lot more source comments
+- Fixed a bunch of small bugs
 
 ==== Release 0.7 ====
 - One-to-one and many-to-many relationships
