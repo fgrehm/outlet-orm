@@ -1,3 +1,19 @@
+
+==== Release 1.0RC1 ====
+- This is a release candidate for the 1.0 release, it is mainly the same code as v0.7 with some minor performance improvements 
+
+==== Release 0.7 ====
+- One-to-one and many-to-many relationships
+- PHP-5.2's DateTime support
+- Fluent-interface query API
+- Eager-fetching (for many-to-one and one-to-one relationships)
+- PostgreSQL support
+- Support for using getters and setters instead of public properties for entity attributes
+
+==== Release 0.6 ====
+- Fixed bugs reported on the mailing list
+- Provides better support for using SQL Server with both the odbc and dblib drivers.
+
 ==== Release 0.5 ====
 - Fixed a bug with Outlet->delete (another one)
 
