@@ -20,6 +20,10 @@ class OutletConfig {
 
 	public $useGettersAndSetters = false;
 
+        public $proxiesCache = false;
+
+        public $autoloadProxies = false;
+
 	/**
 	 * Constructs a new instance of OutletConfig
 	 * @param object $conf configuration
@@ -53,6 +57,19 @@ class OutletConfig {
 			$pdo = new PDO($conn['dsn'], @$conn['username'], @$conn['password']);
 			$pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 		}
+                
+                // proxies section is not required
+		if (isset($conf['proxies'])) {
+			if (isset($conf['proxies']['autoload']))
+				$this->autoloadProxies = $conf['proxies']['autoload'];
+			if ($this->autoloadProxies
+					&& isset($conf['proxies']['cache'])
+					&& $conf['proxies']['cache'] !== false){
+				$this->proxiesCache = $conf['proxies']['cache'];
+				$this->proxiesCache = rtrim($this->proxiesCache, '/');
+			}
+		}
+
 
 		$this->con = new OutletConnection($pdo, $conn['dialect']);
 
@@ -92,9 +109,12 @@ class OutletConfig {
 	 * @param string $cls entity class to retrieve
 	 * @return OutletEntityConfig
 	 */
-	function getEntity ($cls) {
+	function getEntity ($cls, $throwsException = true) {
 		if (!isset($this->entities[$cls])) {
-			throw new OutletException('Entity ['.$cls.'] has not been defined in the configuration');
+			if ($throwsException)
+				throw new OutletException('Entity ['.$cls.'] has not been defined in the configuration');
+			else
+				return null;
 		}
 		
 		return $this->entities[$cls];

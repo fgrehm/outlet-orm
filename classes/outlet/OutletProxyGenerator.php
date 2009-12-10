@@ -15,6 +15,24 @@ class OutletProxyGenerator {
 		$this->config = $config;
 	}
 
+	private function generateProxy(OutletEntityConfig $entity) {
+		$c = '';
+		$clazz = $entity->clazz;
+
+		$c .= "class {$clazz}_OutletProxy extends $clazz implements OutletProxy { \n";
+		$c .= "  static \$_outlet; \n";
+
+		foreach ($entity->getAssociations() as $assoc) {
+			switch ($assoc->getType()) {
+				case 'one-to-many': $c .= $this->createOneToManyFunctions($assoc); break;
+				case 'many-to-one': $c .= $this->createManyToOneFunctions($assoc); break;
+				case 'one-to-one': $c .= $this->createOneToOneFunctions($assoc); break;
+				case 'many-to-many': $c .= $this->createManyToManyFunctions($assoc); break;
+				default: throw new Exception("invalid association type: {$assoc->getType()}");
+			}
+		}
+		return $c . "} \n";
+	}
 
 	/**
 	 * Extracts primary key information from a configuration for a given class
@@ -44,24 +62,14 @@ class OutletProxyGenerator {
 	 * Generates the source code for the proxy classes
 	 * @return string class source
 	 */
-	function generate () {
+	function generate ($class = null) {
 		$c = '';
-		foreach ($this->config->getEntities() as $entity) {
-			$clazz = $entity->clazz;
-
-			$c .= "class {$clazz}_OutletProxy extends $clazz implements OutletProxy { \n";
-			$c .= "  static \$_outlet; \n";
-
-			foreach ($entity->getAssociations() as $assoc) {
-				switch ($assoc->getType()) {
-					case 'one-to-many': $c .= $this->createOneToManyFunctions($assoc); break;
-					case 'many-to-one': $c .= $this->createManyToOneFunctions($assoc); break;
-					case 'one-to-one':	$c .= $this->createOneToOneFunctions($assoc); break;
-					case 'many-to-many': $c .= $this->createManyToManyFunctions($assoc); break;
-					default: throw new Exception("invalid association type: {$assoc->getType()}");
-				}
+		if ($class == null) {
+			foreach ($this->config->getEntities() as $entity) {
+				$c .= $this->generateProxy($entity);
 			}
-			$c .= "} \n";
+		} else {
+			$c = $this->generateProxy($this->config->getEntity($class));
 		}
 
 		return $c;

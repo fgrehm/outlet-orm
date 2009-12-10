@@ -5,6 +5,8 @@ require 'OutletProxy.php';
 require 'OutletConfig.php';
 require 'Collection.php';
 require 'OutletCollection.php';
+require 'OutletProxyAutoloader.php';
+require 'OutletProxyGenerator.php';
 
 /**
  * Main entry point for client interaction with Outlet
@@ -52,6 +54,9 @@ class Outlet {
 	 */
 	public function __construct (array $conf) {
 		$this->config = new OutletConfig( $conf );
+
+		if ($this->config->autoloadProxies)
+			$this->proxyAutoloader = new OutletProxyAutoloader($this->config);
 
 		$this->con = $this->config->getConnection();
 		
@@ -156,7 +161,6 @@ class Outlet {
 	 * allow byte-code caches to cache the proxies code. 
 	 */
 	public function createProxies () {
-		require_once 'OutletProxyGenerator.php';
 		$gen = new OutletProxyGenerator($this->config);
 		$c = $gen->generate();
 		eval($c);
