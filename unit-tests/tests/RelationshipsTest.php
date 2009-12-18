@@ -25,6 +25,29 @@ class RelationshipsTest extends OutletTestCase {
 		$this->assertEquals( count($project->getBugs()), 2 );
 	}
 
+	function testGettingCollectionItem () {
+		$project = new Project;
+		$project->setName('Cool Project');
+
+		$bug1 = new Bug;
+		$bug1->Title = 'Bug 1';
+		$project->addBug( $bug1 );
+
+		$bug2 = new Bug;
+		$bug2->Title = 'Bug2';
+		$project->addBug( $bug2 );
+
+		$outlet = Outlet::getInstance();
+
+		$outlet->save($project);
+		$outlet->clearCache();
+
+		$project = $outlet->load('Project', $project->getProjectID());
+
+		$bugs = $project->getBugs();
+		$this->assertNotNull($bugs[1]);
+	}
+
 	function testManyToOne () {
 		$bug = new Bug;
 		$bug->Title = 'Test Bug';

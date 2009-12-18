@@ -105,4 +105,14 @@ class OutletCollection extends Collection {
 		$this->load();
 		return parent::count();
 	}
+
+	/**
+	 * Retrieve a related entity by index
+         * @param int $index related entity index
+	 * @return object related entity
+	 */
+        function offsetGet($index) {
+		$this->load();
+		return parent::offsetGet($index);
+        }
 }

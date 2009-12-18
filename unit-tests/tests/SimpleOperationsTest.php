@@ -45,7 +45,7 @@ class SimpleOperationsTest extends OutletTestCase {
 
 		$project = $outlet->load('Project', $project->getProjectID());
 		
-		$this->assertEquals(count($project->getBugs()), 2, 'Two rows returned');
+		$this->assertEquals(2, count($project->getBugs()), 'Two rows returned');
 
 		// test assignment of many to one
 		$bug3 = new Bug;

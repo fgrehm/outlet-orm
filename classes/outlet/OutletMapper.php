@@ -255,11 +255,11 @@ class OutletMapper {
 					$stmt->execute($pks);
 				}
 
-				foreach (array_keys($children->getArrayCopy()) as $k) {
+				$foreignEntityCfg = $this->config->getEntity($foreign);
+				foreach ($children->getArrayCopy() as $child) {
 					/** @todo make it work with composite keys */
-					$foreignEntityCfg = $this->config->getEntity($foreign);
-					$foreignEntityCfg->setProp($children[$k], $key, current($pks));
-					$this->save($children[$k]);
+					$foreignEntityCfg->setProp($child, $key, current($pks));
+					$this->save($child);
 				}
 
 				$obj->$setter( $children );
