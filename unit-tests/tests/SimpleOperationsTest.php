@@ -7,7 +7,7 @@ class SimpleOperationsTest extends OutletTestCase {
 		$outlet = Outlet::getInstance();
 		$project = new Project;
 		$project->setName('Project 1');
-		
+
 		$outlet->save($project);
 
 		// test insert
@@ -23,12 +23,12 @@ class SimpleOperationsTest extends OutletTestCase {
 
 		// test retrieve
 		$bug = $outlet->load('Bug', $id);
-		
+
 		$this->assertTrue($bug instanceof Bug, 'Object is a Bug');
 		$this->assertEquals( $bug->Title, 'Test bug', 'Row retrieved' );
 
 		// test update
-		$bug->Title = 'New Test Bug';	
+		$bug->Title = 'New Test Bug';
 
 		$outlet->save($bug);
 
@@ -44,7 +44,7 @@ class SimpleOperationsTest extends OutletTestCase {
 		$outlet->save($project);
 
 		$project = $outlet->load('Project', $project->getProjectID());
-		
+
 		$this->assertEquals(2, count($project->getBugs()), 'Two rows returned');
 
 		// test assignment of many to one
@@ -61,7 +61,7 @@ class SimpleOperationsTest extends OutletTestCase {
 		$bug3->setProject($project2);
 
 		$this->assertEquals($bug3->ProjectID, $project2->getProjectID(), "Bug gets assigned the id of the project on setProject");
-        
+
 	}
 
 	function testNonAutoIncrementingVarcharPrimaryKey () {
@@ -86,25 +86,25 @@ class SimpleOperationsTest extends OutletTestCase {
 
 		$outlet->save($machine);
 	}
-	
+
 	function testDefaults () {
 		// make sure that the created date of the project is assigned
 		// as per the defaultExpr setting
-		// also make sure that the status or the project is set 
+		// also make sure that the status or the project is set
 		// as per the default setting
 		$project = new Project;
 		$project->setName('Test Project');
-		
+
 		$outlet = Outlet::getInstance();
-	
+
 		$outlet->save($project);
-		$now = time();	
+		$now = time();
 
 		$outlet->clearCache();
-		
+
 		$project = $outlet->load('Project', $project->getProjectID());
 
-		// allow for a 1 sec delay	
+		// allow for a 1 sec delay
 		$this->assertTrue( $now - ((int) $project->getCreatedDate()->format('U')) < 2 );
 
 		$this->assertEquals($project->getStatusID(), 1);
@@ -114,22 +114,22 @@ class SimpleOperationsTest extends OutletTestCase {
 	function testDelete () {
 		$project = new Project;
 		$project->setName('Test Project');
-		
+
 		$outlet = Outlet::getInstance();
-		
+
 		$outlet->save($project);
-		
+
 		$project = $outlet->load('Project', $project->getProjectID());
 
 		$project_id = $project->getProjectID();
 
 		$outlet->delete('Project', $project_id);
 
-		// I'll have to do something better than this 
+		// I'll have to do something better than this
 		// when I get a chance
 		$project = $outlet->load('Project', $project_id);
 
-		$this->assertTrue(is_null($project), 'Project was deleted');			
+		$this->assertTrue(is_null($project), 'Project was deleted');
 	}
 
 	function testUpdate () {
@@ -177,7 +177,7 @@ class SimpleOperationsTest extends OutletTestCase {
         $bug->setProject($project);
 
 		$outlet->save($bug);
-        
+
         // Tests default value
         $this->assertEquals($bug->TimeToFix, 2000.000001);
 
@@ -219,6 +219,25 @@ class SimpleOperationsTest extends OutletTestCase {
         $this->assertTrue($project->getCreatedDate() instanceof DateTime);
     }
 
+	function testSelectAndUpdate() {
+		$outlet = Outlet::getInstance();
+
+		$p = new Project;
+		$p->setName('Project test update');
+		$outlet->save($p);
+		$outlet->clearCache();
+
+		$p = $outlet->select('Project');
+		$p = $p[0];
+
+		$p->setName('Project test update2');
+
+		// This should raise an exception as reported on:
+		// http://groups.google.com/group/outlet-orm/browse_thread/thread/edce030aa444befa
+		$outlet->save($p);
+		$this->assertTrue(true);
+	}
+
 	function testDbFunctions () {
 		$outlet = Outlet::getInstance();
 
@@ -231,7 +250,7 @@ class SimpleOperationsTest extends OutletTestCase {
 		$p2->setName('BBBB');
 
 		$outlet->save($p2);
-		
+
 		$stmt = $outlet->query('SELECT MAX({p.Name}) as max_project FROM {Project p}');
 		$data = $stmt->fetchAll(PDO::FETCH_ASSOC);
 		$this->assertEquals($data[0]['max_project'], 'BBBB');
