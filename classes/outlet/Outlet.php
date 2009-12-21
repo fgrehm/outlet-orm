@@ -245,7 +245,7 @@ class Outlet {
 			// add it to the cache
 			$this->mapper->set($clazz, $pkValues, array(
 				'obj' => $obj,
-				'original' => $row// TODO: why this? $entityCfg->toRow($obj)
+				'original' => $entityCfg->toRow($obj)
 			));
 
 			return $obj;
