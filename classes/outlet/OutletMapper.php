@@ -380,7 +380,8 @@ class OutletMapper {
 					$this->save($ent);
 				}
 
-				$obj->$key = $ent->$refKey;
+				$foreignEntityCfg = $this->config->getEntityForObject($ent);
+                                $entityCfg->setProp($obj, $key, $foreignEntityCfg->getProp($ent, $refKey));
 			}
 		}
 	}
