@@ -246,6 +246,10 @@ class Outlet {
                         // TODO: cast values on populateObject
 			$obj = $entityCfg->populateObject(new $proxyclass, $row);
 
+			if ($this->mapper->onHydrate) {
+				call_user_func($this->mapper->onHydrate, $obj);
+			}
+
 			// add it to the cache
 			$this->mapper->set($clazz, $pkValues, array(
 				'obj' => $obj,
