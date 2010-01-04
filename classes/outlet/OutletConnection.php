@@ -4,6 +4,7 @@
  * Outlet wrapper for a database connection.
  * @package outlet
  * @method PDOStatement prepare (string $statement)
+ * @method PDOStatement query (string $query)
  */
 class OutletConnection {
 	private $driver;

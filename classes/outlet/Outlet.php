@@ -44,6 +44,10 @@ class Outlet {
 		}
 		return self::$instance;
 	}
+	
+	static function setInstance (Outlet $o) {
+		self::$instance = $o;
+	}
 
 	/**
 	 * Constructs a new instance of Outlet
@@ -389,6 +393,8 @@ class Outlet {
 
 /**
  * Exception to be thrown by Outlet
+ *
+ * @package outlet
  */
 class OutletException extends Exception {}
 
