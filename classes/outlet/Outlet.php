@@ -142,7 +142,7 @@ class Outlet {
 		/** @todo It's not being used, maybe we could remove it */
 		//		$pk = $this->getConfig()->getEntity($clazz)->getPkColumns();
 
-        	$config = $this->getConfig()->getEntity($clazz);
+		$config = $this->getConfig()->getEntity($clazz);
 		while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
 			$collection[] = $this->getEntityForRow($config, $row);
 		}
@@ -224,7 +224,7 @@ class Outlet {
 	 */
 	public function getEntityForRow ($entityCfg, array $row) {
 //		$entityCfg = $this->getConfig()->getEntity($clazz);
-        	$clazz = $entityCfg->clazz;
+        $clazz = $entityCfg->clazz;
 
 //		$entityCfg->castRow($row);
 
@@ -243,7 +243,7 @@ class Outlet {
 		if ($data) {
 			return $data['obj'];
 		} else {
-                        // TODO: cast values on populateObject
+			// TODO: cast values on populateObject
 			$obj = $entityCfg->populateObject(new $proxyclass, $row);
 
 			if ($this->mapper->onHydrate) {
