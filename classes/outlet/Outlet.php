@@ -1,20 +1,38 @@
 <?php
+require 'OutletEntityConfig.php';
+require 'OutletException.php';
+require 'OutletConfigException.php';
 require 'OutletConnection.php';
 require 'OutletMapper.php';
 require 'OutletProxy.php';
 require 'OutletConfig.php';
 require 'Collection.php';
 require 'OutletCollection.php';
+require 'OutletAssociationConfig.php';
+require 'OutletManyToManyConfig.php';
+require 'OutletManyToOneConfig.php';
+require 'OutletOneToManyConfig.php';
+require 'OutletOneToOneConfig.php';
+require 'OutletXmlException.php';
+require 'OutletXmlConfig.php';
 
 /**
  * Main entry point for client interaction with Outlet
+ * 
  * @package outlet
  */
-class Outlet {
-	static $instance;
-
+class Outlet
+{
+	/**
+	 * @var Outlet
+	 */
+	private static $instance;
+	
+	/**
+	 * @var OutletConfig
+	 */
 	private $config;
-
+	
 	/**
 	 * @var OutletConnection
 	 */
@@ -30,36 +48,45 @@ class Outlet {
 	 * 
 	 * @param array $conf configuration
 	 */
-	static function init ( array $conf ) {
+	public static function init(array $conf)
+	{
 		// instantiate
-		self::$instance = new self( $conf );
+		self::$instance = new self($conf);
 	}
 
 	/**
 	 * @return Outlet instance
 	 */
-	static function getInstance () {
+	public static function getInstance()
+	{
 		if (!self::$instance) {
 			throw new OutletException('You must first initialize Outlet by calling Outlet::init( $conf )');
 		}
+		
 		return self::$instance;
 	}
 	
-	static function setInstance (Outlet $o) {
+	/**
+	 * Just for tests
+	 * 
+	 * @param Outlet $o
+	 */
+	public static function setInstance (Outlet $o)
+	{
 		self::$instance = $o;
 	}
 
 	/**
 	 * Constructs a new instance of Outlet
+	 * 
 	 * @param array $conf configuration 
 	 * @return Outlet instance
 	 */
-	public function __construct (array $conf) {
-		$this->config = new OutletConfig( $conf );
-
+	public function __construct(array $conf)
+	{
+		$this->config = new OutletConfig($conf);
 		$this->con = $this->config->getConnection();
-		
-		$this->mapper = new OutletMapper( $this->config );
+		$this->mapper = new OutletMapper($this->config);
 	}
 
 	/**
@@ -68,15 +95,14 @@ class Outlet {
 	 * @param object $obj
 	 * @return OutletProxy object representing the Entity
 	 */
-	public function save (&$obj) {
+	public function save(&$obj)
+	{
 		$con = $this->getConnection();
-
-		$con->beginTransaction();
-
-		$return = $this->mapper->save( $obj );
 		
+		$con->beginTransaction();
+		$return = $this->mapper->save($obj);
 		$con->commit();
-
+		
 		return $return;
 	}
 
@@ -87,37 +113,43 @@ class Outlet {
 	 * @param mixed $id Primary key of the entity
 	 * @return bool true if delete succeeded, false otherwise
 	 */
-	public function delete ($clazz, $id) {
-		if (!is_array($id)) $id = array($id);
-
-		$pks = $this->config->getEntity($clazz)->getPkFields();
-
-		$pk_q = array();
-		foreach ($pks as $pk) {
-			$pk_q[] = '{'.$clazz.'.'.$pk.'} = ?';
+	public function delete($clazz, $id)
+	{
+		if (!is_array($id)) {
+			$id = array($id);
 		}
-
-		$q = "DELETE FROM {"."$clazz} WHERE " . implode(' AND ', $pk_q);
-
+		
+		$pks = $this->config->getEntity($clazz)->getPkFields();
+		
+		$pk_q = array();
+		
+		foreach ($pks as $pk) {
+			$pk_q[] = '{' . $clazz . '.' . $pk . '} = ?';
+		}
+		
+		$q = "DELETE FROM {" . "$clazz} WHERE " . implode(' AND ', $pk_q);
+		
 		$q = $this->mapper->processQuery($q);
-
+		
 		$stmt = $this->getConnection()->prepare($q);
-
+		
 		$res = $stmt->execute($id);
-
+		
 		// remove from identity map
 		$this->mapper->clear($clazz, $id);
-
+		
 		return $res;
 	}
 
 	/**
 	 * Quotes a value to protect against SQL injection attackes
+	 * 
 	 * @see OutletConnection::quote($v)
 	 * @param mixed $val value to quote
 	 * @return mixed quoted value
 	 */
-	public function quote ($val) {
+	public function quote($val)
+	{
 		return $this->getConnection()->quote($val);
 	}
 
@@ -129,24 +161,26 @@ class Outlet {
 	 * @param string $params Optional parameters to bind to the query
 	 * @return array Collection returned by the query
 	 */
-	public function select ( $clazz, $query='', $params=array()) {
+	public function select($clazz, $query = '', $params = array())
+	{
 		// select plus criteria
-		$q = "SELECT {"."$clazz}.* FROM {".$clazz."} " . $query;
-
+		$q = "SELECT {" . "$clazz}.* FROM {" . $clazz . "} " . $query;
+		
 		$proxyclass = "{$clazz}_OutletProxy";
 		$collection = array();
-
+		
 		$stmt = $this->query($q, $params);
-
+		
 		// get the pk column in order to check the map
-		/** @todo It's not being used, maybe we could remove it */
+		//TODO It's not being used, maybe we could remove it
 		//		$pk = $this->getConfig()->getEntity($clazz)->getPkColumns();
-
+		
 		$config = $this->getConfig()->getEntity($clazz);
+		
 		while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
 			$collection[] = $this->getEntityForRow($config, $row);
 		}
-
+		
 		return $collection;
 	}
 
@@ -159,18 +193,23 @@ class Outlet {
 	 * script to generate the proxies and include them directly. This will
 	 * allow byte-code caches to cache the proxies code. 
 	 */
-	public function createProxies () {
+	public function createProxies()
+	{
 		require_once 'OutletProxyGenerator.php';
+		
 		$gen = new OutletProxyGenerator($this->config);
 		$c = $gen->generate();
+		
 		eval($c);
 		
 		// set outlet
 		$c = '';
+		
 		foreach ($this->config->getEntities() as $en) {
 			$cls = $en->clazz . '_OutletProxy';
 			$c .= "$cls::\$_outlet = \$this;\n";
 		}
+		
 		eval($c);
 	}
 
@@ -181,7 +220,8 @@ class Outlet {
 	 * @param mixed $pk primary key value
 	 * @return object entity of class $cls
 	 */
-	public function load ($cls, $pk) {
+	public function load($cls, $pk)
+	{
 		return $this->mapper->load($cls, $pk);
 	}
 
@@ -190,7 +230,8 @@ class Outlet {
 	 * @see OutletConfig::getConnection()
 	 * @return OutletConnection
 	 */
-	function getConnection () {
+	function getConnection()
+	{
 		return $this->config->getConnection();
 	}
 
@@ -198,7 +239,8 @@ class Outlet {
 	 * Retrieve the configuration
 	 * @return OutletConfig
 	 */
-	function getConfig () {
+	function getConfig()
+	{
 		return $this->config;
 	}
 
@@ -210,7 +252,8 @@ class Outlet {
 	 * @param string $sequenceName sequence name to look for the last insert id in, required for PostgreSQL
 	 * @return int the last insert id
 	 */
-	function getLastInsertId ($sequenceName = '') {
+	function getLastInsertId($sequenceName = '')
+	{
 		return $this->con->lastInsertId($sequenceName);
 	}
 
@@ -222,40 +265,44 @@ class Outlet {
 	 * @param array $row database row
 	 * @return object populated entity
 	 */
-	public function getEntityForRow ($entityCfg, array $row) {
-//		$entityCfg = $this->getConfig()->getEntity($clazz);
-        $clazz = $entityCfg->clazz;
-
-//		$entityCfg->castRow($row);
+	public function getEntityForRow($entityCfg, array $row)
+	{
+		//		$entityCfg = $this->getConfig()->getEntity($clazz);
+		$clazz = $entityCfg->clazz;
+		
+		//		$entityCfg->castRow($row);
+		
 
 		// get the pk column in order to check the map
 		$pks = $entityCfg->getPkColumns();
-
+		
 		$pkValues = array();
+		
 		foreach ($pks as $pk) {
 			$pkValues[] = $row[$pk];
 		}
-
+		
 		$data = $this->mapper->get($clazz, $pkValues);
-
+		
 		$proxyclass = "{$clazz}_OutletProxy";
-
+		
 		if ($data) {
 			return $data['obj'];
 		} else {
 			// TODO: cast values on populateObject
-			$obj = $entityCfg->populateObject(new $proxyclass, $row);
-
+			$obj = $entityCfg->populateObject(new $proxyclass(), $row);
+			
 			if ($this->mapper->onHydrate) {
+				if (!function_exists($this->mapper->onHydrate)) {
+					throw new OutletException('The function ' . $this->mapper->onHydrate . ' does not exists');
+				}
+				
 				call_user_func($this->mapper->onHydrate, $obj);
 			}
-
+			
 			// add it to the cache
-			$this->mapper->set($clazz, $pkValues, array(
-				'obj' => $obj,
-				'original' => $entityCfg->toRow($obj)
-			));
-
+			$this->mapper->set($clazz, $pkValues, array('obj' => $obj, 'original' => $entityCfg->toRow($obj)));
+			
 			return $obj;
 		}
 	}
@@ -268,21 +315,24 @@ class Outlet {
 	 * @param array $params values to replace parameterized values in $query
 	 * @return mixed first result row, null if no results are returned
 	 */
-	public function selectOne ($clazz, $query='', $params=array()) {
+	public function selectOne($clazz, $query = '', $params = array())
+	{
 		$res = $this->select($clazz, $query, $params);
+		
 		if (count($res)) {
 			return $res[0];
 		} else {
 			return null;
 		}
 	}
-	
+
 	/**
 	 * Retrieves the table for an entity class
 	 * @param string $clazz entity class
 	 * @return string table name
 	 */
-	private function getTable($clazz) {
+	private function getTable($clazz)
+	{
 		return $this->conf['classes'][$clazz]['table'];
 	}
 
@@ -291,7 +341,8 @@ class Outlet {
 	 * @param string $clazz entity class
 	 * @return array properties array
 	 */
-	private function getFields ($clazz) {
+	private function getFields($clazz)
+	{
 		return $this->conf['classes'][$clazz]['props'];
 	}
 
@@ -302,16 +353,18 @@ class Outlet {
 	 * @param string $clazz entity class
 	 * @return array primary key field
 	 */
-	private function getPkFields( $clazz ) {
+	private function getPkFields($clazz)
+	{
 		$fields = $this->conf['classes'][$clazz]['props'];
-
+		
 		$pks = array();
+		
 		foreach ($fields as $key => $f) {
 			if (isset($f[2]) && isset($f[2]['pk']) && $f[2]['pk']) {
 				$pks[$key] = $f;
 			}
 		}
-
+		
 		return $pks;
 	}
 
@@ -320,15 +373,18 @@ class Outlet {
 	 * @param array $fields array of fields
 	 * @return array field array with auto incremented fields filtered out
 	 */
-	private function removeAutoIncrement ( $fields ) {
+	private function removeAutoIncrement($fields)
+	{
 		$newArr = array();
-		foreach ($fields as $key=>$f) {
+		
+		foreach ($fields as $key => $f) {
 			if (isset($f[2]) && isset($f[2]['autoIncrement']) && $f[2]['autoIncrement']) {
 				// auto incremented fields should be skipped 
 				continue;
 			}
 			$newArr[$key] = $f;
 		}
+		
 		return $newArr;
 	}
 
@@ -336,7 +392,8 @@ class Outlet {
 	 * Clears the mappers cache
 	 * @see OutletMapper::clearCache()
 	 */
-	public function clearCache () {
+	public function clearCache()
+	{
 		$this->mapper->clearCache();
 	}
 
@@ -346,27 +403,28 @@ class Outlet {
 	 * @param array $params values to replace parameterized placeholders with
 	 * @return PDOStatement statement that was executed
 	 */
-	public function query ( $query='', array $params=array()) {
+	public function query($query = '', array $params = array())
+	{
 		// process the query
 		$q = $this->mapper->processQuery($query);
-
+		
 		$stmt = $this->con->prepare($q);
 		$stmt->execute($params);
-
+		
 		return $stmt;
 	}
-	
+
 	/**
 	 * Parse a query containing outlet entities and return a PDOStatement (not executed)
 	 * 
 	 * @param string $query
 	 * @return PDOStatement
 	 */
-	public function prepare ($query) {
+	public function prepare($query)
+	{
 		$q = $this->mapper->processQuery($query);
 		
-		$stmt = $this->con->prepare($q);
-		return $stmt;
+		return $this->con->prepare($q);
 	}
 
 	/**
@@ -374,31 +432,32 @@ class Outlet {
 	 * @param string $from entity table to select from
 	 * @return OutletQuery unexecuted
 	 */
-	public function from ($from) {
+	public function from($from)
+	{
 		require_once 'OutletQuery.php';
+		
 		$q = new OutletQuery($this);
 		$q->from($from);
-
+		
 		return $q;
 	}
-	
+
 	/**
 	 * @param $obj
 	 * @return array
 	 */
-	public function toArray ($obj) {
+	public function toArray($obj)
+	{
 		return $this->mapper->toArray($obj);
 	}
-	
-	public function onHydrate($callback) {
+
+	/**
+	 * Sets onHydrate method
+	 * 
+	 * @param string $callback Callback function
+	 */
+	public function onHydrate($callback)
+	{
 		$this->mapper->onHydrate = $callback;
 	}
 }
-
-/**
- * Exception to be thrown by Outlet
- *
- * @package outlet
- */
-class OutletException extends Exception {}
-
