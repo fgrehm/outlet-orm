@@ -9,7 +9,6 @@ require 'OutletConfigException.php';
 require 'OutletConnection.php';
 require 'OutletMapper.php';
 require 'OutletProxy.php';
-require 'OutletConfig.php';
 require 'Collection.php';
 require 'OutletCollection.php';
 require 'OutletXmlException.php';

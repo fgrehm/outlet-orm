@@ -20,7 +20,9 @@ switch (DATABASE_DRIVER) {
             break;
 	default: throw new Exception('Unsupported database driver: '.DATABASE_DRIVER);
 }
+//require 'outlet-proxies.php';
 Outlet::init($conf);
+//Outlet::getInstance()->attachProxies();
 Outlet::getInstance()->createProxies();
 Outlet::getInstance()->getConnection()->getPDO()->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 
