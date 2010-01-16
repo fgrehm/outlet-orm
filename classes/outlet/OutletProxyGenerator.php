@@ -6,7 +6,7 @@
  */
 class OutletProxyGenerator
 {
-	private $config;
+	private $map;
 
 	/**
 	 * Constructs a new instance of OutletProxyGenerator
@@ -14,9 +14,9 @@ class OutletProxyGenerator
 	 * @param OutletConfig $config configuration
 	 * @return OutletProxyGenerator instance
 	 */
-	public function __construct(OutletConfig $config)
+	public function __construct(array $map)
 	{
-		$this->config = $config;
+		$this->map = $map;
 	}
 
 	/**
@@ -53,25 +53,25 @@ class OutletProxyGenerator
 	public function generate()
 	{
 		$c = '';
-		foreach ($this->config->getEntities() as $entity) {
-			$clazz = $entity->clazz;
+		foreach ($this->map as $entMap) {
+			$clazz = $entMap->getClass();
 			
 			$c .= "class {$clazz}_OutletProxy extends $clazz implements OutletProxy { \n";
 			$c .= "  static \$_outlet; \n";
 			
-			foreach ($entity->getAssociations() as $assoc) {
+			foreach ($entMap->getAssociations() as $assoc) {
 				switch ($assoc->getType()) {
 					case 'one-to-many':
-						$c .= $this->createOneToManyFunctions($assoc);
+						$c .= $this->createOneToManyFunctions($entMap, $assoc);
 						break;
 					case 'many-to-one':
-						$c .= $this->createManyToOneFunctions($assoc);
+						$c .= $this->createManyToOneFunctions($entMap, $assoc);
 						break;
 					case 'one-to-one':
-						$c .= $this->createOneToOneFunctions($assoc);
+						$c .= $this->createOneToOneFunctions($entMap, $assoc);
 						break;
 					case 'many-to-many':
-						$c .= $this->createManyToManyFunctions($assoc);
+						$c .= $this->createManyToManyFunctions($entMap, $assoc);
 						break;
 					default:
 						throw new Exception("invalid association type: {$assoc->getType()}");
@@ -89,14 +89,16 @@ class OutletProxyGenerator
 	 * @param OutletAssociationConfig $config configuration
 	 * @return string one to one function code
 	 */
-	public function createOneToOneFunctions(OutletAssociationConfig $config)
+	public function createOneToOneFunctions(OutletEntityMap $entMap, OutletOneToOneAssociation $assoc)
 	{
-		$foreign = $config->getForeign();
-		$key = $config->getKey();
-		$getter = $config->getGetter();
-		$setter = $config->getSetter();
+		$foreignMap = $assoc->getEntityMap();
+		$foreign = $foreignMap->getClass();
+
+		$key = $assoc->getKey();
+		$getter = 'get'.$assoc->getName();
+		$setter = 'set'.$assoc->getName();
 		
-		if ($config->getLocalUseGettersAndSetters()) {
+		if ($entMap->useGettersAndSetters) {
 			$key = 'get' . $key . '()';
 		}
 		
@@ -118,15 +120,18 @@ class OutletProxyGenerator
 	 * @param OutletAssociationConfig $config configuration
 	 * @return string one to many functions code
 	 */
-	public function createOneToManyFunctions(OutletAssociationConfig $config)
+	public function createOneToManyFunctions(OutletEntityMap $entMap, OutletOneToManyAssociation $assoc)
 	{
-		$foreign = $config->getForeign();
-		$key = $config->getKey();
-		$pk_prop = $config->getRefKey();
-		$getter = $config->getGetter();
-		$setter = $config->getSetter();
+		$foreignMap = $assoc->getEntityMap();
+		$foreign = $foreignMap->getClass();
 		
-		if ($config->getLocalUseGettersAndSetters()) {
+		$key = $assoc->getKey();
+		$pk_prop = $assoc->getRefKey();
+		
+		$getter = 'get'.$assoc->getName();
+		$setter = 'set'.$assoc->getName();
+		
+		if ($entMap->useGettersAndSetters) {
 			$pk_prop = 'get' . $pk_prop . '()';
 		}
 		
@@ -173,20 +178,21 @@ class OutletProxyGenerator
 	 * @param OutletManyToManyConfig $config configuration
 	 * @return string many to many function code
 	 */
-	public function createManyToManyFunctions(OutletManyToManyConfig $config)
+	public function createManyToManyFunctions(OutletEntityMap $entMap, OutletManyToManyAssociation $assoc)
 	{
-		$foreign = $config->getForeign();
+		$foreignMap = $assoc->getEntityMap();
+		$foreign = $foreignMap->getClass();
 		
-		$tableKeyLocal = $config->getTableKeyLocal();
-		$tableKeyForeign = $config->getTableKeyForeign();
+		$tableKeyLocal = $assoc->getTableKeyLocal();
+		$tableKeyForeign = $assoc->getTableKeyForeign();
 		
-		$pk_prop = $config->getKey();
-		$ref_pk = $config->getRefKey();
-		$getter = $config->getGetter();
-		$setter = $config->getSetter();
-		$table = $config->getLinkingTable();
+		$pk_prop = $assoc->getKey();
+		$ref_pk = $assoc->getRefKey();
+		$getter = 'get'.$assoc->getName();
+		$setter = 'set'.$assoc->getName();
+		$table = $assoc->getLinkingTable();
 		
-		if ($config->getForeignUseGettersAndSetters()) {
+		if ($foreignMap->useGettersAndSetters) {
 			$ref_pk = 'get' . $ref_pk . '()';
 		}
 		
@@ -210,22 +216,24 @@ class OutletProxyGenerator
 	 * @param OutletAssociationConfig $config configuration
 	 * @return string many to one function code
 	 */
-	public function createManyToOneFunctions(OutletAssociationConfig $config)
+	public function createManyToOneFunctions(OutletEntityMap $entMap, OutletManyToOneAssociation $assoc)
 	{
-		$local = $config->getLocal();
-		$foreign = $config->getForeign();
-		$key = $config->getKey();
-		$refKey = $config->getRefKey();
-		$getter = $config->getGetter();
-		$setter = $config->getSetter();
+		$foreignMap	= $assoc->getEntityMap();
+		$foreign 	= $foreignMap->getClass();
 		
-		if ($config->getLocalUseGettersAndSetters()) {
+		$key 		= $assoc->getKey();
+		$refKey 	= $assoc->getRefKey();
+		
+		$getter 	= 'get'.$assoc->getName();
+		$setter 	= 'set'.$assoc->getName();
+		
+		if ($entMap->useGettersAndSetters) {
 			$keyGetter = 'get' . $key . '()';
 		} else {
 			$keyGetter = $key;
 		}
 		
-		if ($config->getForeignUseGettersAndSetters()) {
+		if ($foreignMap->useGettersAndSetters) {
 			$refKey = 'get' . $refKey . '()';
 		}
 		
@@ -238,10 +246,10 @@ class OutletProxyGenerator
 		$c .= "	return parent::$getter(); \n";
 		$c .= "  } \n";
 		
-		$c .= "  function $setter($foreign \$ref" . ($config->isOptional() ? '=null' : '') . ") { \n";
+		$c .= "  function $setter($foreign \$ref" . ($assoc->isOptional() ? '=null' : '') . ") { \n";
 		$c .= "	if (is_null(\$ref)) { \n";
 		
-		if ($config->isOptional()) {
+		if ($assoc->isOptional()) {
 			$c .= "	  \$this->$keyGetter = null; \n";
 		} else {
 			$c .= "	  throw new OutletException(\"You can not set this to NULL since this relationship has not been marked as optional\"); \n";
@@ -252,7 +260,7 @@ class OutletProxyGenerator
 		
 		//$c .= "	\$mapped = new OutletMapper(\$ref); \n";
 		//$c .= "	\$this->$key = \$mapped->getPK(); \n";
-		if ($config->getLocalUseGettersAndSetters()) {
+		if ($entMap->useGettersAndSetters) {
 			$c .= "	\$this->set$key(\$ref->{$refKey}); \n";
 		} else {
 			$c .= "	\$this->$key = \$ref->{$refKey}; \n";

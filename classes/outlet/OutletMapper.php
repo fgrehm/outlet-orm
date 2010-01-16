@@ -13,12 +13,12 @@ class OutletMapper
 	/**
 	 * @var array
 	 */
-	public $map;
-	
+	public $map;	
+
 	/**
-	 * @var OutletConfig
+	 * @var OutletConnection
 	 */
-	private $config;
+	public $con;
 	
 	/**
 	 * @var string
@@ -31,10 +31,13 @@ class OutletMapper
 	 * @param OutletConfig $config Configuration to use
 	 * @return OutletMapper instance
 	 */
-	public function __construct(OutletConfig $config)
+	public function __construct(OutletConnection $con, array $outletMap)
 	{
+		// should be renamed to cache
 		$this->map = array();
-		$this->config = $config;
+
+		$this->con = $con;
+		$this->outletMap = $outletMap;
 	}
 
 	/**
@@ -45,13 +48,15 @@ class OutletMapper
 	 * @param object $obj The object to introspect
 	 * @return string the entity classname
 	 */
-	public static function getEntityClass($obj)
+	public function getEntityClass($obj)
 	{
-		if ($obj instanceof OutletProxy) {
-			return substr(get_class($obj), 0, -(strlen('_OutletProxy')));
-		} else {
-			return get_class($obj);
+		foreach (array_keys($this->outletMap) as $cls) {
+			if ($obj instanceof $cls) {
+				return $cls;
+			}
 		}
+		
+		throw new OutletException('Object [' . get_class($obj) . '] not configured');
 	}
 
 	/**
@@ -63,12 +68,12 @@ class OutletMapper
 	 */
 	public function save(&$obj)
 	{
-		$entityCfg = $this->config->getEntityForObject($obj);
+		$map = $this->outletMap[$this->getEntityClass($obj)];
 		
 		if (self::isNew($obj)) {
-			return $this->insert($obj, $entityCfg);
+			return $this->insert($obj, $map);
 		} else {
-			return $this->update($obj, $entityCfg);
+			return $this->update($obj, $map);
 		}
 	}
 
@@ -94,8 +99,8 @@ class OutletMapper
 		if (!is_array($pk)) {
 			$pk = array($pk);
 		}
-		
-		$pk_props = $this->config->getEntity($this->config->getEntityClass($obj))->getPkFields();
+
+		$pk_props = $this->outletMap[$this->getEntityClass($obj)]->getPKs();
 		
 		if (count($pk) != count($pk_props)) {
 			throw new OutletException('You must pass the following pk: [' . implode(',', $pk_props) . '], you passed: [' . implode(',', $pk) . ']');
@@ -133,21 +138,18 @@ class OutletMapper
 			$obj = $data['obj'];
 		// else, populate it from the database
 		} else {
-			$entityCfg = $this->config->getEntity($cls);
+			$map = $this->outletMap[$cls];
 			
 			// create a proxy
 			$proxyclass = "{$cls}_OutletProxy";
 			
 			$obj = new $proxyclass();
 			
-			$props_conf = $entityCfg->getProperties();
-			
-			$props = array();
-			
-			foreach ($props_conf as $key => $conf) {
+			$props = array();	
+			foreach ($map->getPropMaps() as $key => $prop) {
 				// if it's sql we must specify an alias
-				if (isset($conf[2]) && isset($conf[2]['sql'])) {
-					$props[] = '{' . $cls . '.' . $key . '} as ' . $conf[0];
+				if ($prop->getSQL()) {
+					$props[] = '{' . $cls . '.' . $key . '} as ' . $prop->getColumn();
 				} else {
 					$props[] = '{' . $cls . '.' . $key . '}';
 				}
@@ -158,7 +160,7 @@ class OutletMapper
 			$q .= implode(', ', $props) . "\n";
 			$q .= "FROM {" . $cls . "} \n";
 			
-			$pk_props = $entityCfg->getPkFields();
+			$pk_props = $map->getPKs();
 			
 			$pk_q = array();
 			
@@ -170,7 +172,7 @@ class OutletMapper
 			
 			$q = $this->processQuery($q);
 			
-			$stmt = $this->config->getConnection()->prepare($q);
+			$stmt = $this->con->prepare($q);
 			
 			$stmt->execute(array_values($pks));
 			
@@ -182,11 +184,11 @@ class OutletMapper
 				return null;
 			}
 			
-			$entityCfg->castRow($row);
+			$map->castRow($row);
 			$this->populateObject($cls, $obj, $row);
 			
 			// add it to the cache
-			$this->set($cls, $entityCfg->getPkValues($obj), array('obj' => $obj, 'original' => $entityCfg->toRow($obj)));
+			$this->set($cls, $map->getPkValues($obj), array('obj' => $obj, 'original' => $map->toRow($obj)));
 		}
 		
 		return $obj;
@@ -202,9 +204,7 @@ class OutletMapper
 	 */
 	public function populateObject($clazz, $obj, array $values)
 	{
-		$entityCfg = $this->config->getEntity($clazz);
-		
-		$entityCfg->populateObject($obj, $values);
+		$this->outletMap[$clazz]->populate($obj, $values);
 		
 		// trigger onHydrate callback
 		if ($this->onHydrate) {
@@ -230,12 +230,12 @@ class OutletMapper
 	 * 
 	 * @param object $obj entity to save one to many relationship for
 	 */
-	public function saveOneToMany($obj, OutletEntityConfig $entityCfg)
+	public function saveOneToMany($obj, OutletEntityMap $map)
 	{
-		$assocs = $entityCfg->getAssociations();
+		$assocs = $map->getAssociations();
 		
 		if (count($assocs)) {
-			$pks = $entityCfg->getPkValues($obj);
+			$pks = $map->getPkValues($obj);
 			
 			foreach ($assocs as $assoc) {
 				if ($assoc->getType() != 'one-to-many') {
@@ -244,9 +244,10 @@ class OutletMapper
 				}
 				
 				$key = $assoc->getKey();
-				$getter = $assoc->getGetter();
-				$setter = $assoc->getSetter();
-				$foreign = $assoc->getForeign();
+				$getter = 'get'.$assoc->getName();
+				$setter = 'set'.$assoc->getName();
+
+				$foreignMap = $assoc->getEntityMap();
 				
 				/** @var $children Collection */
 				$children = $obj->$getter(null);
@@ -268,16 +269,15 @@ class OutletMapper
 				if ($children->isRemoveAll()) {
 					//TODO Make it work with composite keys
 					$q = $this->processQuery('DELETE FROM {' . $foreign . '} WHERE {' . $foreign . '.' . $assoc->getKey() . '} = ?');
-					$stmt = $this->config->getConnection()->prepare($q);
+					$stmt = $this->con->prepare($q);
 					$stmt->execute($pks);
 				}
 				
-				$foreignEntityCfg = $this->config->getEntity($foreign);
 				$newArr = array();
 				
 				foreach ($children->getArrayCopy() as $child) {
 					//TODO make it work with composite keys
-					$foreignEntityCfg->setProp($child, $key, current($pks));
+					$foreignMap->setProp($child, $key, current($pks));
 					$this->save($child);
 					$newArr[] = $child;
 				}
@@ -292,13 +292,12 @@ class OutletMapper
 	 * Saves the many to many relationships for an entity
 	 * @param object $obj entity to save many to many relationship for
 	 */
-	private function saveManyToMany($obj, OutletEntityConfig $entityCfg)
+	private function saveManyToMany($obj, OutletEntityMap $map)
 	{
-		$con = $this->config->getConnection();
-		$assocs = $entityCfg->getAssociations();
+		$assocs = $map->getAssociations();
 		
 		if (count($assocs)) {
-			$pks = $entityCfg->getPkValues($obj);
+			$pks = $map->getPkValues($obj);
 			
 			foreach ($assocs as $assoc) {
 				if ($assoc->getType() != 'many-to-many') {
@@ -308,11 +307,13 @@ class OutletMapper
 				
 				$key_column = $assoc->getTableKeyLocal();
 				$ref_column = $assoc->getTableKeyForeign();
+
 				$table = $assoc->getLinkingTable();
-				$name = $assoc->getForeignName();
+				$foreignMap = $assoc->getEntityMap();
+				//$name = $assoc->getForeignName();
 				
-				$getter = $assoc->getGetter();
-				$setter = $assoc->getSetter();
+				$getter = 'get'.$assoc->getName();
+				$setter = 'set'.$assoc->getName();
 				
 				$children = $obj->$getter();
 				
@@ -321,7 +322,7 @@ class OutletMapper
 					//TODO Make it work with composite keys
 					$q = "DELETE FROM $table WHERE $key_column = ?";
 					
-					$stmt = $con->prepare($q);
+					$stmt = $this->con->prepare($q);
 					
 					$stmt->execute(array_values($pks));
 				}
@@ -330,7 +331,7 @@ class OutletMapper
 				
 				foreach ($new as $child) {
 					if ($child instanceof OutletProxy) {
-						$child_pks = $this->config->getEntityForObject($child)->getPkValues($child);
+						$child_pks = $this->outletMap[$this->getEntityClass($child)]->getPkValues($child);
 						$id = current($child_pks);
 					} else {
 						$id = $child;
@@ -341,7 +342,7 @@ class OutletMapper
 						VALUES (?, ?)
 					";
 					
-					$stmt = $con->prepare($q);
+					$stmt = $this->con->prepare($q);
 					
 					$stmt->execute(array(current($pks), $id));
 				}
@@ -355,9 +356,9 @@ class OutletMapper
 	 * Saves the many to one relationships for an entity
 	 * @param object $obj entity to save many to one relationship for
 	 */
-	private function saveManyToOne($obj, OutletEntityConfig $entityCfg)
+	private function saveManyToOne($obj, OutletEntityMap $map)
 	{
-		foreach ($entityCfg->getAssociations() as $assoc) {
+		foreach ($map->getAssociations() as $assoc) {
 			if ($assoc->getType() != 'many-to-one') {
 				// only process 'many-to-one' relationships
 				continue;
@@ -365,7 +366,7 @@ class OutletMapper
 			
 			$key = $assoc->getKey();
 			$refKey = $assoc->getRefKey();
-			$getter = $assoc->getGetter();
+			$getter = 'get'.$assoc->getName();
 			
 			$ent = $obj->$getter();
 			
@@ -374,9 +375,9 @@ class OutletMapper
 					$this->save($ent);
 				}
 				
-				$foreignEntityCfg = $this->config->getEntityForObject($ent);
+				$foreignMap = $this->outletMap[$this->getEntityClass($ent)];
 				
-				$entityCfg->setProp($obj, $key, $foreignEntityCfg->getProp($ent, $refKey));
+				$map->setProp($obj, $key, $foreignMap->getProp($ent, $refKey));
 			}
 		}
 	}
@@ -385,9 +386,9 @@ class OutletMapper
 	 * Saves the one to one relationships for an entity
 	 * @param object $obj entity to save one to one relationship for
 	 */
-	public function saveOneToOne($obj, OutletEntityConfig $entityCfg)
+	public function saveOneToOne($obj, OutletEntityMap $map)
 	{
-		foreach ($entityCfg->getAssociations() as $assoc) {
+		foreach ($map->getAssociations() as $assoc) {
 			if ($assoc->getType() != 'one-to-one') {
 				// only process 'one-to-one' relationships
 				continue;
@@ -395,7 +396,7 @@ class OutletMapper
 			
 			$key = $assoc->getKey();
 			$refKey = $assoc->getRefKey();
-			$getter = $assoc->getGetter();
+			$getter = 'get'.$assoc->getName();
 			
 			$ent = $obj->$getter();
 			
@@ -404,8 +405,8 @@ class OutletMapper
 					$this->save($ent);
 				}
 				
-				$foreignEntityCfg = $this->config->getEntityForObject($ent);
-				$entityCfg->setProp($obj, $key, $foreignEntityCfg->getProp($ent, $refKey));
+				$foreignMap = $this->outletMap[$this->getEntityClass($ent)];
+				$map->setProp($obj, $key, $foreignMap->getProp($ent, $refKey));
 			}
 		}
 	}
@@ -418,51 +419,44 @@ class OutletMapper
 	 * @see OutletMapper::save(&$obj)
 	 * @param object $obj entity to insert
 	 */
-	public function insert(&$obj, OutletEntityConfig $entityCfg)
+	public function insert(&$obj, OutletEntityMap $map)
 	{
-		$con = $this->config->getConnection();
+		$this->saveOneToOne($obj, $map);
+		$this->saveManyToOne($obj, $map);
 		
-		$this->saveOneToOne($obj, $entityCfg);
-		$this->saveManyToOne($obj, $entityCfg);
-		
-		$properties = $entityCfg->getProperties();
+		$properties = $map->getPropMaps();
 		
 		$props = array_keys($properties);
-		$table = $entityCfg->table;
+		$table = $map->getTable();
 		
 		// grab insert fields
 		$insert_fields = array();
 		$insert_props = array();
 		$insert_defaults = array();
 		
-		foreach ($entityCfg->getProperties() as $prop => $f) {
-			if (isset($f[2]) && isset($f[2]['autoIncrement']) && $f[2]['autoIncrement']) {
+		foreach ($properties as $prop => $f) {
+			if ($f->isAutoIncrement()) {
 				// skip autoIncrement fields
 				continue;
 			}
 			
 			$insert_props[] = $prop;
-			$insert_fields[] = $f[0];
+			$insert_fields[] = $f->getColumn();
 			
-			// if there's options
-			//TODO Clean this up
-			if (isset($f[2])) {
-				if (is_null($entityCfg->getProp($obj, $prop))) {
-					if (isset($f[2]['default'])) {
-						$entityCfg->setProp($obj, $prop, $f[2]['default']);
-						$insert_defaults[] = false;
-					} elseif (isset($f[2]['defaultExpr'])) {
-						$insert_defaults[] = $f[2]['defaultExpr'];
-					} else {
-						$insert_defaults[] = false;
-					}
+			// options
+			if (is_null($map->getProp($obj, $prop))) {
+				if (!is_null($f->getDefault())) {
+					$map->setProp($obj, $prop, $f->getDefault());
+					$insert_defaults[] = false;
+				} elseif (!is_null($f->getDefaultExpr())) {
+					$insert_defaults[] = $f->getDefaultExpr();
 				} else {
 					$insert_defaults[] = false;
 				}
-				continue;
 			} else {
 				$insert_defaults[] = false;
 			}
+			continue;
 		}
 		
 		$q = "INSERT INTO $table ";
@@ -481,7 +475,7 @@ class OutletMapper
 		}
 		$q .= "(" . implode(', ', $values) . ")";
 		
-		$stmt = $con->prepare($q);
+		$stmt = $this->con->prepare($q);
 		
 		// get the values
 		$values = array();
@@ -491,33 +485,33 @@ class OutletMapper
 				continue;
 			}
 			
-			$values[] = self::toSqlValue($properties[$p][1], $entityCfg->getProp($obj, $p));
+			$values[] = self::toSqlValue($properties[$p]->getType(), $map->getProp($obj, $p));
 		}
 		
 		$stmt->execute($values);
 		
 		// create a proxy
-		$proxy_class = $entityCfg->clazz . '_OutletProxy';
+		$proxy_class = $map->getClass() . '_OutletProxy';
 		$proxy = new $proxy_class();
 		
 		// copy the properties to the proxy
-		foreach ($entityCfg->getProperties() as $key => $f) {
+		foreach ($properties as $key => $f) {
 			$field = $key;
-			if (@$f[2]['autoIncrement']) {
+			if ($f->isAutoIncrement()) {
 				// Sequence name will be set and is needed for Postgres
-				$id = $con->lastInsertId($entityCfg->getSequenceName());
-				$entityCfg->setProp($proxy, $field, self::toPhpValue($f, $id));
+				$id = $this->con->lastInsertId($map->getSequenceName());
+				$map->setProp($proxy, $field, self::toPhpValue($f, $id));
 			} else {
-				$entityCfg->setProp($proxy, $field, $entityCfg->getProp($obj, $field));
+				$map->setProp($proxy, $field, $map->getProp($obj, $field));
 			}
 		}
 		
 		// copy the associated objects to the proxy
-		foreach ($entityCfg->getAssociations() as $a) {
+		foreach ($map->getAssociations() as $a) {
 			$type = $a->getType();
 			if ($type == 'one-to-many' || $type == 'many-to-many') {
-				$getter = $a->getGetter();
-				$setter = $a->getSetter();
+				$getter = 'get'.$a->getName();
+				$setter = 'set'.$a->getName();
 				
 				$ref = $obj->$getter();
 				
@@ -528,8 +522,8 @@ class OutletMapper
 		}
 		$obj = $proxy;
 		
-		$this->saveOneToMany($obj, $entityCfg);
-		$this->saveManyToMany($obj, $entityCfg);
+		$this->saveOneToMany($obj, $map);
+		$this->saveManyToMany($obj, $map);
 		
 		// trigger onHydrate callback
 		if ($this->onHydrate) {
@@ -537,7 +531,7 @@ class OutletMapper
 		}
 		
 		// add it to the cache
-		self::set($entityCfg->clazz, $entityCfg->getPkValues($obj), array('obj' => $obj, 'original' => $entityCfg->toRow($obj)));
+		self::set($map->getClass(), $map->getPkValues($obj), array('obj' => $obj, 'original' => $map->toRow($obj)));
 	}
 
 	/**
@@ -548,16 +542,16 @@ class OutletMapper
 	 */
 	public function getModifiedFields($obj)
 	{
-		$entityCfg = $this->config->getEntityForObject($obj);
+		$map = $this->outletMap[$this->getEntityClass($obj)];
 		
-		$data = $this->get($entityCfg->clazz, $entityCfg->getPkValues($obj));
+		$data = $this->get($map->getClass(), $map->getPkValues($obj));
 		
 		/* not sure about this yet
 		// if this entity hasn't been saved to the map
 		if (!$data) return self::toArray($this->obj);
 		*/
 		
-		$new = $entityCfg->toRow($data['obj']);
+		$new = $map->toRow($data['obj']);
 		
 		$diff = array_diff_assoc($data['original'], $new);
 		
@@ -572,35 +566,34 @@ class OutletMapper
 	 * @see OutletMapper::save(&$obj)
 	 * @param object $obj entity to update
 	 */
-	public function update(&$obj, OutletEntityConfig $entityCfg)
+	public function update(&$obj, OutletEntityMap $map)
 	{
 		// this first since this references the key
-		$this->saveManyToOne($obj, $entityCfg);
-		
-		if ($mod = $this->getModifiedFields($obj, $entityCfg)) {
-			$con = $this->config->getConnection();
-			$cls = $entityCfg->clazz;
+		$this->saveManyToOne($obj, $map);
+
+		if ($mod = $this->getModifiedFields($obj, $map)) {
+			$cls = $map->getClass();
 			
 			$q = "UPDATE {" . $cls . "} \n";
 			$q .= "SET \n";
 			
 			$ups = array();
-			foreach ($entityCfg->getProperties() as $key => $f) {
+			foreach ($map->getPropMaps() as $key => $f) {
 				if (!in_array($key, $mod)) {
 					// skip fields that were not modified
 					continue;
 				}
 				
-				if (@$f[2]['pk']) {
+				if (in_array($key, $map->getPKs())) {
 					// skip primary key
 					continue;
 				}
 				
-				$value = $entityCfg->getProp($obj, $key);
+				$value = $map->getProp($obj, $key);
 				if (is_null($value)) {
 					$value = 'NULL';
 				} else {
-					$value = $con->quote(self::toSqlValue($f[1], $value));
+					$value = $this->con->quote(self::toSqlValue($f->getType(), $value));
 				}
 				
 				$ups[] = "  {" . $cls . '.' . $key . "} = $value";
@@ -611,26 +604,22 @@ class OutletMapper
 			
 			$clause = array();
 			
-			foreach ($entityCfg->getProperties() as $key => $pk) {
-				if (!@$pk[2]['pk']) {
-					// if it's not a primary key, skip it
-					continue;
-				}
-				
-				$value = $con->quote(self::toSqlValue($pk[1], $entityCfg->getProp($obj, $key)));
-				$clause[] = "$pk[0] = $value";
+			foreach ($map->getPKs() as $pk) {
+				$prop = $map->getPropMap($pk);
+				$value = $this->con->quote(self::toSqlValue($prop->getType(), $map->getProp($obj, $pk)));
+				$clause[] = "{$prop->getColumn()} = $value";
 			}
 			
 			$q .= implode(' AND ', $clause);
 			
 			$q = $this->processQuery($q);
-			
-			$con->exec($q);
+	
+			$this->con->exec($q);
 		}
 		
 		// these last since they reference the key
-		$this->saveOneToMany($obj, $entityCfg);
-		$this->saveManyToMany($obj, $entityCfg);
+		$this->saveOneToMany($obj, $map);
+		$this->saveManyToMany($obj, $map);
 	}
 
 	/**
@@ -755,12 +744,12 @@ class OutletMapper
 				$tmp = explode(' ', $str);
 				$aliased[$tmp[1]] = $tmp[0];
 				
-				$q = str_replace($m[0], $this->config->getEntity($tmp[0])->table . ' ' . $tmp[1], $q);
+				$q = str_replace($m[0], $this->outletMap[$tmp[0]]->getTable() . ' ' . $tmp[1], $q);
 				
 			// if it's a non-aliased class
 			} elseif (strpos($str, '.') === false) {
 				// if it's a non-aliased class
-				$table = $this->config->getEntity($str)->table;
+				$table = $this->outletMap[$str]->getTable(); 
 				$aliased[$table] = $str;
 				$q = str_replace($m[0], $table, $q);
 			}
@@ -782,24 +771,24 @@ class OutletMapper
 					$alias = $en;
 				} else {
 					$entity = $en;
-					$alias = $this->config->getEntity($entity)->table;
+					$alias = $this->outletMap[$entity]->getTable();
 				}
 				
-				$propconf = $this->config->getEntity($entity)->getProperty($prop);
+				$propconf = $this->outletMap[$entity]->getPropMap($prop);
 				
 				// if it's an update statement,
 				// we must not include the table
 				if ($update) {
 					// skip if it's an sql field
-					if (!isset($propconf[2]) || !isset($propconf[2]['sql'])) {
-						$col = $propconf[0];
+					if (!$propconf->getSql()) {
+						$col = $propconf->getColumn();
 					}
 				} else {
 					// if it's an sql field
-					if (isset($propconf[2]) && isset($propconf[2]['sql'])) {
-						$col = '(' . $this->processSubQuery($propconf[2]['sql'], $entity, $alias) . ')';
+					if ($propconf->getSQL()) {
+						$col = '(' . $this->processSubQuery($propconf->getSQL(), $entity, $alias) . ')';
 					} else {
-						$col = $alias . '.' . $propconf[0];
+						$col = $alias . '.' . $propconf->getColumn();
 					}
 				}
 				
