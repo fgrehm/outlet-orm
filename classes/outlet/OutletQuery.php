@@ -37,7 +37,7 @@ class OutletQuery
 	/**
 	 * @var string
 	 */
-	private $orderby;
+	private $orderBy;
 	
 	/**
 	 * @var int
@@ -140,33 +140,7 @@ class OutletQuery
 	 */
 	public function with()
 	{
-		//TODO review code with respect to comment
-		/*
-		 * Because this overwrites the with variable this function behaves in a slightly unexpected way
-		 * Take for instance this case:
-		 * 
-		 * $bugs = $outlet->from("Bug")
-		 * 				  ->with("Project")
-		 * 				  ->with("User")
-		 * 				  ->where("{Bug.StatusID} = ? AND {User.ID} = ?", array(1, $currentUser));
-		 * 				  ->limit(10)
-		 * 				  ->offset(20)
-		 * 				  ->find();
-		 * 
-		 * There won't be any project information because the second with() overrides the first
-		 * 
-		 * The code that would work is
-		 * 
-		 * $bugs = $outlet->from("Bug")
-		 * 				  ->with("Project", "User")->....
-		 * 
-		 * It seems like both should work, we can replace the code below with
-		 * 
-		 * $this->with = array_merge($this->with, func_get_args());
-		 * 
-		 * And it will allow both calls to function properly
-		 */
-		$this->with = func_get_args();
+		$this->with = array_merge($this->with, func_get_args());
 		
 		return $this;
 	}
@@ -179,7 +153,7 @@ class OutletQuery
 	 */
 	public function orderBy($v)
 	{
-		$this->orderby = $v;
+		$this->orderBy = $v;
 		
 		return $this;
 	}
@@ -248,40 +222,11 @@ class OutletQuery
 		
 		return $this;
 	}
-
-	/**
-	 * Execute the query
-	 * 
-	 * @return array result set
-	 */
-	public function find()
-	{
-		$outlet = $this->outlet;
-		
-		// get the 'from'
-		$tmp = explode(' ', $this->from);
-		
-		$from = $tmp[0];
-		$from_aliased = (count($tmp) > 1 ? $tmp[1] : $tmp[0]);
-		
-		/* old
-		$config = $this->outlet->getConfig();
-		$entity_config = $config->getEntity($from);
-		$props = $entity_config->getProperties();
-		*/
-		$entMap = $this->outlet->getEntityMap($from);
-		
-		// select columns
-		$select_cols = array();
-		foreach ($entMap->getPropMaps() as $key => $p) {
-			$select_cols[] = "\n{" . $from_aliased . '.' . $key . '} as ' . $from_aliased . '_' . $key;
-		}
-		
-		// get the include entities
+	
+	private function addWiths (OutletSqlQuery $oq, OutletEntityMap $entMap, $from_aliased, &$with_map, $addToSelect=true) {
+		// get the included entities
 		$with = array();
 		$with_aliased = array();
-		
-		$join_q = '';
 		
 		foreach ($this->with as $with_key => $j) {
 			$tmp = explode(' ', $j);
@@ -296,121 +241,217 @@ class OutletQuery
 			
 			$foreign = $assoc->getEntityMap();
 			
-			foreach ($foreign->getPropMaps() as $key => $p) {
-				$select_cols[] = "\n{" . $with_aliased[$with_key] . '.' . $key . '} as ' . $with_aliased[$with_key] . '_' . $key;
+			if ($addToSelect) {
+				foreach ($foreign->getPropMaps() as $key => $p) {
+					//$select_cols[] = "\n{" . $with_aliased[$with_key] . '.' . $key . '} as ' . $with_aliased[$with_key] . '_' . $key;
+					$oq->addSelectField('{'.$with_aliased[$with_key].'.'.$key.'} as '.$with_aliased[$with_key].'_'.$key);
+				}
 			}
 			
 			$aliased_join = $with_aliased[$with_key];
-			$join_q .= "LEFT JOIN {" . $foreign->getClass() . " " . $aliased_join . "} ON {" . $from_aliased . '.' . $assoc->getKey() . "} = {" . $with_aliased[$with_key] . '.' . $assoc->getRefKey() . "} \n";
+			//$join_q .= "LEFT JOIN {" . $foreign->getClass() . " " . $aliased_join . "} ON {" . $from_aliased . '.' . $assoc->getKey() . "} = {" . $with_aliased[$with_key] . '.' . $assoc->getRefKey() . "} \n";
+			$oq->addJoin('LEFT JOIN {'.$foreign->getClass().' '.$aliased_join.'} ON {'.$from_aliased.'.'.$assoc->getKey().'} = {'.$with_aliased[$with_key].'.'.$assoc->getRefKey().'}');
 		}
 		
-		$q = "SELECT " . implode(', ', $select_cols) . " \n";
+		$with_map = array_combine($with_aliased, $with);
+	}
+
+	/**
+	 * Execute the query
+	 * 
+	 * @return array result set
+	 */
+	public function find()
+	{
+		$oq = new OutletSqlQuery();
 		
+		$outlet = $this->outlet;
+		
+		// get the 'from'
+		$tmp = explode(' ', $this->from);
+		
+		$from = $tmp[0];
+		$from_aliased = (count($tmp) > 1 ? $tmp[1] : $tmp[0]);
+		
+		$entMap = $this->outlet->getEntityMap($from);
+		
+		// select columns
+		foreach ($entMap->getPropMaps() as $key => $p) {
+			$oq->addSelectField('{'.$from_aliased.'.'.$key.'} as '.$from_aliased.'_'.$key);
+		}
 		if ($this->select) {
-			$q .= ", " . $this->select;
+			//$q .= ", " . $this->select;
+			$oq->addSelectField($this->select);
 		}
 		
-		$q .= " FROM {" . $this->from . "} \n";
-		$q .= $join_q;
+		// from
+		$oq->setFrom('{'.$this->from.'}');
 		
-		$q .= implode("\n", $this->joins);
+		// with
+		$this->addWiths($oq, $entMap, $from_aliased, $with_map);
+		
+		// joins
+		foreach ($this->joins as $join) {
+			$oq->addJoin($join);
+		}
 		
 		if ($this->query) {
-			$q .= 'WHERE ' . $this->query . "\n";
+			$oq->setWhere('WHERE '.$this->query);
 		}
 		
 		if ($this->groupBy) {
-			$q .= 'GROUP BY ' . $this->groupBy . "\n";
+			$oq->setGroupBy('GROUP BY '.$this->groupBy);
 		}
 		
-		if ($this->orderby) {
-			$q .= 'ORDER BY ' . $this->orderby . "\n";
+		if ($this->orderBy) {
+			$oq->setOrderBy('ORDER BY '.$this->orderBy);
 		}
 		
 		if ($this->having) {
-			$q .= 'HAVING ' . $this->having . "\n";
+			$oq->setHaving('HAVING '.$this->having);
 		}
 			
 		// TODO: Make it work on MS SQL
 		//	   In SQL Server 2005 http://www.singingeels.com/Articles/Pagination_In_SQL_Server_2005.aspx
 		if ($this->limit) {
-			$q .= 'LIMIT ' . $this->limit;
+			$oq->setLimit('LIMIT ' . $this->limit);
 			
 			if ($this->offset) {
-				$q .= ' OFFSET ' . $this->offset;
+				$oq->setLimit(' OFFSET ' . $this->offset);
 			}
 		}
+		
+		$q = $oq->toSql();
 		
 		$stmt = $outlet->query($q, $this->params);
 		
 		$res = array();
 		
-		while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
-			$data = array();
-			// Postgres returns columns as lowercase
-			// TODO: Maybe everything should be converted to lower in query creation / processing to avoid this
-			if ($outlet->getConnection()->getDialect() == 'pgsql') {
-				foreach ($from_props as $key => $p) {
-					$data[$p[0]] = $row[strtolower($from_aliased) . '_' . strtolower($key)];
-				}
-			} else {
-				foreach ($entMap->getPropMaps() as $key => $p) {
-					$data[$p->getColumn()] = $row[$from_aliased . '_' . $key];
-				}
-			}
-			
-			$obj = $outlet->getEntityForRow($from, $data);
-			
-			foreach ($with as $with_key => $w) {
-				$a = $entMap->getAssociation($w);
-				
-				if ($a) {
-					$data = array();
-					$setter = 'set'.$a->getName();
-					$with_entMap = $a->getEntityMap();
-					
-					if ($a instanceof OutletOneToManyConfig) {
-						// TODO: Implement...											 
-					} elseif ($a instanceof OutletManyToManyConfig) {
-						// TODO: Implement...
-					} else { // Many-to-one or one-to-one
-						
-						foreach ($with_entMap->getPropMaps() as $key => $p) {
-							// Postgres returns columns as lowercase
-							// TODO: Maybe everything should be converted to lower in query creation / processing to avoid this
-							if ($outlet->getConnection()->getDialect() == 'pgsql') {
-								$data[$p->getColumn()] = $row[strtolower($with_aliased[$with_key] . '_' . $key)];
-							} else {
-								$data[$p->getColumn()] = $row[$with_aliased[$with_key] . '_' . $key];
-							}
-						}
-						
-						$f = $with_entMap->getPkColumns();
-						
-						// check to see if we found any data for the related entity
-						// using the pk
-						$data_returned = false;
-						$pk_values = array();
-						
-						foreach ($f as $k) {
-							if (isset($data[$k])) {
-								$data_returned = true;
-								break;
-							}
-						}
-						
-						// only fill object if there was data returned
-						if ($data_returned) {
-							$obj->$setter($outlet->getEntityForRow($with_entMap->getClass(), $data));
-						}
-					}
-				}
-			}
-			
-			$res[] = $obj;
+		// populate objects		
+		while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {			
+			$res[] = $this->populateObject($row, $entMap, $from_aliased, $from, $with_map);
 		}
 		
 		return $res;
+	}
+	
+	/**
+	 * Execute a count
+	 * 
+	 * Count always ignores limit, offset, and order by
+	 * 
+	 * @return int Count
+	 */
+	public function count()
+	{
+		$oq = new OutletSqlQuery();
+		
+		$outlet = $this->outlet;
+		
+		// get the 'from'
+		$tmp = explode(' ', $this->from);
+		
+		$from = $tmp[0];
+		$from_aliased = (count($tmp) > 1 ? $tmp[1] : $tmp[0]);
+		
+		$entMap = $this->outlet->getEntityMap($from);
+		
+		// select 
+		$oq->addSelectField('COUNT(*) as total');
+		
+		// from
+		$oq->setFrom('{'.$this->from.'}');
+		
+		// with
+		$this->addWiths($oq, $entMap, $from_aliased, $with_map, $addToSelect=false);
+		
+		// joins
+		foreach ($this->joins as $join) {
+			$oq->addJoin($join);
+		}
+		
+		if ($this->query) {
+			$oq->setWhere('WHERE '.$this->query);
+		}
+		
+		if ($this->groupBy) {
+			$oq->setGroupBy('GROUP BY '.$this->groupBy);
+		}
+		
+		if ($this->having) {
+			$oq->setHaving('HAVING '.$this->having);
+		}
+		
+		$q = $oq->toSql();
+		
+		$stmt = $outlet->query($q, $this->params);
+		$res = $stmt->fetchAll(PDO::FETCH_ASSOC);
+		
+		return (int) $res[0]['total'];
+	}
+	
+	private function populateObject (array $row, OutletEntityMap $entMap, $from_aliased, $from, array $with_map) {
+		$data = array();
+		// Postgres returns columns as lowercase
+		// TODO: Maybe everything should be converted to lower in query creation / processing to avoid this
+		$dialect = $this->outlet->getConnection()->getDialect();
+		
+		foreach ($entMap->getPropMaps() as $key => $p) {
+			if ($dialect == 'pgsql') {
+				$data[$p[0]] = $row[strtolower($from_aliased) . '_' . strtolower($key)];
+			} else {
+				$data[$p->getColumn()] = $row[$from_aliased . '_' . $key];
+			}
+		}
+		
+		$obj = $this->outlet->getEntityForRow($from, $data);
+		
+		foreach ($with_map as $alias => $with) {
+			$a = $entMap->getAssociation($with);
+			
+			if ($a) {
+				$data = array();
+				$setter = 'set'.$a->getName();
+				$with_entMap = $a->getEntityMap();
+				
+				if ($a instanceof OutletOneToManyConfig) {
+					// TODO: Implement...											 
+				} elseif ($a instanceof OutletManyToManyConfig) {
+					// TODO: Implement...
+				} else { // Many-to-one or one-to-one
+					
+					foreach ($with_entMap->getPropMaps() as $key => $p) {
+						// Postgres returns columns as lowercase
+						// TODO: Maybe everything should be converted to lower in query creation / processing to avoid this
+						if ($dialect == 'pgsql') {
+							$data[$p->getColumn()] = $row[strtolower($alias . '_' . $key)];
+						} else {
+							$data[$p->getColumn()] = $row[$alias . '_' . $key];
+						}
+					}
+					
+					$f = $with_entMap->getPkColumns();
+					
+					// check to see if we found any data for the related entity
+					// using the pk
+					$data_returned = false;
+					$pk_values = array();
+					
+					foreach ($f as $k) {
+						if (isset($data[$k])) {
+							$data_returned = true;
+							break;
+						}
+					}
+					
+					// only fill object if there was data returned
+					if ($data_returned) {
+						$obj->$setter($this->outlet->getEntityForRow($with_entMap->getClass(), $data));
+					}
+				}
+			}
+		}
+		return $obj;
 	}
 	
 	/**
@@ -436,5 +477,67 @@ class OutletQuery
 	
 	public function getOutlet() {
 		return $this->outlet;
+	}
+}
+
+/**
+ * Query representation to aid in the building of sql. 
+ * 
+ * Meant for internal use only. Lower-level than OutletQuery.
+ */
+class OutletSqlQuery {
+	private $from;
+	private $select_fields = array();
+	private $joins = array();
+	private $where = '';
+	private $groupBy = '';
+	private $orderBy = '';
+	private $having = '';
+	private $limit = '';
+	private $offset = '';
+
+	public function setFrom ($from) {
+		$this->from = $from;
+	}
+	
+	public function addSelectField ($field) {
+		$this->select_fields[] = $field;		
+	}
+	
+	public function addJoin ($join) {
+		$this->joins[] = $join;
+	}
+	
+	public function setWhere ($where) {
+		$this->where = $where;
+	}
+	public function setGroupBy ($groupBy) {
+		$this->groupBy = $groupBy;
+	}
+	public function setOrderBy ($orderBy) {
+		$this->orderBy = $orderBy;
+	}
+	public function setHaving ($having) {
+		$this->having = $having;
+	}
+	public function setLimit ($limit) {
+		$this->limit = $limit;
+	}
+	public function setOffset ($offset) {
+		$this->offset = $offset;
+	}
+	
+	public function toSql () {
+		return "
+			SELECT ".implode(",\n", $this->select_fields)."
+			FROM ".$this->from." 
+			".implode("\n", $this->joins)."
+			".$this->where."
+			".$this->groupBy."
+			".$this->orderBy."
+			".$this->having."
+			".$this->limit."
+			".$this->offset."
+		";
 	}
 }
