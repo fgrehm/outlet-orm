@@ -253,7 +253,11 @@ class OutletQuery
 			$oq->addJoin('LEFT JOIN {'.$foreign->getClass().' '.$aliased_join.'} ON {'.$from_aliased.'.'.$assoc->getKey().'} = {'.$with_aliased[$with_key].'.'.$assoc->getRefKey().'}');
 		}
 		
-		$with_map = array_combine($with_aliased, $with);
+		if (count($with)) {
+			$with_map = array_combine($with_aliased, $with);
+		} else {
+			$with_map = array();
+		}
 	}
 
 	/**
@@ -317,7 +321,7 @@ class OutletQuery
 			$oq->setLimit('LIMIT ' . $this->limit);
 			
 			if ($this->offset) {
-				$oq->setLimit(' OFFSET ' . $this->offset);
+				$oq->setOffset(' OFFSET ' . $this->offset);
 			}
 		}
 		
