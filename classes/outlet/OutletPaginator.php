@@ -28,20 +28,12 @@ class OutletPaginator {
 		
 		$outlet = $this->q->getOutlet();
 		
-		$r = new OutletPaginatorResultSet();
-		$r->results = $this->q->offset($offset)->limit($this->results_per_page)->find();
-		$r->totalResults = $this->total;
-		$r->totalPages = floor($this->total/$this->results_per_page)+1;
-		$r->currentPage = $page;
-		$r->firstPage = 1;
-		$r->lastPage = $r->totalPages;
-		$r->previousPage = $page - 1;
-		$r->nextPage = $page + 1;
-		$r->start = $page * $this->results_per_page - $this->results_per_page + 1;
-		$r->end = ($r->totalResults > ($r->start+$this->results_per_page)) ? $r->start+$this->results_per_page-1 : $r->totalResults;
-		
-		$r->isFirst = $page == 1;
-		$r->isLast = $page == $r->lastPage;
+		$r = new OutletPaginatorResultSet(
+			$this->q->offset($offset)->limit($this->results_per_page)->find(),
+			$this->total,
+			$this->results_per_page,
+			$page
+		);
 		
 		return $r;
 	}
@@ -59,9 +51,23 @@ class OutletPaginatorResultSet {
 	public $end;
 	public $results;
 	
-	public $hasFirst;
-	public $hasPrevious;
-	public $hasNext;
-	public $hasLast;
+	public $isFirst;
+	public $isLast;
+	
+	public function __construct ($results, $totalResults, $resultsPerPage, $currentPage) {
+		$this->results = $results;
+		$this->totalResults = $totalResults;
+		$this->totalPages = floor($this->totalResults/$resultsPerPage)+1;
+		$this->currentPage = $currentPage;
+		$this->firstPage = 1;
+		$this->lastPage = $this->totalPages;
+		$this->previousPage = $currentPage - 1;
+		$this->nextPage = $currentPage + 1;
+		$this->start = $currentPage * $resultsPerPage - $resultsPerPage + 1;
+		$this->end = ($this->totalResults > ($this->start+$resultsPerPage)) ? $this->start + $resultsPerPage-1 : $this->totalResults;
+		
+		$this->isFirst = $currentPage == 1;
+		$this->isLast = $currentPage == $this->lastPage;
+	}
 }
 
