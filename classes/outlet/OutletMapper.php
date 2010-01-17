@@ -634,10 +634,9 @@ class OutletMapper
 		if (!$entity) {
 			throw new OutletException('You must pass an entity');
 		}
+		$entityMap = $this->outletMap[$this->getEntityClass($entity)];
 		
-		$entityCfg = $this->config->getEntityForObject($entity);
-		
-		return $entityCfg->toRow($entity);
+		return $entityMap->toRow($entity);
 	}
 
 	/**
