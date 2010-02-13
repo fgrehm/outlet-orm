@@ -376,7 +376,7 @@ class OutletMapper
 				}
 				
 				$foreignMap = $this->outletMap[$this->getEntityClass($ent)];
-				
+
 				$map->setProp($obj, $key, $foreignMap->getProp($ent, $refKey));
 			}
 		}
@@ -620,6 +620,10 @@ class OutletMapper
 		// these last since they reference the key
 		$this->saveOneToMany($obj, $map);
 		$this->saveManyToMany($obj, $map);
+		
+		// update cache
+		// add it to the cache
+		self::set($map->getClass(), $map->getPkValues($obj), array('obj' => $obj, 'original' => $map->toRow($obj)));
 	}
 
 	/**
