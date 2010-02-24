@@ -196,6 +196,8 @@ class Outlet
 	 * @return OutletEntityMap
 	 */
 	public function getEntityMap ($class) {
+		if (!isset($this->map[$class])) throw new OutletConfigException("Entity [$class] has not been defined in the configuration.");
+		
 		return $this->map[$class];
 	}
 
