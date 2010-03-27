@@ -147,6 +147,9 @@ class SimpleOperationsTest extends OutletTestCase {
 		$outlet->save($p);
         $outlet->clearCache();
 
+		$stmt = $outlet->query('SELECT * FROM projects');
+		//print_r($stmt->fetchAll(PDO::FETCH_ASSOC));
+
         $p = $outlet->load('Project', $id);
 
         $this->assertEquals($p->getName(), 'Project test update2');

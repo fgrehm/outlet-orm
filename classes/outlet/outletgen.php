@@ -14,7 +14,7 @@ Outlet::init(require $_SERVER['argv'][1]);
 
 $conf = require $_SERVER['argv'][1];
 
-$gen = new OutletProxyGenerator(Outlet::getInstance()->getConfig());
+$gen = Outlet::getInstance()->getProxyGenerator();
 
 $s = "<?php\n";
 $s .= $gen->generate();

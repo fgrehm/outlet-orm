@@ -2,7 +2,8 @@
 /**
  * @package outlet
  */
-class NestedSetBrowser {
+class NestedSetBrowser
+{
 	/**
 	 * @var Outlet
 	 */
@@ -12,7 +13,7 @@ class NestedSetBrowser {
 	protected $left;
 	protected $right;
 	protected $qualifiers;
-	
+
 	/**
 	 * @param Outlet $outlet Instance of outlet
 	 * @param string $cls Entity class in which the hierarchy is stored
@@ -20,23 +21,25 @@ class NestedSetBrowser {
 	 * @param string $left Name of class property that represents the left value
 	 * @param string $right Name of class property that represents the right value
 	 */
-	public function __construct (Outlet $outlet, $cls, $qualifiers = array(), $left='Left', $right='Right') {
+	public function __construct(Outlet $outlet, $cls, $qualifiers = array(), $left = 'Left', $right = 'Right')
+	{
 		$this->outlet = $outlet;
 		$this->cls = $cls;
 		$this->qualifiers = $qualifiers;
 		$this->left = $left;
 		$this->right = $right;
 	}
-	
-	public function appendChild ($parent, $node) {
+
+	public function appendChild($parent, $node)
+	{
 		// begin transaction
 		$outlet = $this->outlet;
 		$con = $outlet->getConnection();
 		$con->beginTransaction();
 		
-		$c = '{'.$this->cls.'}';
-		$l = '{'.$this->cls.'.'.$this->left.'}';
-		$r = '{'.$this->cls.'.'.$this->right.'}';
+		$c = '{' . $this->cls . '}';
+		$l = '{' . $this->cls . '.' . $this->left . '}';
+		$r = '{' . $this->cls . '.' . $this->right . '}';
 		
 		// qualifiers
 		$w = '';
@@ -51,23 +54,20 @@ class NestedSetBrowser {
 			WHERE $w $l > ?
 		");
 		
-		$stmt->execute(array(
-			$parent->{$this->right}
-		));
+		$stmt->execute(array($parent->{$this->right}));
 		
 		$stmt = $outlet->prepare("
 			UPDATE $c
 			SET $r = $r+2
 			WHERE $w $r >= ?
 		");
-		$stmt->execute(array(
-			$parent->{$this->right}
-		));
+		
+		$stmt->execute(array($parent->{$this->right}));
 		
 		// insert node
 		$parent->{$this->right} += 2;
-		$node->{$this->left} = $parent->{$this->right}-2;
-		$node->{$this->right} = $parent->{$this->right}-1;
+		$node->{$this->left} = $parent->{$this->right} - 2;
+		$node->{$this->right} = $parent->{$this->right} - 1;
 		
 		$outlet->save($node);
 		
@@ -75,8 +75,9 @@ class NestedSetBrowser {
 		
 		return $node;
 	}
-	
-	public function getChildren ($obj) {
+
+	public function getChildren($obj)
+	{
 		$outlet = $this->outlet;
 		
 		$cls = $this->cls;
@@ -85,26 +86,18 @@ class NestedSetBrowser {
 		
 		// qualifiers
 		$w = '';
+		
 		foreach ($this->qualifiers as $field) {
 			$w .= "{n.$field} = " . $outlet->quote($obj->$field) . " AND ";
 		}
 		
-		$children = $outlet->from("$cls n")
-			->leftJoin("{"."$cls parent} ON ({parent.$left} < {n.$left} AND {parent.$right} > {n.$right})")
-			->where(
-				"
+		$children = $outlet->from("$cls n")->leftJoin("{" . "$cls parent} ON ({parent.$left} < {n.$left} AND {parent.$right} > {n.$right})")->where("
 					$w
 					{n.$left} > ?
 					AND {n.$right} < ?
 					AND {parent.$left} >= ?
 					
-				",
-				array($obj->Left, $obj->Right, $obj->Left)
-			)
-			->select("COUNT({parent.$left})")
-			->groupBy("{n.$left}, {n.$right}")
-			->having("COUNT({parent.$left}) = 1")
-			->find();
+				", array($obj->Left, $obj->Right, $obj->Left))->select("COUNT({parent.$left})")->groupBy("{n.$left}, {n.$right}")->having("COUNT({parent.$left}) = 1")->find();
 		
 		return $children;
 	}
