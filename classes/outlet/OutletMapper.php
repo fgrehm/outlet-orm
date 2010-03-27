@@ -275,10 +275,14 @@ class OutletMapper
 				
 				$newArr = array();
 				
-				foreach ($children->getArrayCopy() as $child) {
+				foreach ($children->getArrayCopy() as $i => $child) {
 					//TODO make it work with composite keys
 					$foreignMap->setProp($child, $key, current($pks));
 					$this->save($child);
+
+					// replace trancient version with persistent
+					$children[$i] = $child;
+
 					$newArr[] = $child;
 				}
 				
