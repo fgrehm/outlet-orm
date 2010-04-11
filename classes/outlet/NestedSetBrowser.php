@@ -29,6 +29,50 @@ class NestedSetBrowser
 		$this->left = $left;
 		$this->right = $right;
 	}
+	
+	public function remove ( $node ) {
+		// begin transaction
+		$outlet = $this->outlet;
+		$con = $outlet->getConnection();
+		$con->beginTransaction();
+		
+		$c = '{' . $this->cls . '}';
+		$l = '{' . $this->cls . '.' . $this->left . '}';
+		$r = '{' . $this->cls . '.' . $this->right . '}';;
+		
+			
+		// qualifiers
+		$w = '';
+		foreach ($this->qualifiers as $field) {
+			$w .= "{$field} = " . $outlet->quote($node->$field) . " AND ";
+		}
+		
+		// remove
+		$stmt = $outlet->prepare("
+			DELETE FROM $c
+			WHERE $w $l = ? AND $r = ?
+		");
+		$stmt->execute(array($node->Left, $node->Right));
+		
+		// glose gap
+		$stmt = $outlet->prepare("
+			UPDATE $c
+			SET $l = $l-2
+			WHERE $w $l > ?
+		");
+		
+		$stmt->execute(array($node->Left));
+		
+		$stmt = $outlet->prepare("
+			UPDATE $c
+			SET $r = $r-2
+			WHERE $w $r > ?
+		");
+		
+		$stmt->execute(array($node->Right));
+		
+		$con->commit();
+	}
 
 	public function appendChild($parent, $node)
 	{
