@@ -1,14 +1,14 @@
 <?php
-require_once dirname(__FILE__).'/../OutletTestCase.php';
+require_once 'classes/outlet/OutletException.php';
+require_once 'classes/outlet/OutletXmlException.php';
+require_once 'classes/outlet/OutletXmlConfig.php';
 
-require_once 'outlet/OutletException.php';
-require_once 'outlet/OutletXmlException.php';
-require_once 'outlet/OutletXmlConfig.php';
+require_once 'PHPUnit/Framework/TestCase.php';
 
 /**
  * OutletXmlConfig test case.
  */
-class OutletXmlConfigTest extends OutletTestCase
+class OutletXmlConfigTest extends PHPUnit_Framework_TestCase
 {
 	/**
 	 * Tests OutletXmlConfig::getInstance()

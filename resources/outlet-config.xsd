@@ -1,0 +1,215 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xs:schema xmlns="http://www.outlet-orm.org" xmlns:xs="http://www.w3.org/2001/XMLSchema" targetNamespace="http://www.outlet-orm.org" elementFormDefault="qualified">
+    <xs:element name="outlet-config">
+		<xs:complexType>
+			<xs:sequence>
+				<xs:element name="connection" type="ConnectionType" minOccurs="1" maxOccurs="1">
+					<xs:annotation>
+						<xs:documentation>Connection configuration</xs:documentation>
+					</xs:annotation>
+				</xs:element>
+				<xs:element name="classes" type="ClassesType" minOccurs="1" maxOccurs="1">
+					<xs:annotation>
+						<xs:documentation>Classes configuration</xs:documentation>
+					</xs:annotation>
+				</xs:element>
+			</xs:sequence>
+		</xs:complexType>
+	</xs:element>
+	
+	<xs:complexType name="ConnectionType">
+		<xs:sequence>
+			<xs:element name="dialect" type="DialectList" default="sqlite" minOccurs="1" maxOccurs="1">
+				<xs:annotation>
+					<xs:documentation>The dialect to use</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+			<xs:element name="dsn" type="xs:string" default="sqlite::memory:" minOccurs="1" maxOccurs="1">
+				<xs:annotation>
+					<xs:documentation>PDO connection string </xs:documentation>
+				</xs:annotation>
+			</xs:element>
+			<xs:element name="username" type="xs:string" minOccurs="0" maxOccurs="1">
+				<xs:annotation>
+					<xs:documentation>A username if the database driver requires it</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+			<xs:element name="password" type="xs:string" minOccurs="0" maxOccurs="1">
+				<xs:annotation>
+					<xs:documentation>A password if the database driver requires it </xs:documentation>
+				</xs:annotation>
+			</xs:element>
+		</xs:sequence>
+	</xs:complexType>
+	
+	<xs:simpleType name="DialectList">
+		<xs:restriction base="xs:string">
+    		<xs:enumeration value="mysql" />
+    		<xs:enumeration value="mssql" />
+    		<xs:enumeration value="pgsql" />
+    		<xs:enumeration value="sqlite" />
+    	</xs:restriction>
+	</xs:simpleType>
+	
+	<xs:complexType name="ClassesType">
+		<xs:sequence>
+			<xs:element name="class" type="ClassType" minOccurs="1" maxOccurs="unbounded">
+				<xs:annotation>
+					<xs:documentation>Entity Mappings</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+		</xs:sequence>
+	</xs:complexType>
+	
+	<xs:complexType name="ClassType">
+		<xs:sequence>
+			<xs:element name="property" type="PropertyType" minOccurs="1" maxOccurs="unbounded" />
+			<xs:element name="association" type="AssociationType" minOccurs="0" maxOccurs="unbounded" />
+		</xs:sequence>
+		<xs:attribute name="name" type="xs:string" use="required">
+			<xs:annotation>
+				<xs:documentation>Name of the entity class</xs:documentation>
+			</xs:annotation>
+		</xs:attribute>
+		<xs:attribute name="table" type="xs:string" use="required">
+			<xs:annotation>
+				<xs:documentation>Name of the database table or view that this entity maps to</xs:documentation>
+			</xs:annotation>
+		</xs:attribute>
+		<xs:attribute name="plural" type="xs:string" use="optional">
+			<xs:annotation>
+				<xs:documentation>The noun to use when referring to more than one.
+This is the name used by default on association methods if there's no 'plural' setting set on the association itself.
+Defaults to the entity name plus an 's'.</xs:documentation>
+			</xs:annotation>
+		</xs:attribute>
+		<xs:attribute name="useGettersAndSetters" type="xs:boolean" use="optional" default="false">
+			<xs:annotation>
+				<xs:documentation>Whether to use getters and setters instead of the properties directly. 
+When set, this will override the global configuration of the same name.
+Defaults to the global configuration, which in turn defaults to false.</xs:documentation>
+			</xs:annotation>
+		</xs:attribute>
+		<xs:attribute name="sequenceName" type="xs:string" use="optional">
+			<xs:annotation>
+				<xs:documentation>Since PostgreSQL uses sequences instead of auto increment columns, the PDO driver need the sequence name in order to get the generated new id.
+If not specified it will use the default: {table_name}_{column_name}_seq</xs:documentation>
+			</xs:annotation>
+		</xs:attribute>
+	</xs:complexType>
+	
+	<xs:complexType name="PropertyType">
+		<xs:attribute name="name" type="xs:string" use="required">
+			<xs:annotation>
+				<xs:documentation>Class's property name</xs:documentation>
+			</xs:annotation>
+		</xs:attribute>
+		<xs:attribute name="column" type="xs:string" use="required">
+			<xs:annotation>
+				<xs:documentation>Table's column name</xs:documentation>
+			</xs:annotation>
+		</xs:attribute>
+		<xs:attribute name="type" type="TypeList" use="required">
+			<xs:annotation>
+				<xs:documentation>Column type</xs:documentation>
+			</xs:annotation>
+		</xs:attribute>
+		<xs:attribute name="pk" type="xs:boolean" use="optional" default="false">
+			<xs:annotation>
+				<xs:documentation>Whether this field is (part of) the primary key. Defaults to false.</xs:documentation>
+			</xs:annotation>
+		</xs:attribute>
+		<xs:attribute name="autoIncrement" type="xs:boolean" use="optional" default="false">
+			<xs:annotation>
+				<xs:documentation>Whether this field is automatically incremented by the database. Defaults to false.</xs:documentation>
+			</xs:annotation>
+		</xs:attribute>
+		<xs:attribute name="default" type="xs:string" use="optional">
+			<xs:annotation>
+				<xs:documentation>A default value of the field.</xs:documentation>
+			</xs:annotation>
+		</xs:attribute>
+		<xs:attribute name="defaultExpr" type="xs:string" use="optional">
+			<xs:annotation>
+				<xs:documentation>A default sql expression or function, such as NOW().</xs:documentation>
+			</xs:annotation>
+		</xs:attribute>
+	</xs:complexType>
+	
+	<xs:simpleType name="TypeList">
+		<xs:restriction base="xs:string">
+    		<xs:enumeration value="int" />
+    		<xs:enumeration value="varchar" />
+    		<xs:enumeration value="date" />
+    		<xs:enumeration value="datetime" />
+    		<xs:enumeration value="float" />
+    		<xs:enumeration value="bool" />
+    	</xs:restriction>
+	</xs:simpleType>
+	
+	<xs:complexType name="AssociationType">
+		<xs:attribute name="type" type="AssociationList" use="required">
+			<xs:annotation>
+				<xs:documentation>Mapping type</xs:documentation>
+			</xs:annotation>
+		</xs:attribute>
+		<xs:attribute name="classReference" type="xs:string" use="required" >
+			<xs:annotation>
+				<xs:documentation>Related entity</xs:documentation>
+			</xs:annotation>
+		</xs:attribute>
+		<xs:attribute name="key" type="xs:string" use="optional">
+			<xs:annotation>
+				<xs:documentation>Depends on the relation's type:
+* one-to-many: The name of the property on the related entity that contains the primary key of this entity.
+* many-to-one: The name of the property on this entity that contains the primary key of the related entity.
+* one-to-one: The name of the property on this entity that contains the primary key of the related entity.
+* many-to-many: Not used.</xs:documentation>
+			</xs:annotation>
+		</xs:attribute>
+		<xs:attribute name="name" type="xs:string" use="optional">
+			<xs:annotation>
+				<xs:documentation>Defaults to the name of the related entity.</xs:documentation>
+			</xs:annotation>
+		</xs:attribute>
+		<xs:attribute name="plural" type="xs:string" use="optional">
+			<xs:annotation>
+				<xs:documentation>The noun to use when creating methods that return more than one entity.
+Only necessary for associations that use something other than the entity name (such as 'Sender' or 'Creator' for a an association with a 'User').
+Defaults to the association name plus an 's'.</xs:documentation>
+			</xs:annotation>
+		</xs:attribute>
+		<xs:attribute name="optional" type="xs:boolean" use="optional" default="false">
+			<xs:annotation>
+				<xs:documentation>Whether to allow this relationship to be optional (allow null).</xs:documentation>
+			</xs:annotation>
+		</xs:attribute>
+		<xs:attribute name="table" type="xs:string" use="optional">
+			<xs:annotation>
+				<xs:documentation>* Only for many-to-many association *
+The name of the linking table.</xs:documentation>
+			</xs:annotation>
+		</xs:attribute>
+		<xs:attribute name="tableKeyLocal" type="xs:string" use="optional">
+			<xs:annotation>
+				<xs:documentation>* Only for many-to-many association *
+The name of the column on the linking table that contains the primary key value of this entity.</xs:documentation>
+			</xs:annotation>
+		</xs:attribute>
+		<xs:attribute name="tableKeyForeign" type="xs:string" use="optional">
+			<xs:annotation>
+				<xs:documentation>* Only for many-to-many association *
+The name of the column on the linking table that contains the primary key value of the foreign entity.</xs:documentation>
+			</xs:annotation>
+		</xs:attribute>
+	</xs:complexType>
+	
+	<xs:simpleType name="AssociationList">
+		<xs:restriction base="xs:string">
+    		<xs:enumeration value="one-to-many" />
+    		<xs:enumeration value="many-to-one" />
+    		<xs:enumeration value="one-to-one" />
+    		<xs:enumeration value="many-to-many" />
+    	</xs:restriction>
+	</xs:simpleType>
+</xs:schema>
