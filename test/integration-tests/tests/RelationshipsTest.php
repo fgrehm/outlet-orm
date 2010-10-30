@@ -1,5 +1,6 @@
 <?php
-require_once dirname(__FILE__) . '/../OutletTestCase.php';
+require_once 'test/integration-tests/resources/OutletTestCase.php';
+
 class RelationshipsTest extends OutletTestCase
 {
 	public function testOneToMany()

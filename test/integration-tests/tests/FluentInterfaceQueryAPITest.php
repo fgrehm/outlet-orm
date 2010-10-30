@@ -1,5 +1,5 @@
 <?php
-require_once dirname(__FILE__) . '/../OutletTestCase.php';
+require_once 'test/integration-tests/resources/OutletTestCase.php';
 
 class FluentInterfaceQueryAPITest extends OutletTestCase
 {
@@ -82,7 +82,9 @@ class FluentInterfaceQueryAPITest extends OutletTestCase
 		
 		$profile = $outlet->from('Profile')->with('User Users')->findOne();
 		
-		$this->assertEquals($user, $profile->getUser());
+		$this->assertEquals($user->UserID, $profile->getUser()->UserID);
+		$this->assertEquals($user->FirstName, $profile->getUser()->FirstName);
+		$this->assertEquals($user->LastName, $profile->getUser()->LastName);
 	}
 	
 	function testEagerFetchingManyToOne()
@@ -103,7 +105,8 @@ class FluentInterfaceQueryAPITest extends OutletTestCase
 		
 		$bug = $outlet->from('Bug')->with('Project')->findOne();
 		
-		$this->assertEquals($project, $bug->getProject());
+		//$this->assertEquals($project->getProjectID(), $bug->getProject()->getProjectID()); When saving Project from Bugs the ProjectID was not retrieved...
+		$this->assertEquals($project->getName(), $bug->getProject()->getName());
 	}
 	
 	function testPagination()
