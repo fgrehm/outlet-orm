@@ -1,6 +1,6 @@
 <?php
 /**
- * Contains the necessary class to use spl_register_autoload
+ * Contains the necessary class to use spl_autoload_register
  * 
  * @package org.outlet-orm
  * @subpackage autoloader
@@ -81,6 +81,13 @@ class OutletAutoloader
 		$dir = new ArrayObject();
 		
 		$dir->append($rootDir . 'association/');
+		$dir->append($rootDir . 'map/');
+		$dir->append($rootDir . 'proxy/');
+		$dir->append($rootDir . 'core/');
+		$dir->append($rootDir . 'config/');
+		
+		//TODO remover isto depois
+		$dir->append($rootDir . '../../classes/outlet/');
 		
 		return $dir;
 	}

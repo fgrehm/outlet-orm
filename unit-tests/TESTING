@@ -1,7 +1,0 @@
-
-To test:
-
-$ cd OUTLET/unit-tests
-$ phpunit .
-
-

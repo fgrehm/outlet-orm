@@ -1,4 +1,12 @@
-To install, copy the OUTLET/classes/outlet folder to a place in your php include path.
+1- To install add Outlet to your include path:
 
-Go to http://www.outlet-orm.org for the documentation.
+$outletRootDir = 'Your path to Outlet`s main dir';
+set_include_path(get_include_path() . PATH_SEPARATOR . $outletRootDir);
 
+2- Include the autoloader file:
+
+require 'application/org.outlet-orm/autoloader/OutletAutoloader.php';
+
+3- Register autoloader with SPL:
+
+spl_autoload_register(array(new OutletAutoloader(), 'autoLoad'));
