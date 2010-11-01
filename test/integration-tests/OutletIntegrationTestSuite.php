@@ -1,10 +1,10 @@
 <?php
-require_once 'PHPUnit\Framework\TestSuite.php';
+require_once 'PHPUnit/Framework/TestSuite.php';
 
-require_once 'test\integration-tests\tests\SimpleOperationsTest.php';
-require_once 'test\integration-tests\tests\FluentInterfaceQueryAPITest.php';
-require_once 'test\integration-tests\tests\RelationshipsTest.php';
-require_once 'test\integration-tests\tests\IdentityMapTest.php';
+require_once 'test/integration-tests/tests/SimpleOperationsTest.php';
+require_once 'test/integration-tests/tests/FluentInterfaceQueryAPITest.php';
+require_once 'test/integration-tests/tests/RelationshipsTest.php';
+require_once 'test/integration-tests/tests/IdentityMapTest.php';
 /**
  * Static test suite.
  */

@@ -1,8 +1,8 @@
 <?php
-require_once 'PHPUnit\Framework\TestSuite.php';
+require_once 'PHPUnit/Framework/TestSuite.php';
 
-require_once 'test\org.outlet-orm\autoloader\OutletAutoloaderTest.php';
-require_once 'test\org.outlet-orm\config\OutletXmlConfigTest.php';
+require_once 'test/org.outlet-orm/autoloader/OutletAutoloaderTest.php';
+require_once 'test/org.outlet-orm/config/OutletXmlConfigTest.php';
 /**
  * Static test suite.
  */
