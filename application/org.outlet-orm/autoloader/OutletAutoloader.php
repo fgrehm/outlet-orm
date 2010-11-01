@@ -81,13 +81,13 @@ class OutletAutoloader
 		$dir = new ArrayObject();
 		
 		$dir->append($rootDir . 'association/');
-		$dir->append($rootDir . 'map/');
-		$dir->append($rootDir . 'proxy/');
-		$dir->append($rootDir . 'core/');
 		$dir->append($rootDir . 'config/');
-		
-		//TODO remover isto depois
-		$dir->append($rootDir . '../../classes/outlet/');
+		$dir->append($rootDir . 'core/');
+		$dir->append($rootDir . 'database/');
+		$dir->append($rootDir . 'map/');
+		$dir->append($rootDir . 'nestedset/');
+		$dir->append($rootDir . 'pagination/');
+		$dir->append($rootDir . 'proxy/');
 		
 		return $dir;
 	}
