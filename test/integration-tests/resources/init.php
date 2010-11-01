@@ -4,7 +4,7 @@ define('DATABASE_DRIVER', 'sqlite');
 date_default_timezone_set('America/Sao_Paulo');
 
 set_include_path(get_include_path() . PATH_SEPARATOR . dirname(__FILE__) . '/../../../');
-require 'application/org.outlet-orm/autoloader/OutletAutoloader.php';
+require_once 'application/org.outlet-orm/autoloader/OutletAutoloader.php';
 
 spl_autoload_register(array(new OutletAutoloader(), 'autoLoad'));
 

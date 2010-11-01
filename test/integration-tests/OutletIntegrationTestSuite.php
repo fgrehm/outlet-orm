@@ -1,4 +1,6 @@
 <?php
+set_include_path(get_include_path() . PATH_SEPARATOR . dirname(__FILE__) . '/../../');
+
 require_once 'PHPUnit/Framework/TestSuite.php';
 
 require_once 'test/integration-tests/tests/SimpleOperationsTest.php';

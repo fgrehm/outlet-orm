@@ -1,12 +1,12 @@
 <?php
-class Address
+class OutletTest_Address
 {
 	public $AddressID;
 	public $UserID;
 	public $Street;
 }
 
-class Bug
+class OutletTest_Bug
 {
 	public $ID;
 	public $Title;
@@ -23,7 +23,7 @@ class Bug
 		return $this->project;
 	}
 	
-	function setProject(Project $p)
+	function setProject(OutletTest_Project $p)
 	{
 		$this->project = $p;
 	}
@@ -38,19 +38,19 @@ class Bug
 		$this->watchers = $watchers;
 	}
 	
-	function addWatcher(User $watcher)
+	function addWatcher(OutletTest_User $watcher)
 	{
 		$this->watcher[] = $watcher;
 	}
 }
 
-class Machine
+class OutletTest_Machine
 {
 	public $Name;
 	public $Description;
 }
 
-class Project
+class OutletTest_Project
 {
 	private $ProjectID;
 	private $Name;
@@ -87,13 +87,13 @@ class Project
 		$this->bugs = $bugs;
 	}
 	
-	function addBug(Bug $bug)
+	function addBug(OutletTest_Bug $bug)
 	{
 		$this->bugs[] = $bug;
 	}
 }
 
-class Profile
+class OutletTest_Profile
 {
 	private $ProfileID;
 	private $UserID;
@@ -124,13 +124,13 @@ class Profile
 		return $this->user;
 	}
 	
-	public function setUser(User $u)
+	public function setUser(OutletTest_User $u)
 	{
 		$this->user = $u;
 	}
 }
 
-class User
+class OutletTest_User
 {
 	public $UserID;
 	public $FirstName;
@@ -154,7 +154,7 @@ class User
 		$this->addresses = $addresses;
 	}
 	
-	public function addWorkAddress(Address $addr)
+	public function addWorkAddress(OutletTest_Address $addr)
 	{
 		$this->addresses[] = $addr;
 	}

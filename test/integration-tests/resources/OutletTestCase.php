@@ -1,6 +1,6 @@
 <?php
 require_once 'test/integration-tests/resources/init.php';
-require_once 'PHPUnit/Framework.php';
+require_once 'PHPUnit/Framework/TestCase.php';
 
 abstract class OutletTestCase extends PHPUnit_Framework_TestCase
 {

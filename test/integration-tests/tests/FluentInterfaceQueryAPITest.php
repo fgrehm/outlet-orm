@@ -7,29 +7,29 @@ class FluentInterfaceQueryAPITest extends OutletTestCase
 	{
 		$outlet = Outlet::getInstance();
 		
-		$p = new Project();
+		$p = new OutletTest_Project();
 		$p->setName('Project 1');
 		
 		$outlet->save($p);
 		
-		$p = new Project();
+		$p = new OutletTest_Project();
 		$p->setName('Project 2');
 		
 		$outlet->save($p);
 		
-		$this->assertEquals(2, count($outlet->from('Project')->find()));
+		$this->assertEquals(2, count($outlet->from('OutletTest_Project')->find()));
 	}
 	
 	function testFindOne()
 	{
 		$outlet = Outlet::getInstance();
 		
-		$p = new Project();
+		$p = new OutletTest_Project();
 		$p->setName('Project 1');
 		
 		$outlet->save($p);
 
-		$this->assertEquals($p, $outlet->from('Project')->findOne());
+		$this->assertEquals($p, $outlet->from('OutletTest_Project')->findOne());
 	}
 	
 	/*
@@ -54,7 +54,7 @@ class FluentInterfaceQueryAPITest extends OutletTestCase
                 // clear cache because it will be used to check if bugs were loaded
                 $outlet->clearCache();
 
-                $projects = $outlet->from('Project')->with('Bug')->find();
+                $projects = $outlet->from('OutletTest_Project')->with('Bug')->find();
                 $this->assertEqual(2, count(OutletMapper::$map['Bug']));
         }
        
@@ -68,19 +68,19 @@ class FluentInterfaceQueryAPITest extends OutletTestCase
 	{
 		$outlet = Outlet::getInstance();
 		
-		$user = new User();
+		$user = new OutletTest_User();
 		$user->FirstName = 'Alvaro';
 		$user->LastName = 'Carrasco';
 		
 		$outlet->save($user);
 		
-		$profile = new Profile();
+		$profile = new OutletTest_Profile();
 		$profile->setUserID($user->UserID);
 		$outlet->save($profile);
 		
 		$outlet->clearCache();
 		
-		$profile = $outlet->from('Profile')->with('User Users')->findOne();
+		$profile = $outlet->from('OutletTest_Profile')->with('User Users')->findOne();
 		
 		$this->assertEquals($user->UserID, $profile->getUser()->UserID);
 		$this->assertEquals($user->FirstName, $profile->getUser()->FirstName);
@@ -91,10 +91,10 @@ class FluentInterfaceQueryAPITest extends OutletTestCase
 	{
 		$outlet = Outlet::getInstance();
 		
-		$bug = new Bug();
+		$bug = new OutletTest_Bug();
 		$bug->Title = 'Test Bug';
 		
-		$project = new Project();
+		$project = new OutletTest_Project();
 		$project->setName('Test Project');
 		
 		$bug->setProject($project);
@@ -103,7 +103,7 @@ class FluentInterfaceQueryAPITest extends OutletTestCase
 
 		$outlet->clearCache();
 		
-		$bug = $outlet->from('Bug')->with('Project')->findOne();
+		$bug = $outlet->from('OutletTest_Bug')->with('Project')->findOne();
 		
 		//$this->assertEquals($project->getProjectID(), $bug->getProject()->getProjectID()); When saving Project from Bugs the ProjectID was not retrieved...
 		$this->assertEquals($project->getName(), $bug->getProject()->getName());
@@ -115,12 +115,12 @@ class FluentInterfaceQueryAPITest extends OutletTestCase
 		$totalRecords = 25;
 		
 		for ($i = 0; $i < $totalRecords; $i++) {
-			$project = new Project();
+			$project = new OutletTest_Project();
 			$project->setName('Test Project ' . $i);
 			$outlet->save($project);
 		}
 		
-		$this->assertEquals(10, count($outlet->from('Project')->limit(10)->find()));
-		$this->assertEquals(5, count($outlet->from('Project')->limit(10)->offset(20)->find()));
+		$this->assertEquals(10, count($outlet->from('OutletTest_Project')->limit(10)->find()));
+		$this->assertEquals(5, count($outlet->from('OutletTest_Project')->limit(10)->offset(20)->find()));
 	}
 }

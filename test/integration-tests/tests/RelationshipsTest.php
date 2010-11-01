@@ -7,19 +7,19 @@ class RelationshipsTest extends OutletTestCase
 	{
 		$outlet = Outlet::getInstance();
 		
-		$project = new Project();
+		$project = new OutletTest_Project();
 		$project->setName('Cool Project');
 		
-		$bug1 = new Bug();
+		$bug1 = new OutletTest_Bug();
 		$bug1->Title = 'Bug 1';
 		$project->addBug($bug1);
 		
-		$bug2 = new Bug();
+		$bug2 = new OutletTest_Bug();
 		$bug2->Title = 'Bug2';
 		$project->addBug($bug2);
 		
 		$outlet->save($project);
-		$project = $outlet->load('Project', $project->getProjectID());
+		$project = $outlet->load('OutletTest_Project', $project->getProjectID());
 		
 		$this->assertEquals(2, count($project->getBugs()));
 	}
@@ -28,21 +28,21 @@ class RelationshipsTest extends OutletTestCase
 	{
 		$outlet = Outlet::getInstance();
 		
-		$project = new Project();
+		$project = new OutletTest_Project();
 		$project->setName('Cool Project');
 		
-		$bug1 = new Bug();
+		$bug1 = new OutletTest_Bug();
 		$bug1->Title = 'Bug 1';
 		$project->addBug($bug1);
 		
-		$bug2 = new Bug();
+		$bug2 = new OutletTest_Bug();
 		$bug2->Title = 'Bug2';
 		$project->addBug($bug2);
 		
 		$outlet->save($project);
 		$outlet->clearCache();
 		
-		$project = $outlet->load('Project', $project->getProjectID());
+		$project = $outlet->load('OutletTest_Project', $project->getProjectID());
 		$bugs = $project->getBugs();
 		
 		$this->assertNotNull($bugs[1]);
@@ -52,10 +52,10 @@ class RelationshipsTest extends OutletTestCase
 	{
 		$outlet = Outlet::getInstance();
 		
-		$bug = new Bug();
+		$bug = new OutletTest_Bug();
 		$bug->Title = 'Test Bug';
 		
-		$project = new Project();
+		$project = new OutletTest_Project();
 		$project->setName('Test Project');
 		$bug->setProject($project);
 		
@@ -66,13 +66,13 @@ class RelationshipsTest extends OutletTestCase
 	{
 		$outlet = Outlet::getInstance();
 		
-		$user = new User();
+		$user = new OutletTest_User();
 		$user->FirstName = 'Alvaro';
 		$user->LastName = 'Carrasco';
 		
 		$outlet->save($user);
 		
-		$profile = new Profile();
+		$profile = new OutletTest_Profile();
 		$profile->setUserID($user->UserID);
 		
 		$outlet->save($profile);
@@ -84,14 +84,14 @@ class RelationshipsTest extends OutletTestCase
 	{
 		$outlet = Outlet::getInstance();
 		
-		$user = new User();
+		$user = new OutletTest_User();
 		$user->Firstname = 'Alvaro';
 		$user->LastName = 'Carrasco';
 		
-		$bug = new Bug();
+		$bug = new OutletTest_Bug();
 		$bug->Name = 'Test Bug';
 		
-		$project = new Project();
+		$project = new OutletTest_Project();
 		$project->setName('Test Project');
 		$bug->setProject($project);
 		
@@ -108,10 +108,10 @@ class RelationshipsTest extends OutletTestCase
 	{
 		$outlet = Outlet::getInstance();
 		
-		$addr = new Address();
+		$addr = new OutletTest_Address();
 		$addr->Street = 'Test Street';
 		
-		$user = new User();
+		$user = new OutletTest_User();
 		$user->addWorkAddress($addr);
 		
 		$outlet->save($user);
@@ -121,10 +121,10 @@ class RelationshipsTest extends OutletTestCase
 	{
 		$outlet = Outlet::getInstance();
 
-		$p = new Project();
+		$p = new OutletTest_Project();
 		$p->setName('Name 1');
 		
-		$b = new Bug();
+		$b = new OutletTest_Bug();
 		$b->Title = 'Test Bug';
 		$p->addBug($b);
 		
@@ -135,7 +135,7 @@ class RelationshipsTest extends OutletTestCase
 
 		$outlet->save($p);
 		
-		$p = $outlet->load('Project', $projectid);
+		$p = $outlet->load('OutletTest_Project', $projectid);
 		
 		$this->assertEquals('Name 2', $p->getName());
 	}

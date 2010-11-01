@@ -1,0 +1,94 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project name="OutletORM" default="build" basedir=".">
+    <property name="reports" value="${project.basedir}/reports" />
+    <property name="phpdoc" value="${project.basedir}/doc" />
+    <property name="style" value="/usr/local/zend/share/pear/data/phing/etc/" />
+    
+	<target name="clean">
+      <echo msg="Cleaning..."/>
+      <delete dir="${reports}" includeemptydirs="true" verbose="true" failonerror="true" />
+      <delete dir="${phpdoc}" includeemptydirs="true" verbose="true" failonerror="true" />
+    </target>
+        
+    <target name="prepare" depends="clean">
+    	<echo msg="Creating reports directory" />
+    	<mkdir dir="${reports}" />
+    	<exec command="chmod -R 777 ${reports}" />
+    	<echo msg="Creating coverage directory" />
+    	<mkdir dir="${reports}/coverage" />
+    	<exec command="chmod -R 777 ${reports}/coverage" />
+    	<echo msg="Creating phpdoc directory" />
+    	<mkdir dir="${phpdoc}" />
+    	<exec command="chmod -R 777 ${phpdoc}" />
+    </target>
+    
+    <target name="test" depends="prepare">
+    	<echo msg="Testing the application" />
+    	<coverage-setup database="${reports}/coverage.db">
+    		<fileset dir="${project.basedir}/application">
+				<include name="**/*.php" />
+				<exclude name="**/*Test*.php"/>
+			</fileset>
+   		</coverage-setup>
+    	
+    	<phpunit printsummary="true" haltonerror="true" haltonfailure="true" codecoverage="true">
+		  <formatter type="xml" todir="${reports}" outfile="phpunit.xml" />
+		  <formatter type="clover" todir="${reports}" outfile="clover.xml" />
+		  <batchtest>
+		    <fileset dir="${project.basedir}/test">
+		      <include name="integration-tests/OutletIntegrationTestSuite.php"/>
+		      <include name="org.outlet-orm/OutletTestSuite.php"/>
+		    </fileset>
+		  </batchtest>
+		</phpunit>
+		
+		<coverage-report outfile="${reports}/coverage.xml">
+			<report todir="${reports}/coverage" />
+		</coverage-report>
+	</target>
+    
+    <target name="cpd" depends="test">
+    	<echo msg="Validating duplicated elements" />
+    	<phpcpd>
+			<fileset dir="${project.basedir}/application">
+				<include name="**/*.php" />
+				<exclude name="**/*Test*.php"/>
+			</fileset>
+			<formatter type="pmd" outfile="${reports}/pmd-cpd.xml"/>
+		</phpcpd>
+    </target>
+    
+    <target name="pmd" depends="cpd">
+ 	   <echo msg="Php Mess Detector" />
+    	<phpmd>
+    		<fileset dir="${project.basedir}/application">
+    			<include name="**/*.php" />
+    			<exclude name="**/*Test*.php"/>
+   			</fileset>
+   			<formatter type="xml" outfile="${reports}/pmd.xml"/>
+ 		</phpmd>
+    </target>
+    
+    <target name="pdepend" depends="pmd">
+    	<phpdepend>
+    		<fileset dir="${project.basedir}/application">
+    			<include name="**/*.php" />
+    			<exclude name="**/*Test*.php"/>
+   			</fileset>
+   			<logger type="jdepend-xml" outfile="${reports}/jdepend.xml"/>
+   			<analyzer type="coderank-mode" value="method"/>
+  		</phpdepend>
+    </target>
+    
+    <target name="doc" depends="pdepend">
+    	<phpdoc quiet="true" title="OutletORM API Documentation" defaultpackagename="OutletORM API" target="doc/" output="HTML:frames:default" parseprivate="true">
+			<fileset dir="${project.basedir}/application">
+				<include name="**/*.php" />
+				<exclude name="**/*Test*.php"/>
+			</fileset>
+		</phpdoc>
+    </target>
+    
+    <target name="build" depends="doc">
+    </target>
+</project>

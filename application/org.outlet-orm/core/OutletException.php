@@ -7,58 +7,71 @@
  * @author Luís Otávio Cobucci Oblonczyk <luis@softnex.com.br>
  */
 
-/**
- * Exception to be used on problems related to outlet, add the nested exception funcionality (like in PHP 5.3)
- * 
- * @package org.outlet-orm
- * @subpackage core
- * @author Luís Otávio Cobucci Oblonczyk <luis@softnex.com.br>
- */
-class OutletException extends Exception
-{
+if (strpos(PHP_VERSION, '5.3') === 0) {
 	/**
-	 * Previous exception
+	 * Exception to be used on problems related to outlet for PHP 5.3
 	 * 
-	 * @var Exception
+	 * @package org.outlet-orm
+	 * @subpackage core
+	 * @author Luís Otávio Cobucci Oblonczyk <luis@softnex.com.br>
 	 */
-	protected $previous;
-	
-	/**
-	 * @param string $message
-	 * @param int $code
-	 * @param Exception $cause
-	 */
-	public function __construct($message = '', $code = 0, Exception $previous = null)
+	class OutletException extends Exception
 	{
-		$this->previous = $previous;
-		
-		parent::__construct($message, $code);
 	}
-	
+} else {
 	/**
-	 * Returns previous Exception (the third parameter of OutletException::__construct()).
-	 *  
-	 * @return Exception
+	 * Exception to be used on problems related to outlet, add the nested exception funcionality (like in PHP 5.3)
+	 * 
+	 * @package org.outlet-orm
+	 * @subpackage core
+	 * @author Luís Otávio Cobucci Oblonczyk <luis@softnex.com.br>
 	 */
-	public final function getPrevious()
+	class OutletException extends Exception
 	{
-		return $this->previous;
-	}
-	
-	/**
-	 * Override of __toString to work like PHP 5.3 (with nested Exception)
-	 */
-	public function __toString()
-	{
-		$string = 'exception \'' . get_class($this) . '\' with message \'' . $this->getMessage() . '\' in ' . $this->getFile() . ':' . $this->getLine() . "\n";
-		$string .= 'Stack trace:' . "\n";
-		$string .= $this->getTraceAsString();
+		/**
+		 * Previous exception
+		 * 
+		 * @var Exception
+		 */
+		protected $previous;
 		
-		if ($this->getPrevious()) {
-			$string .= "\n\n";
-			$string .= 'Next ' . $this->getPrevious();
+		/**
+		 * @param string $message
+		 * @param int $code
+		 * @param Exception $cause
+		 */
+		public function __construct($message = '', $code = 0, Exception $previous = null)
+		{
+			$this->previous = $previous;
+			
+			parent::__construct($message, $code);
 		}
 		
-		return $string;
+		/**
+		 * Returns previous Exception (the third parameter of OutletException::__construct()).
+		 *  
+		 * @return Exception
+		 */
+		public final function getPrevious()
+		{
+			return $this->previous;
+		}
+		
+		/**
+		 * Override of __toString to work like PHP 5.3 (with nested Exception)
+		 */
+		public function __toString()
+		{
+			$string = 'exception \'' . get_class($this) . '\' with message \'' . $this->getMessage() . '\' in ' . $this->getFile() . ':' . $this->getLine() . "\n";
+			$string .= 'Stack trace:' . "\n";
+			$string .= $this->getTraceAsString();
+			
+			if ($this->getPrevious()) {
+				$string .= "\n\n";
+				$string .= 'Next ' . $this->getPrevious();
+			}
+			
+			return $string;
+		}
 	}
 }
